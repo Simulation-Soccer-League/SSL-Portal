@@ -6,15 +6,22 @@ box::use(
   RMySQL,
 )
 
+db_host <- Sys.getenv("HOST")
+db_port <- Sys.getenv("PORT") |> as.integer()
+db_user <- Sys.getenv("DBUSER")
+db_password <- Sys.getenv("DBPASSWORD")
+
+print(db_port)
+
 sqlQuery <- function(query, db) {
   con <-
     DBI$dbConnect(
       RMySQL$MySQL(),
-      dbname = config$get(config = "mysql", db),
-      host = config$get(config = "mysql", "host"),
-      port = config$get(config = "mysql", "port"),
-      user = config$get(config = "mysql", "user"),
-      password = config$get(config = "mysql", "pass")
+      dbname = config$get(db),
+      host = db_host,
+      port = db_port,
+      user = db_user,
+      password = db_password
     )
 
   DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
