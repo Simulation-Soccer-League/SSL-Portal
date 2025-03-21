@@ -1,4 +1,3 @@
-
 box::use(
   bslib,
   dplyr[select, if_else, mutate, arrange, slice_head, desc],
@@ -41,7 +40,7 @@ ui <- function(id) {
           )
       ),
       bslib$card_body(
-        shiny$uiOutput(ns("schedule")) |> 
+        shiny$uiOutput(ns("schedule")) |>
             withSpinnerCustom(height = 20)
         )
       ),
@@ -54,7 +53,7 @@ ui <- function(id) {
           shiny$h5("Major League Standings")
         ),
         bslib$card_body(
-          reactableOutput(ns("standings_1")) |> 
+          reactableOutput(ns("standings_1")) |>
             withSpinnerCustom(height = 20)
         )
       ),
@@ -63,7 +62,7 @@ ui <- function(id) {
           shiny$h5("Minor League Standings")
         ),
         bslib$card_body(
-          reactableOutput(ns("standings_2")) |> 
+          reactableOutput(ns("standings_2")) |>
             withSpinnerCustom(height = 20)
         )
       ),
@@ -72,7 +71,7 @@ ui <- function(id) {
           shiny$h4("Weekly top earners")
         ),
         bslib$card_body(
-          reactableOutput(ns("weeklyLeaders")) |> 
+          reactableOutput(ns("weeklyLeaders")) |>
             withSpinnerCustom(height = 40)
         )
       ),
@@ -81,7 +80,7 @@ ui <- function(id) {
           shiny$h4("Recent creates")
         ),
         bslib$card_body(
-          reactableOutput(ns("created")) |> 
+          reactableOutput(ns("created")) |>
             withSpinnerCustom(height = 40)
         )
       )
@@ -91,15 +90,15 @@ ui <- function(id) {
         shiny$h4("Activity Checks")
       ),
       bslib$card_body(
-        plotlyOutput(ns("activityChecks")) |> 
-          withSpinnerCustom(height = 40) |> 
+        plotlyOutput(ns("activityChecks")) |>
+          withSpinnerCustom(height = 40) |>
           shiny$div(class = "plotlyBorder"))
     )
   )
 }
 
 #' @export
-server <- function(id, usergroup, startTime) {
+server <- function(id, usergroup) {
   shiny$moduleServer(
     id,
     function(input, output, session) {

@@ -11,8 +11,6 @@ db_port <- Sys.getenv("PORT") |> as.integer()
 db_user <- Sys.getenv("DBUSER")
 db_password <- Sys.getenv("DBPASSWORD")
 
-print(db_port)
-
 sqlQuery <- function(query, db) {
   con <-
     DBI$dbConnect(

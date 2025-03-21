@@ -38,10 +38,11 @@ h1, h2, h3, h4, h5 {
     font-weight: 600;
 }
 
-/* Should prevent rendering elements that have display none */
+/* Should prevent rendering elements that have display none 
 .router-hidden {
   display: none;
 }
+*/
 
 /* Display grid for the box container with 4 columns   */
 #standingsCup-boxes {
@@ -340,7 +341,7 @@ $navbar-items-width: 112px;
 
 .skin-blue .main-header .navbar {
     background-color: var(--sslBlueD);
-    background-image: url(https://i.imgur.com/k7qNGB5.jpg);
+    /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
 }
 
 .skin-blue .wrapper, .skin-blue .main-sidebar, .skin-blue .left-side {
@@ -353,7 +354,7 @@ $navbar-items-width: 112px;
     background-color: var(--topBackground);
     color: #fff;
     border-bottom: 0 solid rgba(0, 0, 0, 0);
-    background-image: url(https://i.imgur.com/k7qNGB5.jpg);
+    /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
     border-right: 2px solid var(--sslGold);
 }
 
@@ -369,7 +370,7 @@ $navbar-items-width: 112px;
 .skin-blue .sidebar-menu>li:hover>a, .skin-blue .sidebar-menu>li.active>a, .skin-blue .sidebar-menu>li.menu-open>a {
     color: #fff;
     background: var(--sslGold);
-    background-image: url(https://i.imgur.com/gVNA3OP.jpg);
+    /*background-image: url(https://i.imgur.com/gVNA3OP.jpg);*/
 }
 
 .skin-blue .sidebar-menu>li.active>a {
@@ -403,7 +404,7 @@ $navbar-items-width: 112px;
     display: block;
     padding: 10px;
     position: relative;
-    background-image: url(https://i.imgur.com/k7qNGB5.jpg);
+    /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
     border: 2px solid var(--sslGold);
     text-align: center;
 }

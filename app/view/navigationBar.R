@@ -84,7 +84,8 @@ ui <- function(id) {
               navMenu(
                 label = "Trackers",
                 items = list(
-                  a("Players", href = route_link("tracker/player")),
+                  # a("Players", href = route_link("tracker/player")),
+                  a("Search", href = route_link("search")),
                   a("Organizations", href = route_link("tracker/organization")),
                   a("Draft Class", href = route_link("tracker/draftclass"))
                 )
@@ -122,21 +123,6 @@ ui <- function(id) {
 #' @export
 server <- function(id, auth, resAuth) {
   moduleServer(id, function(input, output, session) {
-    
-    # workers <- reactive({
-    #   print(future$nbrOfFreeWorkers())
-    #   
-    #   future$resetWorkers(future$plan())
-    #   
-    #   future$nbrOfFreeWorkers()
-    #   # is(future$plan(), "multisession")
-    # }) |> 
-    #   bindEvent(session$clientData$url_hash)
-    # 
-    # output$workers <- renderText({
-    #   workers()
-    # })
-    
     
     ### Output
     output$jobsNavigation <- renderUI({
@@ -213,8 +199,6 @@ server <- function(id, auth, resAuth) {
       bindEvent(input$cookies$token, ignoreNULL = TRUE, once = TRUE)
     
     observe({
-      print("login")
-      
       showModal(
         modalDialog(
           textInput(session$ns("user"), label = "Username:"),

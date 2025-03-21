@@ -10,6 +10,7 @@ box::use(
 box::use(
   app/view/navigationBar,
   app/view/tracker/player,
+  app/view/tracker/playerSearch,
   app/view/welcome,
 )
 
@@ -23,7 +24,8 @@ ui <- function(id) {
     navigationBar$ui(ns("nav")),
     router_ui(
       route("/", welcome$ui(ns("welcome"))),
-      route("tracker/player", player$ui(ns("player")))
+      route("tracker/player", player$ui(ns("player"))),
+      route("search", playerSearch$ui(ns("search")))
     )
   )
 }
@@ -32,11 +34,7 @@ ui <- function(id) {
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     
-    start <- Sys.time()
     router_server("/")
-    
-    # plan(multisession)
-    # print(paste0("Planning multisession: ", Sys.time() - start, " with worker ", Sys.getpid()))
     
     ## Reactives
     resAuth <- shiny$reactiveValues(
@@ -51,10 +49,10 @@ server <- function(id) {
     })
     
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth)
-    print(paste0("Finished navbar: ", Sys.time() - start, " with worker ", Sys.getpid()))
     
-    welcome$server("welcome", usergroup = authOutput()$usergroup, startTime = start)
-    print(paste0("Finished welcome: ", Sys.time() - start, " with worker ", Sys.getpid()))
+    welcome$server("welcome", usergroup = authOutput()$usergroup)
+    
+    playerSearch$server("search")
     
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
@@ -98,14 +96,11 @@ server <- function(id) {
         draftclass$server("draftclass")
         loadedServer$draftclass <- TRUE
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
-        player$server("player", startTime = start)
-        loadedServer$player <- TRUE
+         player$server("player")
+         loadedServer$player <- TRUE
       }
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
     
-    print(paste0("Finished loading servers: ", Sys.time() - start, " with worker ", Sys.getpid()))
-    
-    print(paste0("Finished main server: ", Sys.time() - start, " with worker ", Sys.getpid()))
   })
 }

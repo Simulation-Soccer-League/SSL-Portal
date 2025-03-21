@@ -31,8 +31,7 @@ getUpdateHistory <- function(pid) {
       Time = Time |>
         as.numeric() |>
         lubridate$as_datetime(tz = "US/Pacific")
-    ) |>
-    future_promise()
+    )
 }
 
 #' @export
@@ -55,8 +54,7 @@ getTpeHistory <- function(pid) {
       Time = Time |>
         as.numeric() |>
         lubridate$as_datetime(tz = "US/Pacific")
-    ) |>
-    future_promise()
+    )
 }
 
 #' @export
@@ -64,8 +62,7 @@ getBankHistory <- function(pid) {
   readAPI(
     "https://api.simulationsoccer.com/bank/getBankTransactions",
     query = list(pid = pid)
-  ) |>
-    future_promise()
+  )
 }
 
 #' @export
@@ -103,19 +100,27 @@ getTopEarners <- function() {
 }
 
 #' @export
-getPlayerNames <- function(retired = TRUE, freeAgent = TRUE){
+getPlayerNames <- function(){
   portalQuery(
     paste0(
-      "SELECT name, pid
-      FROM playerdata ",
-      if_else(!freeAgent, 
-              "WHERE team > -2", 
-              if_else(!retired,
-                      "WHERE status_p > 0",
-                      "WHERE status_p >= 0"
-                      )
-              ),
-      " ORDER BY name;"
+      "SELECT name, pid, team
+      FROM playerdata
+      WHERE team >= -3
+      ORDER BY team DESC, name;"
+    )
+  )
+}
+
+#' @export
+getPlayers <- function(){
+  portalQuery(
+    paste0(
+      "SELECT pd.name, mb.username, pd.pid, pd.position, pd.tpe, pd.tpebank, pd.class, ps.desc AS `playerStatus`
+      FROM playerdata pd
+      LEFT JOIN playerstatuses ps ON pd.status_p = ps.status
+      LEFT JOIN mybbdb.mybb_users mb ON pd.uid = mb.uid
+      WHERE team >= -3
+      ORDER BY pd.created DESC;"
     )
   )
 }
