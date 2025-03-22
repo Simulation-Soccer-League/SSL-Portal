@@ -1,7 +1,7 @@
 box::use(
   future,
   methods[is],
-  shiny[moduleServer, NS, tagList, tags, icon, div, uiOutput, renderUI, observe, bindEvent, a, actionButton, p, showModal, removeModal, modalDialog, modalButton, textInput, passwordInput, verbatimTextOutput, renderText, reactive],
+  shiny[moduleServer, NS, tagList, tags, icon, div, uiOutput, renderUI, observe, bindEvent, a, actionButton, actionLink, p, showModal, removeModal, modalDialog, modalButton, textInput, passwordInput, verbatimTextOutput, renderText, reactive],
   shiny.router[route_link, change_page],
   shinyFeedback[feedbackWarning]
 )
@@ -55,6 +55,28 @@ ui <- function(id) {
                       getCookies();
                     })
                   "),
+    tags$script("
+      // Copy the content of the main nav to the mobile nav after a short delay
+      // to ensure the main nav is fully rendered before we try to copy it over.
+      // Doing it this way rather than typing out another nav for mobile.
+      window.addEventListener('load', function() {
+        console.log('Window loaded, setting timeout to copy nav items...');
+        setTimeout(function() {
+          console.log('Timeout complete, copying nav items...');
+          const mobileNav = document.querySelector('.nav-container_narrow');
+          const desktopNav = document.querySelector('.nav-container');
+
+          if (desktopNav) {
+            console.log('Copying nav items from desktop to mobile...');
+            const children = Array.from(desktopNav.childNodes);
+            console.log(children);
+            children.forEach(function(child) {
+              mobileNav.appendChild(child.cloneNode(true));
+            });
+          }
+        });
+      });
+    "),
     tags$head(
       tags$link(
         rel = "icon", 
@@ -63,55 +85,65 @@ ui <- function(id) {
       tags$title("SSL Portal")
     ),
     tags$nav(
+      class = "nav-container_narrow",
+      actionButton(inputId = "navToggle", label = "", class = "nav-toggle", ontouchstart = "
+        var mobileNav = document.querySelector('.nav-container_narrow');
+        var openMaxWidth = '80%';
+
+        if (mobileNav) {
+          var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
+          mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
+
+          this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
+        }
+      "),
+    ),
+    tags$nav(
       class = "ssl-navbar",
-      flexRow(
-        style = "
-          margin-left: 128px;
-          margin-right: 12px;
-          height: inherit;
-          align-items: end;
-          justify-content: space-between;
-        ",
-        tagList(
-          flexRow(
-            tagList(
-              tags$a(
-                href='https://forum.simulationsoccer.com',
-                target="_blank",
-                tags$img(src = 'static/portalwhite.png', height = "70"),
-                class = "logo"
-              ),
-              navMenu(
-                label = "Trackers",
-                items = list(
-                  # a("Players", href = route_link("tracker/player")),
-                  a("Search", href = route_link("search")),
-                  a("Organizations", href = route_link("tracker/organization")),
-                  a("Draft Class", href = route_link("tracker/draftclass"))
+      tagList(
+        tags$a(
+          href='https://forum.simulationsoccer.com',
+          target="_blank",
+          tags$img(src = 'static/portalwhite.png', height = "70"),
+          class = "logo"
+        ),
+        div(
+          class = "nav-container",
+          tagList(
+            flexRow(
+              tagList(
+                navMenu(
+                  label = "Trackers",
+                  items = list(
+                    # a("Players", href = route_link("tracker/player")),
+                    a("Search", href = route_link("search")),
+                    a("Organizations", href = route_link("tracker/organization")),
+                    a("Draft Class", href = route_link("tracker/draftclass"))
+                  )
+                ),
+                navMenu(
+                  label = "Index",
+                  items = list(
+                    a("Index", href = route_link("index/")),
+                    a("Records", href = route_link("index/records")),
+                    a("Standings", href = route_link("index/standings")),
+                    a("Schedule", href = route_link("index/schedule")),
+                    a("Academy", href = route_link("index/academy"))
+                  )
+                ),
+                uiOutput(ns("jobsNavigation")) |>
+                  withSpinnerCustom(height = 20),
+                navMenu(
+                  div(a("Intro", href = route_link("/")))
                 )
-              ),
-              navMenu(
-                label = "Index",
-                items = list(
-                  a("Index", href = route_link("index/")),
-                  a("Records", href = route_link("index/records")),
-                  a("Standings", href = route_link("index/standings")),
-                  a("Schedule", href = route_link("index/schedule")),
-                  a("Academy", href = route_link("index/academy"))
-                )
-              ),
-              uiOutput(ns("jobsNavigation")) |> 
-                withSpinnerCustom(height = 20),
-              navMenu(
-                div(a("Intro", href = route_link("/")))
               )
-            )
-          ),
-          flexRow(
-            tagList(
-              verbatimTextOutput(ns("workers")),
-              uiOutput(ns("yourPlayer")) |> 
-                withSpinnerCustom(height = 20)  
+            ),
+            flexRow(
+              tagList(
+                verbatimTextOutput(ns("workers")),
+                uiOutput(ns("yourPlayer")) |>
+                  withSpinnerCustom(height = 20)
+              )
             )
           )
         )
@@ -152,7 +184,7 @@ server <- function(id, auth, resAuth) {
         navMenu(
           tagList(
             icon("user"),
-            a("Login", href = "#", inputId = session$ns("login"))
+            actionLink("Login", inputId = session$ns("login"))
           )
         )
       } else {
@@ -167,7 +199,7 @@ server <- function(id, auth, resAuth) {
             navMenu(
               tagList(
                 icon("door-open"),
-                a("Logout", href = "#", inputId = session$ns("logout"))
+                actionLink("Logout", inputId = session$ns("logout"))
               )
             )
           )
