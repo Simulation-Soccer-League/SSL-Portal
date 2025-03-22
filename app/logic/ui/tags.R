@@ -16,10 +16,20 @@ flexRow <- function(cont, style = "") {
 #' @export
 navMenu <- function(cont, label = "", items = list()) {
   if (!missing(cont) && label == "") {
-    shiny::tag("div", varArgs = list(cont, class = "nav-toggle"))
+    shiny::tag("div", varArgs = list(cont, class = "nav-menu"))
   } else if (length(label) > 0) {
+    # TODO: Height of each items div doesn't affect other nav menu items
     div(
-      class = "nav-toggle",
+      class = "nav-menu",
+      role = "button",
+      onclick = "
+        const menuItems = this.querySelector('.nav-menu_items');
+        const maxContent = 'max-content';
+        if (menuItems) {
+          const isOpen = getComputedStyle(menuItems).height === maxContent;
+          menuItems.style.height = isOpen ? '0px' : maxContent;
+        }
+      ",
       tagList(
         flexRow(
           style = "align-items: center; gap: 4px;",
@@ -30,12 +40,13 @@ navMenu <- function(cont, label = "", items = list()) {
         ),
         if (length(items) > 0) {
           div(
-            class = "nav-toggle_items",
+            class = "nav-menu_items",
+            role = "button",
             flexCol(
               tagList(
                 tags_list <- lapply(items, function(item) {
                   div(
-                    class = "nav-toggle_item",
+                    class = "nav-menu_item",
                     item
                   )
                 })
@@ -55,17 +66,18 @@ navMenuItem <- function(cont, label = "", subItems = list()) {
       flexRow(
         style = "align-items: center; justify-content: space-between; gap: 4px; padding: 8px;",
         tagList(
-          span(label),
+          span(label, role = "button"),
           icon("caret-right")
         )
       ),
       div(
-        class = "nav-toggle_sub-items",
+        class = "nav-menu_sub-items",
+        role = "button",
         div(
           tagList(
             tags_list <- lapply(subItems, function(item) {
               div(
-                class = "nav-toggle_sub-item",
+                class = "nav-menu_sub-item",
                 item
               )
             })
