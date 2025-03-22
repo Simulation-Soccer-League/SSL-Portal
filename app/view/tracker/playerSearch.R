@@ -1,4 +1,5 @@
 box::use(
+  dplyr[select],
   reactable[colDef, colFormat, reactable, renderReactable, reactableOutput],
   shiny,
   shiny.router[route_link],
@@ -21,7 +22,8 @@ ui <- function(id) {
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     output$players <- renderReactable({
-      data <- getPlayers()
+      data <- getPlayers(active = TRUE) |> 
+        select(name, username, pid, position, tpe, tpebank, class, playerStatus)
       
       data |> 
         reactable(

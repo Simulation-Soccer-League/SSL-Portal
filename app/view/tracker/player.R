@@ -4,7 +4,6 @@ box::use(
   forcats[fct_relevel],
   lubridate[as_date, as_datetime, floor_date, today],
   plotly,
-  promises[future_promise, then],
   reactable[colDef, colFormat, reactable, renderReactable, reactableOutput],
   rlang[is_empty],
   shiny,
@@ -135,8 +134,6 @@ server <- function(id) {
     #### Output ####
     output$playerName <- shiny$renderUI({
       data <- playerData()
-      
-      print(paste0("Rendering player name", Sys.time()))
       
       shiny$tagList(
         shiny$h2(paste(data$name, paste0("(", data$class, ")"), sep = " ")),

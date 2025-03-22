@@ -23,7 +23,6 @@ box::use(
 ui <- function(id) {
   ns <- shiny$NS(id)
   shiny$tagList(
-    
     shiny$uiOutput(ns("information")),
     
     bslib$card(
@@ -102,7 +101,6 @@ server <- function(id, usergroup) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
-      
       #### INFORMATION ####
       output$information <- shiny$renderUI({
         if(any(5 %in% usergroup)){
@@ -165,15 +163,7 @@ server <- function(id, usergroup) {
         
         league <- input$selectedLeague
         
-        print(paste0("Finished schedule: ", Sys.time() - startTime, " with worker ", Sys.getpid()))
-        
         getSchedule(league = league, season = constant$currentSeason$season)
-        
-        # future_promise({
-        #   print(paste0("Finished schedule: ", Sys.time() - startTime, " with worker ", Sys.getpid()))
-        #     
-        #   getSchedule(league = league, season = constant$currentSeason$season)
-        # })
       })
       
       output$leagueSelector <- shiny$renderUI({
@@ -198,79 +188,50 @@ server <- function(id, usergroup) {
         
         data <- schedule()
         
-        # schedule() |> 
-        #   then(
-        #     onFulfilled = function(data){
-              if(data |> is_empty()){
-                "No schedule is available yet"
-              } else {
-                shiny$tagList(
-                  shiny$div(
-                    class = "results",
-                    id = "results-scroll",
-                    lapply(1:nrow(data),
-                           function(i){
-                             resultCard(data, i)
-                           })
-                  ),
-                  shiny$tags$script(
-                    shiny$HTML("
-                      $(document).ready(function() {
-                        var div = document.getElementById('results-scroll');
-                        var width = 0;
-                        for (var i = 0; i < div.children.length; i++) {
-                          var score = $(div.children[i]).find('h4').text().trim();
-                          if (!score.match(/^\\d+-\\d+$/)) {
-                            width = div.children[i].clientWidth * (i-6);
-                            break;
-                          } else {
-                            width = div.children[i].clientWidth * i
-                          }
-                        }
-                        div.scrollLeft = width;
-                      });
-                    "))
-                )
-              }
-          #   }
-          # )
-      })
+          if(data |> is_empty()){
+            "No schedule is available yet"
+          } else {
+            shiny$tagList(
+              shiny$div(
+                class = "results",
+                id = "results-scroll",
+                lapply(seq_len(nrow(data)),
+                       function(i){
+                         resultCard(data, i)
+                       })
+              ),
+              shiny$tags$script(
+                shiny$HTML("
+                  $(document).ready(function() {
+                    var div = document.getElementById('results-scroll');
+                    var width = 0;
+                    for (var i = 0; i < div.children.length; i++) {
+                      var score = $(div.children[i]).find('h4').text().trim();
+                      if (!score.match(/^\\d+-\\d+$/)) {
+                        width = div.children[i].clientWidth * (i-6);
+                        break;
+                      } else {
+                        width = div.children[i].clientWidth * i
+                      }
+                    }
+                    div.scrollLeft = width;
+                  });
+                "))
+            )
+          }
+      }) |> 
+        shiny$bindCache(input$selectedLeague)
+      
       #### Weekly TPE Leaders ####
       output$weeklyLeaders <- renderReactable({
-        # data <- 
-        #   future_promise({
-        #     print(paste0("Finished weekly leaders: ", Sys.time() - startTime, " with worker ", Sys.getpid()))
-        #     
-        #     getTopEarners()
-        #   })
-        
-        print(paste0("Finished weekly leaders: ", Sys.time() - startTime, " with worker ", Sys.getpid()))
         getTopEarners() |> 
           reactable(
             defaultColDef = colDef(minWidth = 75)
           )
-        
-        # data |> 
-        #   then(
-        #     onFulfilled = function(data){
-        #       data |> 
-        #         reactable(
-        #           defaultColDef = colDef(minWidth = 75)
-        #         )
-        #     }
-        #   )
       })
       
       #### Recently created ####
       output$created <- renderReactable({
-        # data <- 
-        #   future_promise({
-        #     print(paste0("Finished new creates: ", Sys.time() - startTime, " with worker ", Sys.getpid()))
-        #     
-        #     getRecentCreates()
-        #   })
-        
-        print(paste0("Finished new creates: ", Sys.time() - startTime, " with worker ", Sys.getpid()))
         getRecentCreates() |> 
           reactable(
             defaultColDef = colDef(minWidth = 25),
@@ -278,19 +239,6 @@ server <- function(id, usergroup) {
               Pos = colDef(maxWidth = 50)
             )
           )
-        
-        # data |> 
-        #   then(
-        #     onFulfilled = function(data){
-        #       data |> 
-        #         reactable(
-        #           defaultColDef = colDef(minWidth = 25),
-        #           columns = list(
-        #             Pos = colDef(maxWidth = 50)
-        #           )
-        #         )
-        #     }
-        #   )
       })
       
       output$activityChecks <- renderPlotly({
