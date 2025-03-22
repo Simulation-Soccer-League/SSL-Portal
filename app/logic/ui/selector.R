@@ -19,7 +19,7 @@ leagueSelectInput <- function(season, session){
         choices = 
           c(
             "League" = "1",
-            "Cup",
+            "Cup" = "0",
             "ALL"
           )
       )
@@ -31,8 +31,8 @@ leagueSelectInput <- function(season, session){
           c(
             "Major" = "1",
             "Minor" = "2",
-            "Cup",
-            "WSFC",
+            "Cup" = "0",
+            "WSFC" = "5",
             "ALL"
           )
       )
@@ -44,7 +44,7 @@ leagueSelectInput <- function(season, session){
           c(
             "Division 1" = "1",
             "Division 2" = "2",
-            "Cup",
+            "Cup" = "0",
             "ALL"
           )
       )
@@ -56,7 +56,7 @@ leagueSelectInput <- function(season, session){
           c(
             "Major" = "1",
             "Minor" = "2",
-            "Cup",
+            "Cup" = "0",
             "ALL"
           )
       )
@@ -69,7 +69,7 @@ leagueSelectInput <- function(season, session){
         c(
           "Major / Division 1" = "1",
           "Minor / Division 2" = "2",
-          "Cup",
+          "Cup" = "0",
           "ALL"
         )
     )

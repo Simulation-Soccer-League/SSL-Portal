@@ -1,4 +1,5 @@
 box::use(
+  cachem,
   future[multisession, plan],
   shiny,
   shiny.router[route, router_server, router_ui],
@@ -9,10 +10,18 @@ box::use(
 
 box::use(
   app/view/navigationBar,
+  app/view/index/academyIndex,
+  app/view/index/leagueIndex,
+  app/view/index/schedule,
+  app/view/index/standings,
+  app/view/tracker/draftclass,
+  app/view/tracker/organization,
   app/view/tracker/player,
   app/view/tracker/playerSearch,
   app/view/welcome,
 )
+
+shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 60*60))
 
 #' @export
 ui <- function(id) {
@@ -24,8 +33,14 @@ ui <- function(id) {
     navigationBar$ui(ns("nav")),
     router_ui(
       route("/", welcome$ui(ns("welcome"))),
+      route("index/academy", academyIndex$ui(ns("academy"))),
+      route("index/", leagueIndex$ui(ns("league"))),
+      route("index/schedule", schedule$ui(ns("schedule"))),
+      route("index/standings", standings$ui(ns("standings"))),
+      route("tracker/draftclass", draftclass$ui(ns("draftclass"))),
       route("tracker/player", player$ui(ns("player"))),
-      route("search", playerSearch$ui(ns("search")))
+      route("tracker/organization", organization$ui(ns("organization"))),
+      route("search", playerSearch$ui(ns("search"))),
     )
   )
 }

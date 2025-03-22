@@ -1,7 +1,8 @@
 box::use(
   bslib[layout_column_wrap],
   dplyr,
-  shiny[tagList, div, img, span, h4],
+  shiny[tagList, div, img, span, h4, a],
+  shiny.router[route_link],
   reactable[reactable, reactableOutput, renderReactable, colDef, colFormat],
   stringr[str_detect, str_split, str_to_title, str_to_upper, str_trim],
   tidyr[pivot_longer],
@@ -18,8 +19,9 @@ box::use(
 clubLogos <- function(value, index, currentData){
     Club <- currentData |> 
       dplyr$select(club) |> 
-      dplyr$slice(index) |> 
-      c()
+      dplyr$slice(index)
+    
+    Club <- Club$club
     
     if(Club |> str_detect(",")){
       clubs <- str_split(Club, pattern = ",", simplify = TRUE) |> 
@@ -60,6 +62,50 @@ clubLogos <- function(value, index, currentData){
     )
 }
 
+#' @export
+draftClassReactable <- function(data){
+  data |> 
+    dplyr$rename_with(str_to_upper) |> 
+    dplyr$relocate(TEAM, POSITION) |> 
+    reactable(
+      pagination = FALSE,
+      columns = list(
+        POSITION = colDef(name = "POS", width = 50),
+        USERSTATUS = colDef(width = 150),
+        PLAYERSTATUS = colDef(width = 150),
+        TPE = colDef(width = 50),
+        NAME = colDef(width = 150, cell = function(value, rowIndex) {
+          pid <- data[rowIndex, "pid"] # Get the corresponding pid
+          tippy(
+            a(
+              href = route_link(paste0("tracker/player?pid=", pid)), 
+              value # Display the name as the link text
+            ),
+            tooltip = value, 
+            theme = "ssl"
+          )
+        }),
+        USERNAME = colDef(cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
+        BANKBALANCE = colDef(width = 120, format = colFormat(digits = 0, separators = TRUE, currency = "USD")),
+        TEAM = colDef(
+          name = "", 
+          width = 200, 
+          align = "left", 
+          cell = function(value){
+            image <- img(src = sprintf("static/logo/%s (Custom).png", value), style = "height: 30px;", alt = value, title = value)  
+            list <- 
+              tagList(
+                div(
+                  class = "tableClubName",
+                  div(style = "display: inline-block; width: 30px;", image),
+                  span(value)  
+                )
+              )
+          }),
+        PID = colDef(show = FALSE)
+      )
+    )
+}
 
 #' @export
 recordReactable <- function(currentData){
@@ -126,7 +172,7 @@ indexReactable <- function(currentData){
     reactable(
       pagination = TRUE,
       searchable = TRUE,
-      defaultColDef = colDef(minWidth = 100, maxWidth = 250),
+      defaultColDef = colDef(minWidth = 100, maxWidth = 250, searchable = FALSE),
       columns =
         list(
           name = colDef(
@@ -134,6 +180,7 @@ indexReactable <- function(currentData){
             minWidth = 250,
             class = "stickyReactableColumn",
             headerClass = "stickyReactableHeader",
+            searchable = TRUE,
             cell = function(value, index){
               clubLogos(value, index, currentData)
             }
@@ -171,7 +218,17 @@ orgReactable <- function(data){
       bankBalance = colDef(width = 120, format = colFormat(digits = 0, separators = TRUE, currency = "USD")),
       team = colDef(show = FALSE),
       affiliate = colDef(show = FALSE),
-      name = colDef(width = 150, cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
+      name = colDef(width = 150, cell = function(value, rowIndex) {
+        pid <- data[rowIndex, "pid"] # Get the corresponding pid
+        tippy(
+          a(
+            href = route_link(paste0("tracker/player?pid=", pid)), 
+            value # Display the name as the link text
+          ),
+          tooltip = value, 
+          theme = "ssl"
+        )
+      }),
       username = colDef(width = 120, cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
       discord = colDef(width = 120, cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
       render = colDef(width = 150, cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
@@ -179,7 +236,8 @@ orgReactable <- function(data){
       tpe = colDef(width = 50),
       tpebank = colDef(width = 75),
       userStatus = colDef(width = 125),
-      playerStatus = colDef(width = 140)
+      playerStatus = colDef(width = 140),
+      pid = colDef(show = FALSE)
     )
   )
 }
