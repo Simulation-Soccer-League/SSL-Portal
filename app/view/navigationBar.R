@@ -86,16 +86,31 @@ ui <- function(id) {
     ),
     tags$nav(
       class = "nav-container_narrow",
-      actionButton(inputId = "navToggle", label = "", class = "nav-toggle", ontouchstart = "
-        var mobileNav = document.querySelector('.nav-container_narrow');
-        var openMaxWidth = '80%';
+      actionButton(
+        inputId = "navToggle",
+        label = tagList(
+          div(
+            icon("bars"),
+            class = "nav-toggle-icon_closed"
+          ),
+          div(
+            icon("xmark"),
+            class = "nav-toggle-icon_open"
+          )
+        ),
+        class = "nav-toggle",
+        onclick = "
+          var mobileNav = document.querySelector('.nav-container_narrow');
+          var openMaxWidth = '80%';
 
-        if (mobileNav) {
-          var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
-          mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
+          if (mobileNav) {
+            var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
+            mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
+            this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
 
-          this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
-        }
+            this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
+            this.querySelector('.nav-toggle-icon_open').style.display = isOpen ? 'none' : 'block';
+          }
       "),
     ),
     tags$nav(
@@ -138,13 +153,9 @@ ui <- function(id) {
                 )
               )
             ),
-            flexRow(
-              tagList(
-                verbatimTextOutput(ns("workers")),
-                uiOutput(ns("yourPlayer")) |>
-                  withSpinnerCustom(height = 20)
-              )
-            )
+            verbatimTextOutput(ns("workers")),
+            uiOutput(ns("yourPlayer")) |>
+              withSpinnerCustom(height = 20)
           )
         )
       )
@@ -191,10 +202,12 @@ server <- function(id, auth, resAuth) {
         flexRow(
           tagList(
             navMenu(
-              tagList(
-                icon("futbol"),
-                a("My Player", href = route_link("myPlayer"))
-              )
+              label = "Player",
+              items = list(
+                a("My Player", href = route_link("myPlayer")),
+                a("Bank/Store", href = route_link("bank"))
+              ),
+              showItems = TRUE
             ),
             navMenu(
               tagList(
