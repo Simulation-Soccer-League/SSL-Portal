@@ -4,13 +4,12 @@ box::use(
   dplyr,
   stringr[str_to_title],
   reactable[reactableOutput, renderReactable],
-  promises[future_promise, then],
 )
 
 box::use(
   app/logic/ui/spinner[withSpinnerCustom],
   # app/logic/constant,
-  app/logic/db/api[readAPI],
+  app/logic/db/get[getLeagueIndex],
   app/logic/ui/tags[flexRow, flexCol],
   app/logic/ui/reactableHelper[recordReactable],
 )
@@ -21,8 +20,9 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        bslib$layout_columns(
-          colwidths = c(4),
+        bslib$layout_column_wrap(
+          width = NULL,
+          style = bslib$css(grid_template_columns = "1fr 4fr"),
           shiny$selectInput(
             inputId = ns("selectedLeague"),
             label = "League",
@@ -103,25 +103,27 @@ server <- function(id) {
         shiny$req(input$selectedLeague)
         league <- input$selectedLeague
         
-        readAPI(url = "https://api.simulationsoccer.com/index/outfield", 
-                query = list(league = league, season = "ALL")) |> 
-          future_promise()
-      })
+        getLeagueIndex(league = league, season = "ALL")
+      }) |> 
+        shiny$bindCache(input$selectedLeague)
       
       keeperData <- shiny$reactive({
         shiny$req(input$selectedLeague)
         league <- input$selectedLeague
         
-        readAPI(url = "https://api.simulationsoccer.com/index/keeper", 
-                query = list(league = league, season = "ALL")) |> 
-          future_promise()
-      })
+        getLeagueIndex(league = league, season = "ALL", outfield = FALSE)
+      }) |> 
+        shiny$bindCache(input$selectedLeague)
       
       currentStatistic <- shiny$reactiveVal("goals")
       currentStatisticKeeper <- shiny$reactiveVal("won")
       
       #### UI OUTPUT ####
-      outstatistics <- c("goals", "assists", "xg", "distance run (km)", "key passes", "chances created", "tackles won", "interceptions", "yellow cards", "red cards")
+      outstatistics <- c("goals", "assists", "xg", 
+                         "distance run (km)", "key passes", 
+                         "chances created", "tackles won", 
+                         "interceptions", "key headers", 
+                         "yellow cards", "red cards")
       
       keepstatistics <- c("won", "clean sheets", "conceded", "save%")
       
@@ -190,30 +192,22 @@ server <- function(id) {
       lapply(outstatistics, function(stat){
         output[[paste0(stat, "_record")]] <- shiny$renderUI({
           outfieldData() |> 
-            then(
-              onFulfilled = function(data){
-                leaderButton(data = data, stat = stat, selected = currentStatistic())
-              }
-            )
+            leaderButton(stat = stat, selected = currentStatistic())
         })
       })
       
       lapply(keepstatistics, function(stat){
         output[[paste0(stat, "_record")]] <- shiny$renderUI({
           keeperData() |> 
-            then(
-              onFulfilled = function(data){
-                leaderButton(data = data, stat = stat, selected = currentStatisticKeeper())
-              }
-            )
+            leaderButton(stat = stat, selected = currentStatisticKeeper())
         })
       })
       
       ## Observers to change the selected statistic for the top 20
       lapply(outstatistics, function(stat){
-        shiny$observe(
+        shiny$observe({
           currentStatistic(stat)
-        ) |> 
+        }) |> 
           shiny$bindEvent(
             input[[paste0(stat, "_record_click")]]
           )
@@ -232,7 +226,7 @@ server <- function(id) {
       top20Reactable <- function(data, stat){
         data |> 
           dplyr$select(
-            name, club, dplyr$all_of(stat)
+            name, club, apps, dplyr$all_of(stat)
           ) |> 
           dplyr$arrange(
             dplyr$across(
@@ -250,21 +244,15 @@ server <- function(id) {
       
       output$leagueRecord <- renderReactable({
         outfieldData() |> 
-          then(
-            onFulfilled = function(data){
-              top20Reactable(data = data, stat = currentStatistic())
-            }
-          )
-      })
+        top20Reactable(stat = currentStatistic())
+      }) |> 
+        shiny$bindCache(input$selectedLeague, currentStatistic())
       
       output$leagueRecordKeeper <- renderReactable({
         keeperData() |> 
-          then(
-            onFulfilled = function(data){
-              top20Reactable(data = data, stat = currentStatisticKeeper())
-            }
-          )
-      })
+        top20Reactable(stat = currentStatisticKeeper())
+      }) |> 
+        shiny$bindCache(input$selectedLeague, currentStatisticKeeper())
       
       
     }
