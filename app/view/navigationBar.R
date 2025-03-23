@@ -64,18 +64,14 @@ ui <- function(id) {
     tags$script("
       // Copy the content of the main nav to the mobile nav after a short delay
       // to ensure the main nav is fully rendered before we try to copy it over.
-      // Doing it this way rather than typing out another nav for mobile.
+      // Doing it this way rather than writing out another nav for mobile.
       window.addEventListener('load', function() {
-        console.log('Window loaded, setting timeout to copy nav items...');
         setTimeout(function() {
-          console.log('Timeout complete, copying nav items...');
           const mobileNav = document.querySelector('.nav-container_narrow');
           const desktopNav = document.querySelector('.nav-container');
 
           if (desktopNav) {
-            console.log('Copying nav items from desktop to mobile...');
             const children = Array.from(desktopNav.childNodes);
-            console.log(children);
             children.forEach(function(child) {
               mobileNav.appendChild(child.cloneNode(true));
             });
