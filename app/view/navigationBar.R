@@ -94,10 +94,10 @@ ui <- function(id) {
                 label = "Index",
                 items = list(
                   a("Index", href = route_link("index/")),
-                  a("Records", href = route_link("index/records")),
                   a("Standings", href = route_link("index/standings")),
                   a("Schedule", href = route_link("index/schedule")),
-                  a("Academy", href = route_link("index/academy"))
+                  a("Records", href = route_link("index/records")),
+                  a("Academy Index", href = route_link("index/academy"))
                 )
               ),
               uiOutput(ns("jobsNavigation")) |> 

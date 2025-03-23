@@ -11,6 +11,7 @@ box::use(
 box::use(
   app/view/navigationBar,
   app/view/index/academyIndex,
+  app/view/index/careerRecords,
   app/view/index/leagueIndex,
   app/view/index/schedule,
   app/view/index/standings,
@@ -35,6 +36,7 @@ ui <- function(id) {
       route("/", welcome$ui(ns("welcome"))),
       route("index/academy", academyIndex$ui(ns("academy"))),
       route("index/", leagueIndex$ui(ns("league"))),
+      route("index/records", careerRecords$ui(ns("records"))),
       route("index/schedule", schedule$ui(ns("schedule"))),
       route("index/standings", standings$ui(ns("standings"))),
       route("tracker/draftclass", draftclass$ui(ns("draftclass"))),
