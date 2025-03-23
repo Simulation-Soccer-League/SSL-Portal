@@ -1,7 +1,13 @@
 box::use(
   future,
   methods[is],
-  shiny[moduleServer, NS, tagList, tags, icon, div, uiOutput, renderUI, observe, bindEvent, a, actionButton, p, showModal, removeModal, modalDialog, modalButton, textInput, passwordInput, verbatimTextOutput, renderText, reactive],
+  shiny[moduleServer, NS, tagList, tags, 
+        icon, div, uiOutput, renderUI, 
+        observe, bindEvent, a, actionButton, 
+        p, showModal, removeModal, modalDialog, 
+        modalButton, textInput, passwordInput, 
+        verbatimTextOutput, renderText, reactive,
+        actionLink],
   shiny.router[route_link, change_page],
   shinyFeedback[feedbackWarning]
 )
@@ -150,10 +156,7 @@ server <- function(id, auth, resAuth) {
     output$yourPlayer <- renderUI({
       if(auth()$usergroup |> is.null()){
         navMenu(
-          tagList(
-            icon("user"),
-            a("Login", href = "#", inputId = session$ns("login"))
-          )
+          actionLink("Login", icon = icon("user"), inputId = session$ns("login"))
         )
       } else {
         flexRow(
@@ -165,10 +168,7 @@ server <- function(id, auth, resAuth) {
               )
             ),
             navMenu(
-              tagList(
-                icon("door-open"),
-                a("Logout", href = "#", inputId = session$ns("logout"))
-              )
+              actionLink("Logout", icon = icon("door-open"), inputId = session$ns("logout"))
             )
           )
         )
