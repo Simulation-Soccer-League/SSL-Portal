@@ -100,15 +100,39 @@ getTopEarners <- function() {
 }
 
 #' @export
-getPlayerNames <- function(){
-  portalQuery(
-    paste0(
-      "SELECT name, pid, team
+getPlayerNames <- function(active = FALSE){
+  if(active){
+    portalQuery(
+      paste0(
+        "SELECT name, pid, team
+      FROM playerdata
+      WHERE team > -3
+      ORDER BY created;"
+      )
+    )
+  } else {
+    portalQuery(
+      paste0(
+        "SELECT name, pid, team
       FROM playerdata
       WHERE team >= -3
-      ORDER BY team DESC, name;"
+      ORDER BY created;"
+      )
     )
-  )
+  }
+  
+}
+
+#' @export
+getActivePlayer <- function(uid){
+  portalQuery(
+    paste0(
+      "SELECT pid
+      FROM playerdata
+      WHERE status_p = 1 AND uid =", uid, ";"
+    )
+  ) |> 
+    unlist()
 }
 
 #' @export
@@ -187,6 +211,37 @@ getPlayers <- function(active){
       across(where(is.numeric), ~replace_na(.x, 5))
     ) |> 
     suppressWarnings()
+}
+
+#' @export
+getChangedBuilds <- function(){
+  ## Gets date of the start of the week in Pacific
+  weekEnd <- 
+    lubridate$now() |> 
+    lubridate$with_tz("US/Pacific") |> 
+    lubridate$floor_date("week", week_start = "Monday") |> 
+    as.numeric() |> 
+    sum(c(-1))
+  
+  weekStart <- 
+    lubridate$now() |> 
+    lubridate$with_tz("US/Pacific") |> 
+    lubridate$floor_date("week", week_start = "Monday") |> 
+    as.numeric() |> 
+    sum(c(-604800))
+  
+  
+  portalQuery(
+    paste(
+      "SELECT t.name AS teamName, n.fmID AS nationalityID, wb.*, uh.attribute as Attribute, uh.old, uh.new
+        FROM playerdata pd
+        LEFT JOIN weeklybuilds wb ON pd.pid = wb.pid
+        JOIN updatehistory uh ON pd.pid = uh.pid
+        LEFT JOIN teams t ON pd.team = t.orgID AND pd.affiliate = t.affiliate
+        LEFT JOIN nationality n ON wb.nationality = n.abbreviation OR wb.nationality = n.name
+        WHERE uh.Time < ", weekEnd, " AND uh.Time > ", weekStart," AND uh.uid <> 1;"
+    )
+  )
 }
 
 #' @export
@@ -299,7 +354,7 @@ getPlayer <- function(pid){
         CASE 
             WHEN LENGTH(pd.nationality) = 3 THEN n.name
             ELSE pd.nationality 
-        END AS nationality,
+        END AS nationality, n.fmID AS nationalityID,
         pd.height, pd.weight, pd.hair_color, pd.hair_length, pd.skintone, 
         pd.render, pd.`left foot`, pd.`right foot`, pd.position, pd.pos_st, pd.pos_lam, 
         pd.pos_cam, pd.pos_ram, pd.pos_lm, pd.pos_cm, pd.pos_rm, pd.pos_lwb, pd.pos_cdm,
@@ -333,7 +388,7 @@ getPlayer <- function(pid){
           LEFT JOIN userstatuses us ON ua.status_u = us.status
           LEFT JOIN playerstatuses ps ON pd.status_p = ps.status
           LEFT JOIN teams t ON pd.team = t.orgID AND pd.affiliate = t.affiliate
-          LEFT JOIN portaldb.nationality n ON pd.nationality = n.abbreviation",
+          LEFT JOIN portaldb.nationality n ON pd.nationality = n.abbreviation OR pd.nationality = n.name",
       paste("WHERE pd.pid = ", pid, ";")
     )
   ) |>

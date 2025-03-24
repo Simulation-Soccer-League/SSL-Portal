@@ -15,6 +15,8 @@ box::use(
   app/view/index/leagueIndex,
   app/view/index/schedule,
   app/view/index/standings,
+  app/view/jobs/filework/export,
+  app/view/player/myPlayer,
   app/view/tracker/draftclass,
   app/view/tracker/organization,
   app/view/tracker/player,
@@ -22,7 +24,7 @@ box::use(
   app/view/welcome,
 )
 
-shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 60*60))
+shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 8*60*60))
 
 #' @export
 ui <- function(id) {
@@ -43,6 +45,8 @@ ui <- function(id) {
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/organization", organization$ui(ns("organization"))),
       route("search", playerSearch$ui(ns("search"))),
+      route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
+      route("filework/export", export$ui(ns("export")))
     )
   )
 }
@@ -57,13 +61,16 @@ server <- function(id) {
     resAuth <- shiny$reactiveValues(
       uid = NULL,
       username = NULL,
-      usergroup = NULL
+      usergroup = NULL,
+      suspended = NULL
     )
     
     # Adds all authentication list to a reactive object
     authOutput <- shiny$reactive({
       shiny$reactiveValuesToList(resAuth)
     })
+    
+    updated <- shiny$reactiveVal(0)
     
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth)
     
@@ -75,13 +82,14 @@ server <- function(id) {
     loadedServer <-
       shiny$reactiveValues(
         create = FALSE, player = FALSE, index = FALSE,
+        myPlayer = FALSE,
         academy = FALSE, uploadGame = FALSE,
         bankOverview = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
         tradeProcess = FALSE, playerEdit = FALSE, submitPT = FALSE,
         bankDeposit = FALSE, bankProcess = FALSE,
         standings = FALSE, schedule = FALSE, managerTeam = FALSE,
-        assignManager = FALSE, bodoverview = FALSE, exportBuild = FALSE,
+        assignManager = FALSE, bodoverview = FALSE, export = FALSE,
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
       )
@@ -115,6 +123,12 @@ server <- function(id) {
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
          player$server("player")
          loadedServer$player <- TRUE
+      } else if (current == "myPlayer/" & !loadedServer$myPlayer) {
+        myPlayer$server("myPlayer", auth = authOutput(), updated = updated())
+        loadedServer$myPlayer <- TRUE
+      } else if (current == "filework/export" & !loadedServer$export) {
+        export$server("export", auth = authOutput(), updated = updated())
+        loadedServer$export <- TRUE
       }
     }) |>
       shiny$bindEvent(session$clientData$url_hash)

@@ -29,7 +29,7 @@ customCheckCredentials <- function(user, password, session = shiny::getDefaultRe
     mybbQuery(
       query =
         paste(
-          "SELECT uid, username, password, salt, usergroup, additionalgroups
+          "SELECT uid, username, password, salt, usergroup, additionalgroups, suspendposting
         FROM mybb_users
         WHERE username = '", user, "'",
           sep = ""
@@ -76,7 +76,8 @@ customCheckCredentials <- function(user, password, session = shiny::getDefaultRe
               paste(res$usergroup, res$additionalgroups, sep = ",") |> 
               str_split(pattern = ",", simplify = TRUE) |>
               as.numeric() |> 
-              as.list()
+              as.list(),
+            suspended = res$suspendposting == 1
           )
       )
     }
@@ -87,7 +88,8 @@ customCheckCredentials <- function(user, password, session = shiny::getDefaultRe
            list(
              uid = NULL, 
              username = NULL, 
-             usergroup = NULL
+             usergroup = NULL,
+             suspended = NULL
            ))
   }
 }
@@ -95,7 +97,7 @@ customCheckCredentials <- function(user, password, session = shiny::getDefaultRe
 #' @export
 getRefreshToken <- function(token){
   portalQuery(
-    paste("SELECT rt.*, mb.username, mb.usergroup, mb.additionalgroups 
+    paste("SELECT rt.*, mb.username, mb.usergroup, mb.additionalgroups, mb.suspendposting 
               FROM refreshtokens rt 
               JOIN mybbdb.mybb_users mb ON rt.uid = mb.uid 
               WHERE rt.token = '", token, "';", sep = "")
@@ -103,5 +105,39 @@ getRefreshToken <- function(token){
     suppressWarnings()
 }
 
+#' Checks if the user is awaiting activation, banned or suspended
+#' @export
+isNonActiveForumUser <- function(usergroup, suspended){
+  any(c(0,5, 7) %in% usergroup) | suspended
+}
 
+#' @export
+isBoD <- function(usergroup){
+  any(c(3, 4) %in% usergroup)
+}
+
+#' @export
+isBoDIntern <- function(usergroup){
+  15 %in% usergroup
+}
+
+#' @export
+isBankerAccountant <- function(usergroup){
+  12 %in% usergroup
+}
+
+#' @export
+isPT <- function(usergroup){
+  11 %in% usergroup
+}
+
+#' @export
+isManager <- function(usergroup){
+  8 %in% usergroup
+}
+
+#' @export
+isFileworker <- function(usergroup){
+  14 %in% usergroup
+}
 
