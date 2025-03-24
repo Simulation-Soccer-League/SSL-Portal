@@ -16,7 +16,8 @@ box::use(
   app/view/index/schedule,
   app/view/index/standings,
   app/view/jobs/filework/export,
-  app/view/player/myPlayer,
+  app/view/jobs/filework/import,
+  # app/view/player/myPlayer,
   app/view/tracker/draftclass,
   app/view/tracker/organization,
   app/view/tracker/player,
@@ -45,8 +46,9 @@ ui <- function(id) {
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/organization", organization$ui(ns("organization"))),
       route("search", playerSearch$ui(ns("search"))),
-      route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
-      route("filework/export", export$ui(ns("export")))
+      # route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
+      route("filework/export", export$ui(ns("export"))),
+      route("filework/import", import$ui(ns("import")))
     )
   )
 }
@@ -82,13 +84,13 @@ server <- function(id) {
     loadedServer <-
       shiny$reactiveValues(
         create = FALSE, player = FALSE, index = FALSE,
-        myPlayer = FALSE,
-        academy = FALSE, uploadGame = FALSE,
+        myPlayer = FALSE, import = FALSE, standings = FALSE, 
+        schedule = FALSE, academy = FALSE, 
         bankOverview = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
         tradeProcess = FALSE, playerEdit = FALSE, submitPT = FALSE,
         bankDeposit = FALSE, bankProcess = FALSE,
-        standings = FALSE, schedule = FALSE, managerTeam = FALSE,
+        managerTeam = FALSE,
         assignManager = FALSE, bodoverview = FALSE, export = FALSE,
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
@@ -129,6 +131,9 @@ server <- function(id) {
       } else if (current == "filework/export" & !loadedServer$export) {
         export$server("export", auth = authOutput(), updated = updated())
         loadedServer$export <- TRUE
+      } else if (current == "filework/import" & !loadedServer$import) {
+        import$server("import", auth = authOutput(), updated = updated())
+        loadedServer$import <- TRUE
       }
     }) |>
       shiny$bindEvent(session$clientData$url_hash)

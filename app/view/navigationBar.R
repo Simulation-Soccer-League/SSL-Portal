@@ -234,6 +234,7 @@ server <- function(id, auth, resAuth) {
             str_split(pattern = ",", simplify = TRUE) |>
             as.numeric() |>
             as.list()
+          resAuth$suspended <- refreshtoken$suspended
           
           setRefreshToken(uid = refreshtoken$uid, token = refreshtoken$token)
           
@@ -267,6 +268,7 @@ server <- function(id, auth, resAuth) {
         resAuth$uid <- res$userInfo$uid
         resAuth$username <- res$userInfo$username
         resAuth$usergroup <- res$userInfo$usergroup
+        resAuth$suspended <- res$userInfo$suspended
       } else {
         feedbackWarning("password", show = TRUE, text = "Password is incorrect.")
       }
