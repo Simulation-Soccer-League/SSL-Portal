@@ -23,17 +23,27 @@ flexRow <- function(cont, style = "", onclick = "") {
   )
 )}
 
+closeNarrowMenuJS <- "
+  var mobileNav = document.querySelector('.nav-container_narrow');
+  var mobileNavToggle = document.querySelector('.nav-toggle');
+
+  mobileNav.style.maxWidth = '0px';
+  mobileNavToggle.style.left = '0px';
+  mobileNavToggle.querySelector('.nav-toggle-icon_closed').style.display = 'block';
+  mobileNavToggle.querySelector('.nav-toggle-icon_open').style.display = 'none';
+"
+
 #' @export
 navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
   if (!missing(cont) && label == "") {
-    shiny::tag("div", varArgs = list(cont, class = "nav-menu"))
+    shiny::tag("div", varArgs = list(cont, class = "nav-menu", onclick = closeNarrowMenuJS))
   } else if (length(label) > 0) {
     itemsClassNames <- c("nav-menu_items", if (showItems) " show-items" else "")
 
     div(
       class = "nav-menu",
       role = "button",
-      onclick = "
+      onclick = c("
         const allMenuItems = document.querySelectorAll('.nav-menu_items');
         const allSubMenuItems = document.querySelectorAll('.nav-menu_sub-items');
         const childMenuItems = this.querySelector('.nav-menu_items');
@@ -52,8 +62,10 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
           }
 
           childMenuItems.style.height = 'max-content';
+        } else {
+          ", closeNarrowMenuJS, "
         }
-      ",
+      "),
       tagList(
         flexRow(
           style = "align-items: center; gap: 4px;",
@@ -71,7 +83,7 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
                 tags_list <- lapply(items, function(item) {
                   div(
                     class = "nav-menu_item",
-                    onclick = "
+                    onclick = c("
                       const allSubMenuItems = document.querySelectorAll('.nav-menu_sub-items');
                       const childSubMenuItems = this.querySelector('.nav-menu_sub-items');
 
@@ -88,8 +100,10 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
                         }
 
                         childSubMenuItems.style.height = 'max-content';
+                      } else {
+                      ", closeNarrowMenuJS, "
                       }
-                    ",
+                    "),
                     item
                   )
                 })
@@ -128,6 +142,7 @@ navMenuItem <- function(cont, label = "", subItems = list()) {
             tags_list <- lapply(subItems, function(item) {
               div(
                 class = "nav-menu_sub-item",
+                onclick = closeNarrowMenuJS,
                 item
               )
             })
