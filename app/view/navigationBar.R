@@ -61,24 +61,6 @@ ui <- function(id) {
                       getCookies();
                     })
                   "),
-    tags$script("
-      // Copy the content of the main nav to the mobile nav after a short delay
-      // to ensure the main nav is fully rendered before we try to copy it over.
-      // Doing it this way rather than writing out another nav for mobile.
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          const mobileNav = document.querySelector('.nav-container_narrow');
-          const desktopNav = document.querySelector('.nav-container');
-
-          if (desktopNav) {
-            const children = Array.from(desktopNav.childNodes);
-            children.forEach(function(child) {
-              mobileNav.appendChild(child.cloneNode(true));
-            });
-          }
-        });
-      });
-    "),
     tags$head(
       tags$link(
         rel = "icon", 
@@ -88,32 +70,65 @@ ui <- function(id) {
     ),
     tags$nav(
       class = "nav-container_narrow",
-      actionButton(
-        inputId = "navToggle",
-        label = tagList(
-          div(
-            icon("bars"),
-            class = "nav-toggle-icon_closed"
+      tagList(
+        actionButton(
+          inputId = "navToggle",
+          label = tagList(
+            div(
+              icon("bars"),
+              class = "nav-toggle-icon_closed"
+            ),
+            div(
+              icon("xmark"),
+              class = "nav-toggle-icon_open"
+            )
           ),
-          div(
-            icon("xmark"),
-            class = "nav-toggle-icon_open"
+          class = "nav-toggle",
+          onclick = "
+            var mobileNav = document.querySelector('.nav-container_narrow');
+            var openMaxWidth = '80%';
+
+            if (mobileNav) {
+              var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
+              mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
+              this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
+
+              this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
+              this.querySelector('.nav-toggle-icon_open').style.display = isOpen ? 'none' : 'block';
+            }
+        "),
+        flexRow(
+          tagList(
+            navMenu(
+              label = "Trackers",
+              items = list(
+                # a("Players", href = route_link("tracker/player")),
+                a("Search", href = route_link("search")),
+                a("Organizations", href = route_link("tracker/organization")),
+                a("Draft Class", href = route_link("tracker/draftclass"))
+              )
+            ),
+            navMenu(
+              label = "Index",
+              items = list(
+                a("Index", href = route_link("index/")),
+                a("Records", href = route_link("index/records")),
+                a("Standings", href = route_link("index/standings")),
+                a("Schedule", href = route_link("index/schedule")),
+                a("Academy", href = route_link("index/academy"))
+              )
+            ),
+            uiOutput(ns("jobsNavigationMobile")) |>
+              withSpinnerCustom(height = 20),
+            navMenu(
+              div(a("Intro", href = route_link("/")))
+            )
           )
         ),
-        class = "nav-toggle",
-        onclick = "
-          var mobileNav = document.querySelector('.nav-container_narrow');
-          var openMaxWidth = '80%';
-
-          if (mobileNav) {
-            var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
-            mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
-            this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
-
-            this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
-            this.querySelector('.nav-toggle-icon_open').style.display = isOpen ? 'none' : 'block';
-          }
-      "),
+        verbatimTextOutput(ns("workers")),
+        uiOutput(ns("yourPlayerMobile")) |>
+          withSpinnerCustom(height = 20)
+      )
     ),
     tags$nav(
       class = "ssl-navbar",
@@ -170,10 +185,10 @@ server <- function(id, auth, resAuth) {
   moduleServer(id, function(input, output, session) {
     
     ### Output
-    output$jobsNavigation <- renderUI({
-      if (any(c(3, 4, 8, 11, 12, 14, 15) %in% auth()$usergroup)) {
+    getJobsUi <- function(userGroup) {
+      # if (any(c(3, 4, 8, 11, 12, 14, 15) %in% userGroup)) {
         items <- list(
-          if (any(c(4, 3, 14) %in% auth()$usergroup)) {
+          # if (any(c(4, 3, 14) %in% userGroup)) {
             navMenuItem(
               label = "File Work",
               subItems = list(
@@ -182,18 +197,27 @@ server <- function(id, auth, resAuth) {
                 a("Edit Schedule", href = route_link("filework/schedule"))
               )
             )
-          }
+          # }
         )
         navMenu(
           label = "Jobs",
           items = items
         )
-      }
+      # }
+    }
+
+    output$jobsNavigation <- renderUI({
+      getJobsUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
-    
-    output$yourPlayer <- renderUI({
-      if (auth()$usergroup |> is.null()) {
+
+    output$jobsNavigationMobile <- renderUI({
+      getJobsUi(auth()$usergroup)
+    }) |> 
+      bindEvent(auth())
+
+    getPlayerUi <- function(userGroup) {
+      if (userGroup |> is.null()) {
         navMenu(
           actionLink("Login", icon = icon("user"), inputId = session$ns("login"))
         )
@@ -214,6 +238,16 @@ server <- function(id, auth, resAuth) {
           )
         )
       }
+    }
+
+    
+    output$yourPlayer <- renderUI({
+      getPlayerUi(auth()$usergroup)
+    }) |> 
+      bindEvent(auth())
+
+    output$yourPlayerMobile <- renderUI({
+      getPlayerUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
     

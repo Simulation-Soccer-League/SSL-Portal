@@ -370,8 +370,15 @@ $navbar-items-width: 112px;
 }
 
 @media (max-width: 767px) {
+  // Make sure page content isn't hidden behind fixed nav
   #router-page-wrapper {
-    padding-top: 92px; // Make sure page content isn't hidden behind fixed nav
+    padding-top: 92px;
+  }
+
+  // For some reason this Shiny-generated element doesn't span the full width of the menu.
+  // Setting this rule to force it to match all other menu items.
+  .shiny-spinner-output-container:has(#app-nav-jobsNavigationMobile) {
+    width: 100%;
   }
 
   .ssl-navbar {
