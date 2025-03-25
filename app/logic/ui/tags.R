@@ -1,17 +1,27 @@
 box::use(
-  shiny[div, icon, span, tagList]
+  shiny[div, icon, span, tagList],
 )
 
 
 #' @export
 flexCol <- function(cont, style = "", onclick = "") {
-  shiny::tag("div", varArgs = list(cont, class = "flex-col-wrapper", style = style, onclick = onclick))
-}
+  shiny::tag("div", varArgs = list(
+    cont,
+    class = "flex-col-wrapper",
+    style = style,
+    onclick = onclick
+  )
+)}
 
 #' @export
 flexRow <- function(cont, style = "", onclick = "") {
-  shiny::tag("div", varArgs = list(cont, class = "flex-row-wrapper", style = style, onclick = onclick))
-}
+  shiny::tag("div", varArgs = list(
+    cont,
+    class = "flex-row-wrapper",
+    style = style,
+    onclick = onclick
+  )
+)}
 
 #' @export
 navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {

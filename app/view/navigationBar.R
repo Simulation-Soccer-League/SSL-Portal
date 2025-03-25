@@ -119,9 +119,9 @@ ui <- function(id) {
       class = "ssl-navbar",
       tagList(
         tags$a(
-          href='https://forum.simulationsoccer.com',
-          target="_blank",
-          tags$img(src = 'static/portalwhite.png', height = "70"),
+          href = "https://forum.simulationsoccer.com",
+          target = "_blank",
+          tags$img(src = "static/portalwhite.png", height = "70"),
           class = "logo"
         ),
         div(
@@ -193,7 +193,7 @@ server <- function(id, auth, resAuth) {
       bindEvent(auth())
     
     output$yourPlayer <- renderUI({
-      if(auth()$usergroup |> is.null()){
+      if (auth()$usergroup |> is.null()) {
         navMenu(
           actionLink("Login", icon = icon("user"), inputId = session$ns("login"))
         )
@@ -221,8 +221,8 @@ server <- function(id, auth, resAuth) {
     # Checks saved cookie for automatic login
     observe({
       refreshtoken <- getRefreshToken(input$cookies$token)
-      if(refreshtoken |> nrow() > 0){
-        if((now() |> as.numeric()) < refreshtoken$expires_at){
+      if (refreshtoken |> nrow() > 0) {
+        if ((now() |> as.numeric()) < refreshtoken$expires_at) {
           resAuth$uid <- refreshtoken$uid
           resAuth$username <- refreshtoken$username
           resAuth$usergroup <- 
@@ -258,7 +258,7 @@ server <- function(id, auth, resAuth) {
     
     observe({
       res <- customCheckCredentials(user = input$user, password = input$password)
-      if(res$result){
+      if (res$result) {
         removeModal()
         resAuth$uid <- res$userInfo$uid
         resAuth$username <- res$userInfo$username

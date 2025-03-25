@@ -260,8 +260,7 @@ $navbar-items-width: 112px;
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 100;
-  color: #EEEEEE;
+  color: #eeeeee;
   font-weight: 600;
   padding: 0 8px;
   height: $navbar-label-height;
@@ -278,7 +277,7 @@ $navbar-items-width: 112px;
   }
 
   &:hover {
-    background: #EEEEEE;
+    background: #eeeeee;
     color: black;
     cursor: pointer;
   }
@@ -286,7 +285,7 @@ $navbar-items-width: 112px;
   &:active {
     filter: brightness(90%);
   }
-  
+
   &:has(.nav-menu_items):hover {
     cursor: default;
   }
@@ -302,14 +301,12 @@ $navbar-items-width: 112px;
 
 .nav-menu_items {
   display: none;
-  background: #EEEEEE;
+  background: #eeeeee;
   position: absolute;
   top: $navbar-label-height;
   left: 0;
   width: $navbar-items-width;
   font-weight: normal;
-  -moz-box-shadow: 0 0 2px black;
-  -webkit-box-shadow: 0 0 2px black;
   box-shadow: 0 0 2px black;
   border-bottom-left-radius: 2px;
   z-index: 101;
@@ -319,19 +316,19 @@ $navbar-items-width: 112px;
   }
 
   .nav-menu_item, .nav-menu_sub-item {
-    border-bottom: 1px solid #AAAAAA;
+    border-bottom: 1px solid #aaaaaa;
     border-bottom-left-radius: 2px;
 
     &:hover {
       background: #4b8dad;
-      color: #EEEEEE;
+      color: #eeeeee;
       cursor: pointer;
     }
 
     &:active {
       filter: brightness(90%);
     }
-  
+
     &:has(.nav-menu_sub-items):hover {
       cursor: default;
     }
@@ -356,14 +353,12 @@ $navbar-items-width: 112px;
 
 .nav-menu_sub-items {
   display: none;
-  background: #EEEEEE;
+  background: #eeeeee;
   position: absolute;
   top: 0;
   color: black;
   left: $navbar-items-width;
   width: max-content;
-  -moz-box-shadow: 0 0 2px black;
-  -webkit-box-shadow: 0 0 2px black;
   box-shadow: 0 0 2px black;
   border-bottom-right-radius: 2px;
   z-index: 100;
@@ -425,12 +420,10 @@ $navbar-items-width: 112px;
     margin: 0;
     z-index: 99;
     transition: max-width 0.5s ease-in-out;
-    -moz-box-shadow: 0 0 30px black;
-    -webkit-box-shadow: 0 0 30px black;
     box-shadow: 0 0 30px black;
     border-bottom-right-radius: 12px;
 
-    &> div {
+    & > div {
       flex-direction: column;
       align-items: flex-start;
     }
@@ -467,8 +460,6 @@ $navbar-items-width: 112px;
     left: 0;
     height: 0px;
     width: 100%;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
     box-shadow: none;
 
     &.show-items {
@@ -512,8 +503,6 @@ $navbar-items-width: 112px;
     left: 0;
     height: 0px;
     width: 100%;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
     box-shadow: none;
 
     .nav-menu_sub-item {
