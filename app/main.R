@@ -63,8 +63,8 @@ server <- function(id) {
     resAuth <- shiny$reactiveValues(
       uid = NULL,
       username = NULL,
-      usergroup = NULL,
-      suspended = NULL
+      usergroup = 4,
+      suspended = 0
     )
     
     # Adds all authentication list to a reactive object

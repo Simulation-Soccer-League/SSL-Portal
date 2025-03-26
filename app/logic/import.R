@@ -1,5 +1,14 @@
 box::use(
-  dplyr[if_else, select, mutate, case_when, across, as_tibble, rename],
+  dplyr[
+    across, 
+    as_tibble, 
+    case_when, 
+    if_else, 
+    select, 
+    mutate, 
+    rename, 
+    relocate
+  ],
   rvest[read_html, html_elements, html_table],
   stringr[
     str_detect,
@@ -7,6 +16,7 @@ box::use(
     str_replace, 
     str_replace_all,
     str_split, 
+    str_squish,
     str_to_lower, 
     str_to_title,
     str_to_upper,
@@ -14,7 +24,8 @@ box::use(
 )
 
 box::use(
-  app/logic/constant
+  app/logic/constant,
+  app/logic/db/database[indexQuery]
 )
 
 #' @export
@@ -34,7 +45,8 @@ parseFMdata <- function(path){
           simplify = TRUE
         ) |> 
         as_tibble() |> 
-        select(1)
+        select(1) |> 
+        unlist()
     ) |> 
     select(
       -"Inf",
@@ -150,11 +162,12 @@ parseFMdata <- function(path){
         )
     ) |> 
     mutate(
-      Club =
-        Club |>
-        str_split(pattern = "-", simplify = TRUE) |> 
-        select(1) |> 
-        str_squish(),
+      # Club =
+      #   Club |>
+      #   str_split(pattern = "-", simplify = TRUE) |> 
+      #   select(1) |> 
+      #   unlist() |> 
+      #   str_squish(),
       `Left Foot` = 
         case_when(
           `Left Foot` == "Very Strong" ~ 20,
@@ -189,4 +202,42 @@ parseFMdata <- function(path){
         round(4) * 100,
     ) |> 
     suppressWarnings()
+}
+
+#' @export
+importGameData <- function(data){
+  keeper <- data$k |>
+    mutate(
+      across(
+        name:club,
+        ~ paste0('"', .x, '"')
+      )
+    )
+  
+  outfield <- data$o |>
+    mutate(
+      across(
+        name:position,
+        ~ paste0('"', .x, '"')
+      )
+    )
+  
+  outfieldPaste <- do.call(function(...) paste(..., sep = ", "), args = outfield)
+  keeperPaste <- do.call(function(...) paste(..., sep = ", "), args = keeper)
+  
+  indexQuery(
+    paste(
+      "INSERT INTO gamedataoutfield VALUES ",
+      paste0("(", outfieldPaste, ")", collapse = ", "),
+      ";"
+    )
+  )
+  
+  indexQuery(
+    paste(
+      "INSERT INTO gamedatakeeper VALUES ",
+      paste0("(", keeperPaste, ")", collapse = ", "),
+      ";"
+    )
+  )
 }
