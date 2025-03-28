@@ -18,6 +18,42 @@ box::use(
   app/logic/ui/spinner[withSpinnerCustom],
 )
 
+getNavItems <- function(ns, suffix) {
+  tagList(
+    flexRow(
+      tagList(
+        navMenu(
+          label = "Trackers",
+          items = list(
+            # a("Players", href = route_link("tracker/player")),
+            a("Search", href = route_link("search")),
+            a("Organizations", href = route_link("tracker/organization")),
+            a("Draft Class", href = route_link("tracker/draftclass"))
+          )
+        ),
+        navMenu(
+          label = "Index",
+          items = list(
+            a("Index", href = route_link("index/")),
+            a("Records", href = route_link("index/records")),
+            a("Standings", href = route_link("index/standings")),
+            a("Schedule", href = route_link("index/schedule")),
+            a("Academy", href = route_link("index/academy"))
+          )
+        ),
+        uiOutput(ns(paste0("jobsNavigation", suffix))) |>
+          withSpinnerCustom(height = 20),
+        navMenu(
+          div(a("Intro", href = route_link("/")))
+        )
+      )
+    ),
+    verbatimTextOutput(ns("workers")),
+    uiOutput(ns(paste0("yourPlayer", suffix))) |>
+      withSpinnerCustom(height = 20)
+  )
+}
+
 #' @export
 ui <- function(id) {
   ns <- NS(id)
@@ -97,37 +133,7 @@ ui <- function(id) {
               this.querySelector('.nav-toggle-icon_open').style.display = isOpen ? 'none' : 'block';
             }
         "),
-        flexRow(
-          tagList(
-            navMenu(
-              label = "Trackers",
-              items = list(
-                # a("Players", href = route_link("tracker/player")),
-                a("Search", href = route_link("search")),
-                a("Organizations", href = route_link("tracker/organization")),
-                a("Draft Class", href = route_link("tracker/draftclass"))
-              )
-            ),
-            navMenu(
-              label = "Index",
-              items = list(
-                a("Index", href = route_link("index/")),
-                a("Records", href = route_link("index/records")),
-                a("Standings", href = route_link("index/standings")),
-                a("Schedule", href = route_link("index/schedule")),
-                a("Academy", href = route_link("index/academy"))
-              )
-            ),
-            uiOutput(ns("jobsNavigationMobile")) |>
-              withSpinnerCustom(height = 20),
-            navMenu(
-              div(a("Intro", href = route_link("/")))
-            )
-          )
-        ),
-        verbatimTextOutput(ns("workers")),
-        uiOutput(ns("yourPlayerMobile")) |>
-          withSpinnerCustom(height = 20)
+        getNavItems(ns, "Mobile")
       )
     ),
     tags$nav(
@@ -141,39 +147,7 @@ ui <- function(id) {
         ),
         div(
           class = "nav-container",
-          tagList(
-            flexRow(
-              tagList(
-                navMenu(
-                  label = "Trackers",
-                  items = list(
-                    # a("Players", href = route_link("tracker/player")),
-                    a("Search", href = route_link("search")),
-                    a("Organizations", href = route_link("tracker/organization")),
-                    a("Draft Class", href = route_link("tracker/draftclass"))
-                  )
-                ),
-                navMenu(
-                  label = "Index",
-                  items = list(
-                    a("Index", href = route_link("index/")),
-                    a("Records", href = route_link("index/records")),
-                    a("Standings", href = route_link("index/standings")),
-                    a("Schedule", href = route_link("index/schedule")),
-                    a("Academy", href = route_link("index/academy"))
-                  )
-                ),
-                uiOutput(ns("jobsNavigation")) |>
-                  withSpinnerCustom(height = 20),
-                navMenu(
-                  div(a("Intro", href = route_link("/")))
-                )
-              )
-            ),
-            verbatimTextOutput(ns("workers")),
-            uiOutput(ns("yourPlayer")) |>
-              withSpinnerCustom(height = 20)
-          )
+          getNavItems(ns, "Desktop")
         )
       )
     )
@@ -186,9 +160,9 @@ server <- function(id, auth, resAuth) {
     
     ### Output
     getJobsUi <- function(userGroup) {
-      # if (any(c(3, 4, 8, 11, 12, 14, 15) %in% userGroup)) {
+      if (any(c(3, 4, 8, 11, 12, 14, 15) %in% userGroup)) {
         items <- list(
-          # if (any(c(4, 3, 14) %in% userGroup)) {
+          if (any(c(4, 3, 14) %in% userGroup)) {
             navMenuItem(
               label = "File Work",
               subItems = list(
@@ -197,16 +171,16 @@ server <- function(id, auth, resAuth) {
                 a("Edit Schedule", href = route_link("filework/schedule"))
               )
             )
-          # }
+          }
         )
         navMenu(
           label = "Jobs",
           items = items
         )
-      # }
+      }
     }
 
-    output$jobsNavigation <- renderUI({
+    output$jobsNavigationDesktop <- renderUI({
       getJobsUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
@@ -241,7 +215,7 @@ server <- function(id, auth, resAuth) {
     }
 
     
-    output$yourPlayer <- renderUI({
+    output$yourPlayerDesktop <- renderUI({
       getPlayerUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
