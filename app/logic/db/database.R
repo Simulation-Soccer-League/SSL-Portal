@@ -15,7 +15,7 @@ sqlQuery <- function(query, db) {
   con <-
     DBI$dbConnect(
       RMySQL$MySQL(),
-      dbname = config$get(db),
+      dbname = Sys.getenv(db),
       host = db_host,
       port = db_port,
       user = db_user,
