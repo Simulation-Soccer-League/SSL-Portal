@@ -214,24 +214,53 @@ h1, h2, h3, h4, h5 {
   background-color: var(--sslBlueD);
   height: 72px;
   margin-bottom: 20px;
+  position: relative;
+
+  .nav-container {
+    display: flex;
+    flex-direction: row;
+    margin-left: 128px;
+    margin-right: 12px;
+    height: inherit;
+    max-width: 100%;
+    align-items: end;
+    justify-content: space-between;
+  }
+
+  .logo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 12px;
+  }
 }
-.ssl-navbar .logo {
-  position: absolute;
-  top: 0;
+
+.nav-toggle {
+  display: none;
+  position: fixed;
   left: 0;
-  padding: 12px;
+  top: 0;
+  margin-top: 8px;
+  margin-left: 8px;
+  height: 24px;
+  width: 24px;
+  background-color: yellow;
+  z-index: 100;
+}
+
+.nav-container_narrow {
+  display: none;
 }
 
 $navbar-label-height: 32px;
 $navbar-items-width: 112px;
 
-.nav-toggle {
+.nav-menu {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 100;
-  color: #EEEEEE;
+  color: #eeeeee;
   font-weight: 600;
   padding: 0 8px;
   height: $navbar-label-height;
@@ -248,46 +277,64 @@ $navbar-items-width: 112px;
   }
 
   &:hover {
-    background: #EEEEEE;
+    background: #eeeeee;
     color: black;
     cursor: pointer;
   }
-  
-  &:has(.nav-toggle_items):hover {
+
+  &:active {
+    filter: brightness(90%);
+  }
+
+  &:has(.nav-menu_items):hover {
     cursor: default;
   }
 
-  &:hover .nav-toggle_items {
+  &:has(.nav-menu_items):active {
+    filter: none;
+  }
+
+  &:hover .nav-menu_items {
     display: block;
   }
 }
 
-.nav-toggle_items {
+.nav-menu_items {
   display: none;
-  background: #EEEEEE;
+  background: #eeeeee;
   position: absolute;
   top: $navbar-label-height;
   left: 0;
   width: $navbar-items-width;
   font-weight: normal;
-  -moz-box-shadow: 0 0 2px black;
-  -webkit-box-shadow: 0 0 2px black;
   box-shadow: 0 0 2px black;
   border-bottom-left-radius: 2px;
   z-index: 101;
 
-  .nav-toggle_item, .nav-toggle_sub-item {
-    border-bottom: 1px solid #AAAAAA;
+  .nav-menu_item-caret-down {
+    display: none;
+  }
+
+  .nav-menu_item, .nav-menu_sub-item {
+    border-bottom: 1px solid #aaaaaa;
     border-bottom-left-radius: 2px;
 
     &:hover {
       background: #4b8dad;
-      color: #EEEEEE;
+      color: #eeeeee;
       cursor: pointer;
     }
-  
-    &:has(.nav-toggle_sub-items):hover {
+
+    &:active {
+      filter: brightness(90%);
+    }
+
+    &:has(.nav-menu_sub-items):hover {
       cursor: default;
+    }
+
+    &:has(.nav-menu_sub-items):active {
+      filter: none;
     }
 
     &:last-child {
@@ -295,21 +342,23 @@ $navbar-items-width: 112px;
     }
   }
 
-  &:hover .nav-toggle_sub-items {
+  .nav-menu_item:has(.nav-menu_sub-items) {
+    padding: 8px;
+  }
+
+  &:hover .nav-menu_sub-items {
     display: block;
   }
 }
 
-.nav-toggle_sub-items {
+.nav-menu_sub-items {
   display: none;
-  background: #EEEEEE;
+  background: #eeeeee;
   position: absolute;
   top: 0;
   color: black;
   left: $navbar-items-width;
   width: max-content;
-  -moz-box-shadow: 0 0 2px black;
-  -webkit-box-shadow: 0 0 2px black;
   box-shadow: 0 0 2px black;
   border-bottom-right-radius: 2px;
   z-index: 100;
@@ -317,6 +366,164 @@ $navbar-items-width: 112px;
   div {
     display: flex;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 767px) {
+  // Make sure page content isn't hidden behind fixed nav
+  #router-page-wrapper {
+    padding-top: 92px;
+  }
+
+  // For some reason this Shiny-generated element doesn't span the full width of the menu.
+  // Setting this rule to force it to match all other menu items.
+  .shiny-spinner-output-container:has(#app-nav-jobsNavigationMobile) {
+    width: 100%;
+  }
+
+  .ssl-navbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 90;
+
+    .nav-container {
+      display: none;
+    }
+
+    .logo {
+      right: 0;
+      left: auto;
+    }
+  }
+
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--sslBlueD);
+    transition: left 0.5s ease-in-out;
+    z-index: 9999;
+    color: white;
+
+    .nav-toggle-icon_open {
+      display: none;
+    }
+  }
+
+  .nav-container_narrow {
+    background: var(--bottomBackground);
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    position: fixed;
+    gap: 24px;
+    left: 0;
+    top: 0;
+    right: 0;
+    max-width: 0px;
+    overflow: hidden;
+    margin: 0;
+    z-index: 99;
+    transition: max-width 0.5s ease-in-out;
+    box-shadow: 0 0 30px black;
+    border-bottom-right-radius: 12px;
+
+    & > div {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    height: auto;
+    padding: 0;
+
+    & > div:has(> span), & > div:has(> a), & > a {
+      border-bottom: 1px solid black;
+      width: 100%;
+    }
+
+    a, span {
+      padding: 12px 8px;
+      color: #eeeeee;
+    }
+
+    .fa-door-open, .fa-user { 
+      display: none;
+    }
+  }
+
+  .nav-menu_items {
+    background: none;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 0px;
+    width: 100%;
+    box-shadow: none;
+
+    &.show-items {
+      height: max-content;
+    }
+
+    .nav-menu_item {
+      background: var(--middleBackground);
+      border-bottom: 1px solid black !important;
+      padding: 0 !important;
+    }
+
+    .nav-menu_item:has(.nav-menu_sub-items) > div {
+      justify-content: flex-start !important;
+    }
+    // When sub-items are showing
+    .nav-menu_item:has(.nav-menu_sub-items[style*="max-content"]) > div {
+      border-bottom: 1px solid black;
+    }
+
+    .nav-menu_item-caret-down {
+      display: block;
+    }
+    .nav-menu_item-caret-right {
+      display: none;
+    }
+
+    a, span {
+      padding-left: 16px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+  }
+
+  .nav-menu_sub-items {
+    background: none;
+    display: block;
+    overflow: hidden;
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 0px;
+    width: 100%;
+    box-shadow: none;
+
+    .nav-menu_sub-item {
+      background: var(--topBackground);
+      border-bottom: 1px solid black;
+      color: #eee;
+    }
+
+    a, span {
+      padding-left: 24px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
   }
 }
 

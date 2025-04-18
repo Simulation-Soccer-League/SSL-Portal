@@ -18,6 +18,42 @@ box::use(
   app/logic/ui/spinner[withSpinnerCustom],
 )
 
+getNavItems <- function(ns, suffix) {
+  tagList(
+    flexRow(
+      tagList(
+        navMenu(
+          label = "Trackers",
+          items = list(
+            # a("Players", href = route_link("tracker/player")),
+            a("Search", href = route_link("search")),
+            a("Organizations", href = route_link("tracker/organization")),
+            a("Draft Class", href = route_link("tracker/draftclass"))
+          )
+        ),
+        navMenu(
+          label = "Index",
+          items = list(
+            a("Index", href = route_link("index/")),
+            a("Records", href = route_link("index/records")),
+            a("Standings", href = route_link("index/standings")),
+            a("Schedule", href = route_link("index/schedule")),
+            a("Academy", href = route_link("index/academy"))
+          )
+        ),
+        uiOutput(ns(paste0("jobsNavigation", suffix))) |>
+          withSpinnerCustom(height = 20),
+        navMenu(
+          div(a("Intro", href = route_link("/")))
+        )
+      )
+    ),
+    verbatimTextOutput(ns("workers")),
+    uiOutput(ns(paste0("yourPlayer", suffix))) |>
+      withSpinnerCustom(height = 20)
+  )
+}
+
 #' @export
 ui <- function(id) {
   ns <- NS(id)
@@ -69,57 +105,49 @@ ui <- function(id) {
       tags$title("SSL Portal")
     ),
     tags$nav(
-      class = "ssl-navbar",
-      flexRow(
-        style = "
-          margin-left: 128px;
-          margin-right: 12px;
-          height: inherit;
-          align-items: end;
-          justify-content: space-between;
-        ",
-        tagList(
-          flexRow(
-            tagList(
-              tags$a(
-                href='https://forum.simulationsoccer.com',
-                target="_blank",
-                tags$img(src = 'static/portalwhite.png', height = "70"),
-                class = "logo"
-              ),
-              navMenu(
-                label = "Trackers",
-                items = list(
-                  # a("Players", href = route_link("tracker/player")),
-                  a("Search", href = route_link("search")),
-                  a("Organizations", href = route_link("tracker/organization")),
-                  a("Draft Class", href = route_link("tracker/draftclass"))
-                )
-              ),
-              navMenu(
-                label = "Index",
-                items = list(
-                  a("Index", href = route_link("index/")),
-                  a("Standings", href = route_link("index/standings")),
-                  a("Schedule", href = route_link("index/schedule")),
-                  a("Records", href = route_link("index/records")),
-                  a("Academy Index", href = route_link("index/academy"))
-                )
-              ),
-              uiOutput(ns("jobsNavigation")) |> 
-                withSpinnerCustom(height = 20),
-              navMenu(
-                div(a("Intro", href = route_link("/")))
-              )
+      class = "nav-container_narrow",
+      tagList(
+        actionButton(
+          inputId = "navToggle",
+          label = tagList(
+            div(
+              icon("bars"),
+              class = "nav-toggle-icon_closed"
+            ),
+            div(
+              icon("xmark"),
+              class = "nav-toggle-icon_open"
             )
           ),
-          flexRow(
-            tagList(
-              verbatimTextOutput(ns("workers")),
-              uiOutput(ns("yourPlayer")) |> 
-                withSpinnerCustom(height = 20)  
-            )
-          )
+          class = "nav-toggle",
+          onclick = "
+            var mobileNav = document.querySelector('.nav-container_narrow');
+            var openMaxWidth = '80%';
+
+            if (mobileNav) {
+              var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
+              mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
+              this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
+
+              this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
+              this.querySelector('.nav-toggle-icon_open').style.display = isOpen ? 'none' : 'block';
+            }
+        "),
+        getNavItems(ns, "Mobile")
+      )
+    ),
+    tags$nav(
+      class = "ssl-navbar",
+      tagList(
+        tags$a(
+          href = "https://forum.simulationsoccer.com",
+          target = "_blank",
+          tags$img(src = "static/portalwhite.png", height = "70"),
+          class = "logo"
+        ),
+        div(
+          class = "nav-container",
+          getNavItems(ns, "Desktop")
         )
       )
     )
@@ -131,10 +159,10 @@ server <- function(id, auth, resAuth) {
   moduleServer(id, function(input, output, session) {
     
     ### Output
-    output$jobsNavigation <- renderUI({
-      if (any(c(3, 4, 8, 11, 12, 14, 15) %in% auth()$usergroup)) {
+    getJobsUi <- function(userGroup) {
+      if (any(c(3, 4, 8, 11, 12, 14, 15) %in% userGroup)) {
         items <- list(
-          if (any(c(4, 3, 14) %in% auth()$usergroup)) {
+          if (any(c(4, 3, 14) %in% userGroup)) {
             navMenuItem(
               label = "File Work",
               subItems = list(
@@ -150,11 +178,20 @@ server <- function(id, auth, resAuth) {
           items = items
         )
       }
+    }
+
+    output$jobsNavigationDesktop <- renderUI({
+      getJobsUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
-    
-    output$yourPlayer <- renderUI({
-      if(auth()$usergroup |> is.null()){
+
+    output$jobsNavigationMobile <- renderUI({
+      getJobsUi(auth()$usergroup)
+    }) |> 
+      bindEvent(auth())
+
+    getPlayerUi <- function(userGroup) {
+      if (userGroup |> is.null()) {
         navMenu(
           actionLink("Login", icon = icon("user"), inputId = session$ns("login"))
         )
@@ -162,10 +199,12 @@ server <- function(id, auth, resAuth) {
         flexRow(
           tagList(
             navMenu(
-              tagList(
-                icon("futbol"),
-                a("My Player", href = route_link("myPlayer"))
-              )
+              label = "Player",
+              items = list(
+                a("My Player", href = route_link("myPlayer")),
+                a("Bank/Store", href = route_link("bank"))
+              ),
+              showItems = TRUE
             ),
             navMenu(
               actionLink("Logout", icon = icon("door-open"), inputId = session$ns("logout"))
@@ -173,6 +212,16 @@ server <- function(id, auth, resAuth) {
           )
         )
       }
+    }
+
+    
+    output$yourPlayerDesktop <- renderUI({
+      getPlayerUi(auth()$usergroup)
+    }) |> 
+      bindEvent(auth())
+
+    output$yourPlayerMobile <- renderUI({
+      getPlayerUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
     
@@ -180,8 +229,8 @@ server <- function(id, auth, resAuth) {
     # Checks saved cookie for automatic login
     observe({
       refreshtoken <- getRefreshToken(input$cookies$token)
-      if(refreshtoken |> nrow() > 0){
-        if((now() |> as.numeric()) < refreshtoken$expires_at){
+      if (refreshtoken |> nrow() > 0) {
+        if ((now() |> as.numeric()) < refreshtoken$expires_at) {
           resAuth$uid <- refreshtoken$uid
           resAuth$username <- refreshtoken$username
           resAuth$usergroup <- 
@@ -217,7 +266,7 @@ server <- function(id, auth, resAuth) {
     
     observe({
       res <- customCheckCredentials(user = input$user, password = input$password)
-      if(res$result){
+      if (res$result) {
         removeModal()
         resAuth$uid <- res$userInfo$uid
         resAuth$username <- res$userInfo$username
