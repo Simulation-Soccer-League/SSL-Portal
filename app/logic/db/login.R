@@ -1,9 +1,10 @@
 ## Verifies the password from a response from the mybb db and the given password
 box::use(
   digest,
-  stringr[str_split],
+  lubridate[hours, now],
+  shiny[getDefaultReactiveDomain],
   stringi[stri_rand_strings],
-  lubridate[now, hours],
+  stringr[str_split],
 )
 
 box::use(
@@ -12,7 +13,7 @@ box::use(
 
 #' Helper function to set the token
 #' @export
-setRefreshToken <- function(uid, token, session = shiny::getDefaultReactiveDomain()) {
+setRefreshToken <- function(uid, token, session = getDefaultReactiveDomain()) {
   expires <- (now() + hours(72)) |> as.numeric()
 
   portalQuery({
@@ -24,16 +25,16 @@ setRefreshToken <- function(uid, token, session = shiny::getDefaultReactiveDomai
 
 
 #' @export
-customCheckCredentials <- function(user, password, session = shiny::getDefaultReactiveDomain()) {
+customCheckCredentials <- function(user, password, session = getDefaultReactiveDomain()) {
   res <-
     mybbQuery(
       query =
-        paste(
-          "SELECT uid, username, password, salt, usergroup, additionalgroups
+      paste(
+        "SELECT uid, username, password, salt, usergroup, additionalgroups
         FROM mybb_users
         WHERE username = '", user, "'",
-          sep = ""
-        )
+        sep = ""
+      )
     ) |>
     suppressWarnings()
 
@@ -74,10 +75,10 @@ customCheckCredentials <- function(user, password, session = shiny::getDefaultRe
             uid = res$uid,
             username = res$username,
             usergroup =
-              paste(res$usergroup, res$additionalgroups, sep = ",") |>
-                str_split(pattern = ",", simplify = TRUE) |>
-                as.numeric() |>
-                as.list()
+            paste(res$usergroup, res$additionalgroups, sep = ",") |>
+            str_split(pattern = ",", simplify = TRUE) |>
+            as.numeric() |>
+            as.list()
           )
       )
     }

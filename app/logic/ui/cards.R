@@ -1,6 +1,6 @@
 box::use(
   bslib,
-  dplyr[select, if_else, mutate, arrange, slice_head, desc],
+  dplyr[if_else],
   shiny,
   stringr[str_replace_all],
 )
@@ -11,15 +11,31 @@ resultCard <- function(data, i) {
   bslib$card(
     bslib$card_header(
       shiny$div(
-        shiny$div(style = "display: inline-block; width: 40px;", shiny$img(src = sprintf("static/logo/%s (Custom).png", data[i, "Home"]), style = "height: 40px;", alt = data[i, "Home"], title = data[i, "Home"])),
+        shiny$div(
+          style = "display: inline-block; width: 40px;",
+          shiny$img(
+            src = sprintf("static/logo/%s (Custom).png", data[i, "Home"]),
+            style = "height: 40px;",
+            alt = data[i, "Home"],
+            title = data[i, "Home"]
+          )
+        ),
         shiny$strong(" - "),
-        shiny$div(style = "display: inline-block; width: 40px;", shiny$img(src = sprintf("static/logo/%s (Custom).png", data[i, "Away"]), style = "height: 40px;", alt = data[i, "Away"], title = data[i, "Away"])),
+        shiny$div(
+          style = "display: inline-block; width: 40px;",
+          shiny$img(
+            src = sprintf("static/logo/%s (Custom).png", data[i, "Away"]),
+            style = "height: 40px;",
+            alt = data[i, "Away"],
+            title = data[i, "Away"]
+          )
+        ),
         align = "center"
       )
     ),
     bslib$card_body(
       shiny$h4(paste(data[i, "HomeScore"], data[i, "AwayScore"], sep = "-") |>
-        str_replace_all(pattern = "NA", replacement = " "))
+                 str_replace_all(pattern = "NA", replacement = " "))
     ),
     bslib$card_footer(
       paste(
