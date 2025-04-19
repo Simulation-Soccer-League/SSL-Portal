@@ -1,18 +1,16 @@
 box::use(
-  dplyr,
   bslib,
-  reactable[reactable, reactableOutput, renderReactable, colDef],
-  shiny,
+  dplyr,
+  reactable[colDef, reactable],
   rlang[is_empty],
-  tippy[tippy],
+  shiny,
 )
 
 box::use(
-  app / logic / ui / spinner[withSpinnerCustom],
   app / logic / constant,
   app / logic / db / get[getSchedule],
-  app / logic / ui / tags[flexRow, flexCol],
   app / logic / ui / selector[leagueSelectInput],
+  app / logic / ui / spinner[withSpinnerCustom],
 )
 
 #' @export
@@ -93,11 +91,43 @@ server <- function(id) {
                 function(x) ifelse(is.na(x), " ", x)
               ),
               Score = dplyr$case_when(
-                Penalties == 1 & HomeScore > AwayScore ~ paste0("p", paste(HomeScore, AwayScore, sep = " - ")),
-                Penalties == 1 & HomeScore < AwayScore ~ paste0(paste(HomeScore, AwayScore, sep = " - "), "p"),
-                ExtraTime == 1 & HomeScore > AwayScore ~ paste0("e", paste(HomeScore, AwayScore, sep = " - ")),
-                ExtraTime == 1 & HomeScore < AwayScore ~ paste0(paste(HomeScore, AwayScore, sep = " - "), "p"),
-                TRUE ~ paste(HomeScore, AwayScore, sep = " - ")
+                Penalties == 1 & HomeScore > AwayScore ~ paste0(
+                  "p",
+                  paste(
+                    HomeScore,
+                    AwayScore,
+                    sep = " - "
+                  )
+                ),
+                Penalties == 1 & HomeScore < AwayScore ~ paste0(
+                  paste(
+                    HomeScore,
+                    AwayScore,
+                    sep = " - "
+                  ),
+                  "p"
+                ),
+                ExtraTime == 1 & HomeScore > AwayScore ~ paste0(
+                  "e",
+                  paste(
+                    HomeScore,
+                    AwayScore,
+                    sep = " - "
+                  )
+                ),
+                ExtraTime == 1 & HomeScore < AwayScore ~ paste0(
+                  paste(
+                    HomeScore,
+                    AwayScore,
+                    sep = " - "
+                  ),
+                  "p"
+                ),
+                TRUE ~ paste(
+                  HomeScore,
+                  AwayScore,
+                  sep = " - "
+                )
               ),
               MatchType = dplyr$case_when(
                 MatchType == -1 ~ "Friendlies",
@@ -116,27 +146,35 @@ server <- function(id) {
                   MatchType = colDef(width = 100),
                   MatchDay = colDef(width = 100),
                   Home =
-                    colDef(
-                      cell = function(value) {
-                        image <- shiny$img(src = sprintf("static/logo/%s (Custom).png", value), style = "height: 30px;", title = value)
+                  colDef(
+                    cell = function(value) {
+                      image <- shiny$img(
+                        src = sprintf("static/logo/%s (Custom).png", value),
+                        style = "height: 30px;",
+                        title = value
+                      )
 
-                        shiny$tagList(
-                          shiny$div(style = "display: inline-block; width: 30px;", image),
-                          shiny$div(style = "font-size: 1.2rem", value)
-                        )
-                      }
-                    ),
+                      shiny$tagList(
+                        shiny$div(style = "display: inline-block; width: 30px;", image),
+                        shiny$div(style = "font-size: 1.2rem", value)
+                      )
+                    }
+                  ),
                   Away =
-                    colDef(
-                      cell = function(value) {
-                        image <- shiny$img(src = sprintf("static/logo/%s (Custom).png", value), style = "height: 30px;", title = value)
+                  colDef(
+                    cell = function(value) {
+                      image <- shiny$img(
+                        src = sprintf("static/logo/%s (Custom).png", value),
+                        style = "height: 30px;",
+                        title = value
+                      )
 
-                        shiny$tagList(
-                          shiny$div(style = "display: inline-block; width: 30px;", image),
-                          shiny$div(style = "font-size: 1.2rem", value)
-                        )
-                      }
-                    )
+                      shiny$tagList(
+                        shiny$div(style = "display: inline-block; width: 30px;", image),
+                        shiny$div(style = "font-size: 1.2rem", value)
+                      )
+                    }
+                  )
                 )
             )
         }

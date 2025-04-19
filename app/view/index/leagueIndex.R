@@ -9,10 +9,9 @@ box::use(
 box::use(
   app / logic / constant,
   app / logic / db / get[getLeagueIndex],
-  app / logic / ui / reactableHelper[recordReactable, indexReactable],
+  app / logic / ui / reactableHelper[indexReactable, recordReactable],
   app / logic / ui / selector[leagueSelectInput],
   app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexCol, flexRow],
 )
 
 #' @export
@@ -110,7 +109,18 @@ server <- function(id) {
       }) |>
         shiny$bindCache(input$selectedSeason)
 
-      outstatistics <- c("goals", "assists", "player of the match", "distance run (km)", "successful passes", "chances created", "tackles won", "interceptions", "yellow cards", "red cards")
+      outstatistics <- c(
+        "goals",
+        "assists",
+        "player of the match",
+        "distance run (km)",
+        "successful passes",
+        "chances created",
+        "tackles won",
+        "interceptions",
+        "yellow cards",
+        "red cards"
+      )
 
       output$outfieldLeaders <- shiny$renderUI({
         map(
