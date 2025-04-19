@@ -9,7 +9,7 @@ To make sure R Studio acknowledges the version of Node installed on your MacOS s
 ## Install Dependencies
 
 ```
-install.packages(c("dplyr", "future", "lubridate", "magick", "plotly", "reactable", "rhino", "RMySQL", "shiny", "shiny.router", "shinycssloaders", "shinyFeedback", "shinyjs", "tippy"))
+install.packages(c("dplyr", "forcats", "future", "lubridate", "magick", "plotly", "reactable", "rhino", "RMySQL", "shiny", "shiny.router", "shinycssloaders", "shinyFeedback", "shinyjs", "tippy"))
 ```
 
 ## Build CSS using SASS

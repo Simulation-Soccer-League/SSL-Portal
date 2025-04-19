@@ -238,13 +238,12 @@ h1, h2, h3, h4, h5 {
 .nav-toggle {
   display: none;
   position: fixed;
-  left: 0;
+  right: 0;
   top: 0;
   margin-top: 8px;
-  margin-left: 8px;
+  margin-right: 8px;
   height: 24px;
   width: 24px;
-  background-color: yellow;
   z-index: 100;
 }
 
@@ -391,11 +390,6 @@ $navbar-items-width: 112px;
     .nav-container {
       display: none;
     }
-
-    .logo {
-      right: 0;
-      left: auto;
-    }
   }
 
   .nav-toggle {
@@ -403,7 +397,6 @@ $navbar-items-width: 112px;
     align-items: center;
     justify-content: center;
     background-color: var(--sslBlueD);
-    transition: left 0.5s ease-in-out;
     z-index: 9999;
     color: white;
 

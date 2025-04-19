@@ -28,7 +28,6 @@ closeNarrowMenuJS <- "
   var mobileNavToggle = document.querySelector('.nav-toggle');
 
   mobileNav.style.maxWidth = '0px';
-  mobileNavToggle.style.left = '0px';
   mobileNavToggle.querySelector('.nav-toggle-icon_closed').style.display = 'block';
   mobileNavToggle.querySelector('.nav-toggle-icon_open').style.display = 'none';
 "

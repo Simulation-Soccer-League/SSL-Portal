@@ -122,12 +122,11 @@ ui <- function(id) {
           class = "nav-toggle",
           onclick = "
             var mobileNav = document.querySelector('.nav-container_narrow');
-            var openMaxWidth = '80%';
+            var openMaxWidth = '100%';
 
             if (mobileNav) {
               var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
               mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
-              this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
 
               this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
               this.querySelector('.nav-toggle-icon_open').style.display = isOpen ? 'none' : 'block';
