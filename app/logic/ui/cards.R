@@ -35,7 +35,7 @@ resultCard <- function(data, i) {
     ),
     bslib$card_body(
       shiny$h4(paste(data[i, "HomeScore"], data[i, "AwayScore"], sep = "-") |>
-                 str_replace_all(pattern = "NA", replacement = " "))
+        str_replace_all(pattern = "NA", replacement = " "))
     ),
     bslib$card_footer(
       paste(
