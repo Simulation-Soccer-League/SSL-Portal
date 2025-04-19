@@ -1,25 +1,24 @@
 ## Function for queries to mybb
 box::use(
-  config,
   DBI,
   glue,
   RMySQL,
 )
 
-db_host <- Sys.getenv("HOST")
-db_port <- Sys.getenv("PORT") |> as.integer()
-db_user <- Sys.getenv("DBUSER")
-db_password <- Sys.getenv("DBPASSWORD")
+dbHost <- Sys.getenv("HOST")
+dbPort <- Sys.getenv("PORT") |> as.integer()
+dbUser <- Sys.getenv("DBUSER")
+dbPassword <- Sys.getenv("DBPASSWORD")
 
 sqlQuery <- function(query, db) {
   con <-
     DBI$dbConnect(
       RMySQL$MySQL(),
       dbname = Sys.getenv(db),
-      host = db_host,
-      port = db_port,
-      user = db_user,
-      password = db_password
+      host = dbHost,
+      port = dbPort,
+      user = dbUser,
+      password = dbPassword
     )
 
   DBI$dbSendQuery(con, "SET NAMES utf8mb4;")

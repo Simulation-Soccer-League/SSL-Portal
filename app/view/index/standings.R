@@ -1,18 +1,18 @@
 box::use(
-  dplyr,
   bslib,
-  reactable[reactable, reactableOutput, renderReactable, colDef],
-  shiny,
+  dplyr,
+  reactable[colDef, reactable],
   rlang[is_empty],
+  shiny,
   tippy[tippy],
 )
 
 box::use(
-  app/logic/ui/spinner[withSpinnerCustom],
-  app/logic/constant,
-  app/logic/db/get[getStandings],
-  app/logic/ui/tags[flexRow, flexCol],
-  app/logic/ui/selector[leagueSelectInput],
+  app / logic / constant,
+  app / logic / db / get[getStandings],
+  app / logic / ui / selector[leagueSelectInput],
+  app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / ui / tags[flexRow],
 )
 
 #' @export
@@ -27,25 +27,25 @@ ui <- function(id) {
           shiny$selectInput(
             inputId = ns("selectedSeason"),
             label = "Select a season",
-            choices = 
+            choices =
               c(
-                1:constant$currentSeason$season |> 
+                1:constant$currentSeason$season |>
                   sort(decreasing = TRUE),
                 "ALL"
               )
           ),
           "",
-          shiny$uiOutput(ns("leagueSelector")) |> 
+          shiny$uiOutput(ns("leagueSelector")) |>
             withSpinnerCustom(height = 20)
         )
       ),
       bslib$card_body(
         shiny$h1("Standings"),
-        shiny$uiOutput(ns("standings")) |> 
+        shiny$uiOutput(ns("standings")) |>
           withSpinnerCustom(height = 80)
       )
-    ) 
-  ) 
+    )
+  )
 }
 
 #' @export
@@ -53,76 +53,85 @@ server <- function(id) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
-      
       #### DATA GENERATION ####
       standings <- shiny$reactive({
         shiny$req(input$selectedLeague)
         season <- input$selectedSeason
         league <- input$selectedLeague
-        
+
         getStandings(season = season, league = league)
       })
-      
-      
+
+
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
         leagueSelectInput(season = input$selectedSeason, session = session)
-      }) |> 
+      }) |>
         shiny$bindCache(input$selectedSeason)
-      
+
       output$standings <- shiny$renderUI({
         season <- input$selectedSeason
         league <- input$selectedLeague
-        
-        if(season == "ALL"){
+
+        if (season == "ALL") {
           relegation <- FALSE
-        } else if(season |> as.numeric() < 5 | season |> as.numeric() > 11){
+        } else if (season |> as.numeric() < 5 | season |> as.numeric() > 11) {
           relegation <- FALSE
         } else {
           relegation <- TRUE
-        } 
-        
+        }
+
         data <- standings()
-        
-        if(data |> is_empty()){
-          NULL 
+
+        if (data |> is_empty()) {
+          NULL
         } else {
-          data |> 
-            dplyr$select(!GoalDifference) |> 
+          data |>
+            dplyr$select(!GoalDifference) |>
             reactable(
               pagination = FALSE,
               defaultColDef = colDef(
                 minWidth = 60,
                 align = "center",
-                style = function(value, index){
+                style = function(value, index) {
                   list(
-                    background = 
-                      dplyr$if_else(index > 6 & relegation & league == 1, 
-                                    constant$red, 
-                                    dplyr$if_else(index < 3 & relegation & league == 2, 
-                                                  constant$green, 
-                                                  NA)
+                    background =
+                      dplyr$if_else(index > 6 & relegation & league == 1,
+                        constant$red,
+                        dplyr$if_else(index < 3 & relegation & league == 2,
+                          constant$green,
+                          NA
+                        )
                       ),
-                    # color = 
-                    #   ifelse(index > 6, "white", "black"),
-                    borderTop = 
-                      dplyr$if_else((index == 7 & relegation & league == 1)|(index == 3 & relegation & league == 2), 
-                                    "solid", 
-                                    "none")
+                    borderTop =
+                      dplyr$if_else(
+                        (
+                          (index == 7 & relegation & league == 1)
+                          | (index == 3 & relegation & league == 2)
+                        ),
+                        "solid",
+                        "none"
+                      )
                   )
                 }
               ),
               columns = list(
-                Team = colDef(name = "", width = 200, align = "left", cell = function(value){
-                  image <- shiny$img(src = sprintf("static/logo/%s (Custom).png", value), style = "height: 30px;", alt = value, title = value)  
-                  
-                  list <- 
+                Team = colDef(name = "", width = 200, align = "left", cell = function(value) {
+                  image <- shiny$img(
+                    src = sprintf("static/logo/%s (Custom).png", value),
+                    style = "height: 30px;",
+                    alt = value,
+                    title = value
+                  )
+
+                  list <-
                     shiny$tagList(
-                      flexRow(style = "align-items: center; gap: 8px;", 
-                              shiny$tagList(
-                                image,
-                                shiny$span(class = "truncated-text", value)
-                              )
+                      flexRow(
+                        style = "align-items: center; gap: 8px;",
+                        shiny$tagList(
+                          image,
+                          shiny$span(class = "truncated-text", value)
+                        )
                       )
                     )
                 }),
@@ -136,9 +145,8 @@ server <- function(id) {
               )
             )
         }
-      }) |> 
+      }) |>
         shiny$bindCache(input$selectedSeason, input$selectedLeague)
-      
     }
   )
 }

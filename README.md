@@ -17,6 +17,15 @@ _Requires NodeJS to be installed on your system_
 
 `rhino::build_sass()`
 
+## Lint R
+
+`rhino::lint_r()`
+
+If you see this error you may need to run the app once first.
+```
+Error in !trace_length(trace) : invalid argument type
+```
+
 ## Run App
 
 `shiny::runApp()`
