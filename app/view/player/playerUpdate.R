@@ -22,7 +22,8 @@ ui <- function(id) {
   ns <- shiny$NS(id)
   
   shiny$tagList(
-    shiny$uiOutput(ns("ui"))  
+    shiny$textOutput(ns("text")),
+    shiny$uiOutput(ns("attributes"))  
   )
   
 }
@@ -43,11 +44,108 @@ server <- function(id, auth, updated, type) {
       })
     } else {
       #### OUTPUT UI ####
-      output$ui <- shiny$renderUI({
+      output$attributes <- shiny$renderUI({
+        map(
+          .x = processedData()$group |> unique() |> sort(),
+          .f = function(chosengroup){
+            output[[chosengroup]] <- shiny$renderUI({
+              temp <- 
+                processedData() |> 
+                dplyr$filter(
+                  group == chosengroup
+                ) |> 
+                dplyr$select(Attribute, Value)
+              
+              lapply(
+                temp$Attribute,
+                FUN = function(currentAtt){
+                  value <- 
+                    temp |> 
+                    dplyr$filter(Attribute == currentAtt) |> 
+                    dplyr$select(Value) |> 
+                    unlist()
+                  
+                  shiny$tagList(
+                    shiny$numericInput(
+                      inputId = ns(currentAtt |> str_remove_all(" ")),
+                      label = 
+                        tippy(
+                          currentAtt,
+                          constant$attributes |> 
+                            dplyr$filter(attribute == currentAtt) |> 
+                            dplyr$select(explanation),
+                          theme = "ssl"
+                        ),
+                      value = value,
+                      min = value,
+                      max = 20
+                    ),
+                    shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" "))))
+                  )
+                }
+              )
+            })
+          }
+        )
+        
+        map(
+          .x = processedData()$Attribute,
+          .f = function(attribute){
+            output[[paste0("cost", attribute |> str_remove_all(" "))]] <- shiny$renderUI({
+              curValue <- input[[attribute |> str_remove_all(" ")]]
+              
+              if(attribute %in% c("Natural Fitness", "Stamina")){
+                
+              } else {
+                shiny$p(
+                  paste0(
+                    "Next: ", 
+                    constant$tpeCost |> 
+                      dplyr$filter(value == curValue + 1) |> 
+                      dplyr$select(sinCost) |> unlist() |> 
+                      replace_na(0),
+                    " Total Cost: ",
+                    constant$tpeCost |> 
+                      dplyr$filter(value == curValue) |> 
+                      dplyr$select(cumCost) |> unlist() |> 
+                      replace_na(0)
+                  )
+                )
+              }
+            })
+          }
+        )
+        
+        map(
+          .x = processedData()$group |> unique() |> sort(),
+          .f = function(chosengroup){
+            shiny$tagList(
+              shiny$div(
+                style = "width: 80%",
+                shiny$uiOutput(ns(chosengroup))   
+              )
+            )
+          }
+        ) |> 
+          shiny$div(class = "attributeUpdate")
+      })
+      
+      
+      output$text <- shiny$renderText({
+        bankedTPE()
+      })
+      #### OUTPUT SERVER ####
+      
+      #### REACTIVES ####
+      playerData <- shiny$reactive({
+        getActivePlayer(auth$uid) |> 
+          getPlayer() 
+      })
+      
+      processedData <- shiny$reactive({
         data <- playerData()
         
-        processedData <- 
-          data |> 
+        data |> 
           dplyr$select(acceleration:throwing) |> 
           dplyr$select(
             dplyr$where(~ !is.na(.x))
@@ -76,86 +174,35 @@ server <- function(id, auth, updated, type) {
             }
           ) |> 
           dplyr$arrange(group)
-        
-        map(
-          .x = processedData$group |> unique() |> sort(),
-          .f = function(chosengroup){
-            output[[chosengroup]] <- shiny$renderUI({
-              temp <- 
-                processedData |> 
-                dplyr$filter(
-                  group == chosengroup
-                ) |> 
-                dplyr$select(Attribute, Value)
-              
-              lapply(
-                temp$Attribute,
-                FUN = function(attribute){
-                  shiny$tagList(
-                    shiny$numericInput(
-                      inputId = ns(attribute |> str_remove_all(" ")),
-                      label = attribute,
-                      value = temp |> 
-                        dplyr$filter(Attribute == attribute) |> 
-                        dplyr$select(Value) |> 
-                        unlist(),
-                      min = 5,
-                      max = 20
-                    ),
-                    shiny$uiOutput(ns(paste0("cost", attribute |> str_remove_all(" "))))
-                  )
-                }
-              )
-            })
-          }
-        )
-        
-        map(
-          .x = processedData$Attribute,
-          .f = function(attribute){
-            output[[paste0("cost", attribute |> str_remove_all(" "))]] <- shiny$renderUI({
-              curValue <- input[[attribute |> str_remove_all(" ")]]
-              
-              shiny$p(
-                paste0(
-                  "Next: ", 
-                  constant$tpeCost |> 
-                    dplyr$filter(value == curValue + 1) |> 
-                    dplyr$select(sinCost) |> unlist() |> 
-                    replace_na(0),
-                  " Total Cost: ",
-                  constant$tpeCost |> 
-                    dplyr$filter(value == curValue) |> 
-                    dplyr$select(cumCost) |> unlist() |> 
-                    replace_na(0)
-                )
-              )
-            })
-              
-          }
-        )
-        
-        map(
-          .x = processedData$group |> unique() |> sort(),
-          .f = function(chosengroup){
-            shiny$tagList(
-              shiny$div(
-                style = "width: 80%",
-                shiny$uiOutput(ns(chosengroup))   
-              )
-            )
-          }
-        ) |> 
-          shiny$div(class = "attributeUpdate")
       })
       
-      #### OUTPUT SERVER ####
-      
-      #### REACTIVES ####
-      playerData <- shiny$reactive({
-        getActivePlayer(auth$uid) |> 
-          getPlayer()
-      })
+      bankedTPE <- shiny$reactive({
+        appliedTPE <- 
+          map(
+            .x = processedData()$Attribute |> str_remove_all(" "),
+            .f = function(currentAtt){
+              curValue <- input[[currentAtt]]
+              
+              constant$tpeCost |> 
+                dplyr$filter(value == curValue) |> 
+                dplyr$select(cumCost) |> 
+                unlist()
+            }
+          ) |> 
+            unlist() |> 
+            sum()
+        
+        playerData()$tpe - appliedTPE + 2*(constant$tpeCost$cumCost |> max())
+      }) |> 
+        shiny$bindEvent(
+          lapply(
+            X = processedData()$Attribute |> str_remove_all(" "),
+            FUN = function(x){
+              input[[x]]
+            }
+          ),
+          ignoreInit = TRUE
+        )
       
       #### OBSERVERS ####
     }
