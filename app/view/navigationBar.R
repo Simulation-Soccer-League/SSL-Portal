@@ -8,7 +8,7 @@ box::use(
         modalButton, textInput, passwordInput, 
         verbatimTextOutput, renderText, reactive,
         actionLink],
-  shiny.router[route_link, change_page],
+  shiny.router[route_link],
   shinyFeedback[feedbackWarning]
 )
 

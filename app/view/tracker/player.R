@@ -7,7 +7,7 @@ box::use(
   reactable[colDef, colFormat, reactable, renderReactable, reactableOutput],
   rlang[is_empty],
   shiny,
-  shiny.router[change_page, get_query_param],
+  shiny.router[get_query_param],
   stringr[str_detect, str_remove, str_split, str_to_upper],
   tidyr[complete, pivot_longer],
 )

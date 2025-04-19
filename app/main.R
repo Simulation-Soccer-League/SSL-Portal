@@ -17,6 +17,7 @@ box::use(
   app/view/index/standings,
   app/view/jobs/filework/export,
   app/view/player/myPlayer,
+  app/view/player/playerUpdate,
   app/view/tracker/draftclass,
   app/view/tracker/organization,
   app/view/tracker/player,
@@ -46,6 +47,10 @@ ui <- function(id) {
       route("tracker/organization", organization$ui(ns("organization"))),
       route("search", playerSearch$ui(ns("search"))),
       route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
+      route("myPlayer/update", playerUpdate$ui(ns("update"))),
+      route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
+      route("myPlayer/redistribute", playerUpdate$ui(ns("redist"))),
+      route("myPlayer/regress", playerUpdate$ui(ns("regress"))),
       route("filework/export", export$ui(ns("export")))
     )
   )
@@ -81,7 +86,8 @@ server <- function(id) {
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
-        create = FALSE, player = FALSE, index = FALSE,
+        create = FALSE, player = FALSE, index = FALSE, playerUpdate = FALSE,
+        playerReroll = FALSE, playerRedist = FALSE,
         myPlayer = FALSE,
         academy = FALSE, uploadGame = FALSE,
         bankOverview = FALSE, welcome = FALSE, records = FALSE,
@@ -129,7 +135,15 @@ server <- function(id) {
       } else if (current == "filework/export" & !loadedServer$export) {
         export$server("export", auth = authOutput(), updated = updated())
         loadedServer$export <- TRUE
-      }
+      } else if (current == "myPlayer/update") {
+        playerUpdate$server("update", auth = authOutput(), updated = updated(), type = "update")
+      } else if (current == "myPlayer/reroll") {
+        playerUpdate$server("reroll", auth = authOutput(), updated = updated(), type = "reroll")
+      } else if (current == "myPlayer/redistribute") {
+        playerUpdate$server("redist", auth = authOutput(), updated = updated(), type = "redistribution")
+      } else if (current == "myPlayer/regress") {
+        playerUpdate$server("regress", auth = authOutput(), updated = updated(), type = "regress")
+      } 
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
     
