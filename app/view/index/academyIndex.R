@@ -1,16 +1,15 @@
 box::use(
-  dplyr,
   bslib,
-  reactable[reactable, reactableOutput, renderReactable],
+  dplyr,
+  reactable[reactableOutput, renderReactable],
   shiny,
 )
 
 box::use(
-  app / logic / ui / spinner[withSpinnerCustom],
   app / logic / constant,
   app / logic / db / get[getAcademyIndex],
-  app / logic / ui / tags[flexRow, flexCol],
-  app / logic / ui / reactableHelper[recordReactable, indexReactable],
+  app / logic / ui / reactableHelper[indexReactable],
+  app / logic / ui / spinner[withSpinnerCustom],
 )
 
 #' @export

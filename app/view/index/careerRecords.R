@@ -1,17 +1,16 @@
 box::use(
-  shiny,
   bslib,
   dplyr,
-  stringr[str_to_title],
   reactable[reactableOutput, renderReactable],
+  shiny,
+  stringr[str_to_title],
 )
 
 box::use(
-  app / logic / ui / spinner[withSpinnerCustom],
-  # app/logic/constant,
   app / logic / db / get[getLeagueIndex],
-  app / logic / ui / tags[flexRow, flexCol],
   app / logic / ui / reactableHelper[recordReactable],
+  app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / ui / tags[flexCol, flexRow],
 )
 
 #' @export
@@ -49,7 +48,9 @@ ui <- function(id) {
                 )
               ),
               ## Imports all 6.0.0 Font Awesome Icons
-              shiny$tags$style("@import url(https://use.fontawesome.com/releases/v6.0.0/css/all.css);")
+              shiny$tags$style(
+                "@import url(https://use.fontawesome.com/releases/v6.0.0/css/all.css);"
+              )
             ),
           shiny$tabPanel(
             title = "Outfield Records",
@@ -173,11 +174,11 @@ server <- function(id) {
                 shiny$tagList(
                   shiny$tags$b(
                     paste(trimmedStatTitle |>
-                      str_to_title()),
+                            str_to_title()),
                     style = "font-size: 16px; text-transform: uppercase;"
                   ),
                   shiny$tags$b(leader[, stat] |>
-                    round(2))
+                                 round(2))
                 )
               ),
               flexRow(
@@ -191,7 +192,11 @@ server <- function(id) {
             style = "align-items: center; justify-content: space-between;"
           ),
           class = "career-record-button",
-          style = dplyr$if_else(selectedStat == stat, "background-image: linear-gradient(to right, #4b8dad, #e5e5e5 40%);", "")
+          style = dplyr$if_else(
+            selectedStat == stat,
+            "background-image: linear-gradient(to right, #4b8dad, #e5e5e5 40%);",
+            ""
+          )
         )
       }
 
@@ -242,7 +247,7 @@ server <- function(id) {
           ) |>
           dplyr$slice_head(n = 20) |>
           dplyr$mutate(
-            RANK = 1:dplyr$n()
+            RANK = seq_len(dplyr$n())
           ) |>
           dplyr$relocate(RANK) |>
           recordReactable()

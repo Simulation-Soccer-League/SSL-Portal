@@ -1,6 +1,5 @@
 box::use(
   cachem,
-  future[multisession, plan],
   shiny,
   shiny.router[route, router_server, router_ui],
   shinyFeedback[useShinyFeedback],
@@ -9,12 +8,12 @@ box::use(
 )
 
 box::use(
-  app / view / navigationBar,
   app / view / index / academyIndex,
   app / view / index / careerRecords,
   app / view / index / leagueIndex,
   app / view / index / schedule,
   app / view / index / standings,
+  app / view / navigationBar,
   app / view / tracker / draftclass,
   app / view / tracker / organization,
   app / view / tracker / player,

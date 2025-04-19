@@ -2,8 +2,6 @@ box::use(
   shiny,
 )
 
-box::use()
-
 
 #' @export
 leagueSelectInput <- function(season, session) {

@@ -1,5 +1,5 @@
 box::use(
-  shinycssloaders[withSpinner]
+  shinycssloaders[withSpinner],
 )
 
 #' @export

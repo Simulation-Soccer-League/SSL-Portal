@@ -29,12 +29,12 @@ customCheckCredentials <- function(user, password, session = getDefaultReactiveD
   res <-
     mybbQuery(
       query =
-        paste(
-          "SELECT uid, username, password, salt, usergroup, additionalgroups
+      paste(
+        "SELECT uid, username, password, salt, usergroup, additionalgroups
         FROM mybb_users
         WHERE username = '", user, "'",
-          sep = ""
-        )
+        sep = ""
+      )
     ) |>
     suppressWarnings()
 
@@ -75,10 +75,10 @@ customCheckCredentials <- function(user, password, session = getDefaultReactiveD
             uid = res$uid,
             username = res$username,
             usergroup =
-              paste(res$usergroup, res$additionalgroups, sep = ",") |>
-                str_split(pattern = ",", simplify = TRUE) |>
-                as.numeric() |>
-                as.list()
+            paste(res$usergroup, res$additionalgroups, sep = ",") |>
+            str_split(pattern = ",", simplify = TRUE) |>
+            as.numeric() |>
+            as.list()
           )
       )
     }

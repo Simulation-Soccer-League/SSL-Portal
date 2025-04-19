@@ -1,11 +1,11 @@
 box::use(
-  shiny[div, icon, span, tagList],
+  shiny[div, icon, span, tag, tagList],
 )
 
 
 #' @export
 flexCol <- function(cont, style = "", onclick = "") {
-  shiny::tag("div", varArgs = list(
+  tag("div", varArgs = list(
     cont,
     class = "flex-col-wrapper",
     style = style,
@@ -15,7 +15,7 @@ flexCol <- function(cont, style = "", onclick = "") {
 
 #' @export
 flexRow <- function(cont, style = "", onclick = "") {
-  shiny::tag("div", varArgs = list(
+  tag("div", varArgs = list(
     cont,
     class = "flex-row-wrapper",
     style = style,
@@ -36,7 +36,7 @@ closeNarrowMenuJS <- "
 #' @export
 navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
   if (!missing(cont) && label == "") {
-    shiny::tag("div", varArgs = list(cont, class = "nav-menu", onclick = closeNarrowMenuJS))
+    tag("div", varArgs = list(cont, class = "nav-menu", onclick = closeNarrowMenuJS))
   } else if (length(label) > 0) {
     itemsClassNames <- c("nav-menu_items", if (showItems) " show-items" else "")
 
@@ -80,7 +80,7 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
             role = "button",
             flexCol(
               tagList(
-                tags_list <- lapply(items, function(item) {
+                lapply(items, function(item) {
                   div(
                     class = "nav-menu_item",
                     onclick = c("
@@ -139,7 +139,7 @@ navMenuItem <- function(cont, label = "", subItems = list()) {
         role = "button",
         div(
           tagList(
-            tags_list <- lapply(subItems, function(item) {
+            lapply(subItems, function(item) {
               div(
                 class = "nav-menu_sub-item",
                 onclick = closeNarrowMenuJS,

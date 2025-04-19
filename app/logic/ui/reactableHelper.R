@@ -1,14 +1,13 @@
 box::use(
-  bslib[layout_column_wrap],
   dplyr,
-  shiny[tagList, div, img, span, h4, a],
+  purrr[map, pmap],
+  reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   shiny.router[route_link],
-  reactable[reactable, reactableOutput, renderReactable, colDef, colFormat],
+  shiny[a, div, h4, img, span, tagList],
+  stats[setNames],
   stringr[str_detect, str_split, str_to_title, str_to_upper, str_trim],
   tidyr[pivot_longer],
   tippy[tippy],
-  stats[setNames],
-  purrr[map, pmap],
 )
 
 box::use(
@@ -17,14 +16,14 @@ box::use(
 
 #' @export
 clubLogos <- function(value, index, currentData) {
-  Club <- currentData |>
+  clubData <- currentData |>
     dplyr$select(club) |>
     dplyr$slice(index)
 
-  Club <- Club$club
+  clubData <- clubData$club
 
-  if (Club |> str_detect(",")) {
-    clubs <- str_split(Club, pattern = ",", simplify = TRUE) |>
+  if (clubData |> str_detect(",")) {
+    clubs <- str_split(clubData, pattern = ",", simplify = TRUE) |>
       c() |>
       str_trim() |>
       rev()
@@ -33,18 +32,26 @@ clubLogos <- function(value, index, currentData) {
       tagList(
         lapply(
           clubs,
-          function(X) {
+          function(x) {
             div(
               style = "display: inline-block; width: 25px;",
-              img(src = sprintf("static/logo/%s (Custom).png", X), style = "height: 25px;", alt = X, title = X)
+              img(
+                src = sprintf("static/logo/%s (Custom).png", x),
+                style = "height: 25px;",
+                alt = x,
+                title = x
+              )
             )
           }
         )
       )
   } else {
-    # file.exists(sprintf("%s.png", Club)) |> print()
-
-    image <- img(src = sprintf("static/logo/%s (Custom).png", Club), style = "height: 25px;", alt = Club, title = Club)
+    image <- img(
+      src = sprintf("static/logo/%s (Custom).png", clubData),
+      style = "height: 25px;",
+      alt = clubData,
+      title = clubData
+    )
 
     list <-
       tagList(
@@ -84,14 +91,34 @@ draftClassReactable <- function(data) {
             theme = "ssl"
           )
         }),
-        USERNAME = colDef(cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
-        BANKBALANCE = colDef(width = 120, format = colFormat(digits = 0, separators = TRUE, currency = "USD")),
+        USERNAME = colDef(
+          cell = function(value) {
+            tippy(
+              value,
+              tooltip = value,
+              theme = "ssl"
+            )
+          },
+        ),
+        BANKBALANCE = colDef(
+          width = 120, 
+          format = colFormat(
+            digits = 0,
+            separators = TRUE,
+            currency = "USD"
+          )
+        ),
         TEAM = colDef(
           name = "",
           width = 200,
           align = "left",
           cell = function(value) {
-            image <- img(src = sprintf("static/logo/%s (Custom).png", value), style = "height: 30px;", alt = value, title = value)
+            image <- img(
+              src = sprintf("static/logo/%s (Custom).png", value),
+              style = "height: 30px;",
+              alt = value,
+              title = value
+            )
             list <-
               tagList(
                 div(
@@ -136,26 +163,26 @@ recordReactable <- function(currentData) {
           club = colDef(show = FALSE, searchable = TRUE),
           RANK = colDef(width = 60),
           matchday =
-            colDef(
-              header = "MATCHDAY",
-              width = 100
-            )
-        ) |>
-          append(
-            pmap(statisticsTooltips, ~ {
-              if ((..1) %in% names(currentData)) {
-                ..1 <-
-                  colDef(
-                    header =
-                      tippy(..3 |> str_to_upper(), ..2, placement = "top", theme = "ssl"),
-                    html = TRUE,
-                    minWidth = 50
-                  )
-              }
-            }) |>
-              setNames(statisticsTooltips$statistic) |>
-              Filter(f = Negate(is.null), x = _)
+          colDef(
+            header = "MATCHDAY",
+            width = 100
           )
+        ) |>
+        append(
+          pmap(statisticsTooltips, ~ {
+            if ((..1) %in% names(currentData)) {
+              ..1 <- # nolint: object_name_linter
+                colDef(
+                  header =
+                  tippy(..3 |> str_to_upper(), ..2, placement = "top", theme = "ssl"),
+                  html = TRUE,
+                  minWidth = 50
+                )
+            }
+          }) |>
+            setNames(statisticsTooltips$statistic) |>
+            Filter(f = Negate(is.null), x = _)
+        )
     )
 }
 
@@ -188,25 +215,25 @@ indexReactable <- function(currentData) {
             }
           ),
           club =
-            colDef(
-              show = FALSE,
-              searchable = TRUE
-            )
-        ) |>
-          append(
-            pmap(statisticsTooltips, ~ {
-              if ((..1) %in% names(currentData)) {
-                ..1 <-
-                  colDef(
-                    header =
-                      tippy(..1 |> str_to_upper(), ..2, placement = "top", theme = "ssl"),
-                    html = TRUE
-                  )
-              }
-            }) |>
-              setNames(statisticsTooltips$statistic) |>
-              Filter(f = Negate(is.null), x = _)
+          colDef(
+            show = FALSE,
+            searchable = TRUE
           )
+        ) |>
+        append(
+          pmap(statisticsTooltips, ~ {
+            if ((..1) %in% names(currentData)) {
+              ..1 <- # nolint: object_name_linter
+                colDef(
+                  header =
+                  tippy(..1 |> str_to_upper(), ..2, placement = "top", theme = "ssl"),
+                  html = TRUE
+                )
+            }
+          }) |>
+            setNames(statisticsTooltips$statistic) |>
+            Filter(f = Negate(is.null), x = _)
+        )
     )
 }
 
@@ -219,7 +246,14 @@ orgReactable <- function(data) {
     }),
     pagination = FALSE,
     columns = list(
-      bankBalance = colDef(width = 120, format = colFormat(digits = 0, separators = TRUE, currency = "USD")),
+      bankBalance = colDef(
+        width = 120,
+        format = colFormat(
+          digits = 0,
+          separators = TRUE,
+          currency = "USD"
+        )
+      ),
       team = colDef(show = FALSE),
       affiliate = colDef(show = FALSE),
       name = colDef(width = 150, cell = function(value, rowIndex) {
@@ -233,9 +267,18 @@ orgReactable <- function(data) {
           theme = "ssl"
         )
       }),
-      username = colDef(width = 120, cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
-      discord = colDef(width = 120, cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
-      render = colDef(width = 150, cell = function(value) tippy(value, tooltip = value, theme = "ssl")),
+      username = colDef(
+        width = 120, 
+        cell = function(value) tippy(value, tooltip = value, theme = "ssl")
+      ),
+      discord = colDef(
+        width = 120, 
+        cell = function(value) tippy(value, tooltip = value, theme = "ssl")
+      ),
+      render = colDef(
+        width = 150, 
+        cell = function(value) tippy(value, tooltip = value, theme = "ssl")
+      ),
       class = colDef(width = 75),
       tpe = colDef(width = 50),
       tpebank = colDef(width = 75),
@@ -278,7 +321,10 @@ attributeReactable <- function(data, session, output) {
     ) |>
     dplyr$filter(
       if (data$pos_gk == 20) {
-        (group %in% c("Goalkeeper", "Technical") & keeper == "TRUE") | (group %in% c("Physical", "Mental"))
+        (
+          (group %in% c("Goalkeeper", "Technical") & keeper == "TRUE")
+          | (group %in% c("Physical", "Mental"))
+        )
       } else {
         group %in% c("Physical", "Mental", "Technical")
       }
