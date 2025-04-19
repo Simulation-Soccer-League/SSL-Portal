@@ -1,22 +1,20 @@
 box::use(
   bslib,
-  dplyr[select, if_else, mutate, arrange, slice_head, desc],
-  promises[future_promise, then],
-  plotly[plotlyOutput, renderPlotly, plot_ly, layout, config],
-  reactable[reactableOutput, renderReactable, reactable, colDef],
+  dplyr[mutate, select],
+  plotly[config, layout, plot_ly, plotlyOutput, renderPlotly],
+  reactable[colDef, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
   shiny,
-  stringr[str_replace_all],
   tippy[tippy],
 )
 
 box::use(
-  app / logic / ui / cards[resultCard],
-  app / logic / ui / tags[flexRow],
-  app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / constant,
   app / logic / db / api[readAPI],
   app / logic / db / get[getRecentCreates, getSchedule, getStandings, getTopEarners],
-  app / logic / constant,
+  app / logic / ui / cards[resultCard],
+  app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / ui / tags[flexRow],
 )
 
 #' @export
@@ -109,7 +107,7 @@ server <- function(id, usergroup) {
               "Information"
             ),
             bslib$card_body(
-              shiny$h2("Your account needs to be activated in order to access the rest of the portal functions. Please check the e-mail used when registering on the SSL forums.") |>
+              shiny$h2("Your account needs to be activated in order to access the rest of the portal functions. Please check the e-mail used when registering on the SSL forums.") |> # nolint: line_length_linter
                 shiny$div(class = "Retired")
             )
           )
@@ -136,8 +134,12 @@ server <- function(id, usergroup) {
                       Team = colDef(
                         minWidth = 100,
                         cell = function(value) {
-                          image <- shiny$img(src = sprintf("static/logo/%s (Custom).png", value), style = "height: 25px;", alt = value, title = value)
-
+                          image <- shiny$img(
+                            src = sprintf("static/logo/%s (Custom).png", value),
+                            style = "height: 25px;",
+                            alt = value, 
+                            title = value
+                          )
                           list <-
                             shiny$tagList(
                               flexRow(style = "align-items: center; gap: 8px;", shiny$tagList(
@@ -147,10 +149,42 @@ server <- function(id, usergroup) {
                             )
                         }
                       ),
-                      Wins = colDef(header = tippy("W", "Wins", placement = "top", theme = "ssl", arrow = TRUE)),
-                      Draws = colDef(header = tippy("D", "Draws", placement = "top", theme = "ssl", arrow = TRUE)),
-                      Losses = colDef(header = tippy("L", "Losses", placement = "top", theme = "ssl", arrow = TRUE)),
-                      Points = colDef(header = tippy("P", "Points", placement = "top", theme = "ssl", arrow = TRUE))
+                      Wins = colDef(
+                        header = tippy(
+                          "W",
+                          "Wins",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      Draws = colDef(
+                        header = tippy(
+                          "D",
+                          "Draws",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      Losses = colDef(
+                        header = tippy(
+                          "L",
+                          "Losses",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      Points = colDef(
+                        header = tippy(
+                          "P",
+                          "Points",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      )
                     )
                 )
             }

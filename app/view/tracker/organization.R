@@ -1,16 +1,14 @@
 box::use(
-  dplyr,
   bslib,
+  dplyr,
   shiny,
 )
 
 box::use(
-  app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / constant,
-  app / logic / db / get[getPlayers, getOrganizations],
-  app / logic / ui / tags[flexRow, flexCol],
-  app / logic / ui / selector[leagueSelectInput],
+  app / logic / db / get[getOrganizations, getPlayers],
   app / logic / ui / reactableHelper[orgReactable],
+  app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / ui / tags[flexRow],
 )
 
 #' @export
@@ -35,7 +33,23 @@ server <- function(id) {
     ### Loading data
     players <- shiny$reactive({
       getPlayers(active = FALSE) |>
-        dplyr$select(name, class, tpe, tpebank, username, discord, bankBalance, nationality, position, userStatus, playerStatus, render, team, affiliate, pid)
+        dplyr$select(
+          name,
+          class,
+          tpe,
+          tpebank,
+          username,
+          discord,
+          bankBalance,
+          nationality,
+          position,
+          userStatus,
+          playerStatus,
+          render,
+          team,
+          affiliate,
+          pid
+        )
     })
 
     organizations <- getOrganizations() |>
@@ -51,7 +65,14 @@ server <- function(id) {
             shiny$tabPanel(
               title = org,
               flexRow(
-                shiny$uiOutput(session$ns(paste0("overview_", unique(organizations$ID[organizations$organization == org])))) |>
+                shiny$uiOutput(
+                  session$ns(
+                    paste0(
+                      "overview_",
+                      unique(organizations$ID[organizations$organization == org])
+                    )
+                  )
+                ) |>
                   withSpinnerCustom(height = 200)
               )
             )

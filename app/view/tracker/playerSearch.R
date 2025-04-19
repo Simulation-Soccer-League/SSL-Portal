@@ -1,6 +1,6 @@
 box::use(
   dplyr[select],
-  reactable[colDef, colFormat, reactable, renderReactable, reactableOutput],
+  reactable[colDef, reactable, reactableOutput, renderReactable],
   shiny,
   shiny.router[route_link],
 )

@@ -1,19 +1,14 @@
 box::use(
   bslib,
-  dplyr,
-  reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
+  reactable[reactableOutput, renderReactable],
   shiny,
-  stringr[str_to_upper],
-  tippy[tippy],
 )
 
 box::use(
   app / logic / constant,
   app / logic / db / get[getDraftClass],
   app / logic / ui / reactableHelper[draftClassReactable],
-  app / logic / ui / selector[leagueSelectInput],
   app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexCol, flexRow],
 )
 
 #' @export

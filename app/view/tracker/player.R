@@ -1,21 +1,20 @@
 box::use(
   bslib,
   dplyr,
-  forcats[fct_relevel],
   lubridate[as_date, as_datetime, floor_date, today],
   plotly,
-  reactable[colDef, colFormat, reactable, renderReactable, reactableOutput],
+  reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
   shiny,
-  shiny.router[change_page, get_query_param],
-  stringr[str_detect, str_remove, str_split, str_to_upper],
+  shiny.router[get_query_param],
+  stringr[str_remove, str_split, str_to_upper],
   tidyr[complete, pivot_longer],
 )
 
 box::use(
   app / logic / constant,
   app / logic / db / api[readAPI],
-  app / logic / db / get[getPlayerNames, getPlayer, getTpeHistory, getBankHistory, getUpdateHistory],
+  app / logic / db / get[getBankHistory, getPlayer, getTpeHistory, getUpdateHistory],
   app / logic / ui / reactableHelper[attributeReactable, recordReactable],
   app / logic / ui / spinner[withSpinnerCustom],
 )
@@ -176,7 +175,6 @@ server <- function(id) {
           shiny$tagList(
             shiny$h4(paste("TPE: ", data$tpe)),
             shiny$h4(paste("Banked TPE: ", data$tpebank)),
-            # shiny$h4(paste("Bank Balance: ", data$bank)),
             shiny$h4(paste("Player Status: "), data$playerStatus, class = data$playerStatus),
             shiny$h4(paste("User Status: "), data$userStatus, class = data$userStatus),
             shiny$h5(paste("Nationality:"), data$nationality),
@@ -259,8 +257,18 @@ server <- function(id) {
             bgcolor = "rgba(255, 255, 255, 0.5)"
           ) |>
           plotly$layout(
-            xaxis = list(showgrid = FALSE, zeroline = FALSE, showline = FALSE, showticklabels = FALSE),
-            yaxis = list(showgrid = FALSE, zeroline = FALSE, showline = FALSE, showticklabels = FALSE),
+            xaxis = list(
+              showgrid = FALSE,
+              zeroline = FALSE,
+              showline = FALSE,
+              showticklabels = FALSE
+            ),
+            yaxis = list(
+              showgrid = FALSE,
+              zeroline = FALSE,
+              showline = FALSE,
+              showticklabels = FALSE
+            ),
             margin = list(l = 0, r = 0, b = 0, t = 0),
             plot_bgcolor = "#333333", # background color
             paper_bgcolor = "#333333"
@@ -279,27 +287,27 @@ server <- function(id) {
           tpe |>
           dplyr$mutate(
             WeekStart =
-              floor_date(
-                Time |>
-                  as_date(),
-                "week",
-                week_start = 1
-              )
+            floor_date(
+              Time |>
+                as_date(),
+              "week",
+              week_start = 1
+            )
           ) |>
           dplyr$group_by(WeekStart) |>
           dplyr$summarize(total = sum(`TPE Change`, na.rm = TRUE)) |>
           complete(
             WeekStart =
-              seq(
-                min(WeekStart),
-                floor_date(
-                  today() |>
-                    as_date(tz = "US/Pacific"),
-                  "week",
-                  week_start = 1
-                ),
-                by = "week"
+            seq(
+              min(WeekStart),
+              floor_date(
+                today() |>
+                  as_date(tz = "US/Pacific"),
+                "week",
+                week_start = 1
               ),
+              by = "week"
+            ),
             fill = list(total = 0)
           ) |>
           dplyr$ungroup() |>
@@ -403,7 +411,13 @@ server <- function(id) {
             columns =
               list(
                 Time = colDef(format = colFormat(datetime = TRUE)),
-                Transaction = colDef(format = colFormat(digits = 0, separators = TRUE, currency = "USD"))
+                Transaction = colDef(
+                  format = colFormat(
+                    digits = 0,
+                    separators = TRUE, 
+                    currency = "USD"
+                  )
+                )
               )
           )
       }
