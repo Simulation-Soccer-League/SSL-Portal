@@ -5,3 +5,9 @@ linters:
     object_name_linter("camelCase"),
     trailing_whitespace_linter = NULL
   )
+exclusions: list(
+    # excluded from line_length_linter:
+    "app/logic/db/get.R" = list(
+      line_length_linter = Inf
+    )
+  )

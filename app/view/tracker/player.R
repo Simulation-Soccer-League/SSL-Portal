@@ -13,11 +13,11 @@ box::use(
 )
 
 box::use(
-  app/logic/constant,
-  app/logic/db/api[readAPI],
-  app/logic/db/get[getPlayerNames, getPlayer, getTpeHistory, getBankHistory, getUpdateHistory],
-  app/logic/ui/reactableHelper[attributeReactable, recordReactable],
-  app/logic/ui/spinner[withSpinnerCustom],
+  app / logic / constant,
+  app / logic / db / api[readAPI],
+  app / logic / db / get[getPlayerNames, getPlayer, getTpeHistory, getBankHistory, getUpdateHistory],
+  app / logic / ui / reactableHelper[attributeReactable, recordReactable],
+  app / logic / ui / spinner[withSpinnerCustom],
 )
 
 #' @export
@@ -114,49 +114,49 @@ server <- function(id) {
           as.numeric()
       }
     })
-    
+
     playerData <- shiny$reactive({
       shiny$req(query())
-      
+
       getPlayer(query())
-    }) |> 
-      shiny$bindCache(query()) |> 
+    }) |>
+      shiny$bindCache(query()) |>
       shiny$bindEvent(query())
-    
+
     historyTPE <- shiny$reactive({
       shiny$req(query())
-      
+
       getTpeHistory(query())
-    }) |> 
-      shiny$bindCache(query()) |> 
+    }) |>
+      shiny$bindCache(query()) |>
       shiny$bindEvent(query())
 
     #### Output ####
     output$playerName <- shiny$renderUI({
       data <- playerData()
-      
+
       shiny$tagList(
         shiny$h2(paste(data$name, paste0("(", data$class, ")"), sep = " ")),
         shiny$h3(paste0("@", data$username))
       )
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$clubLogo <- shiny$renderUI({
       data <- playerData()
-      
+
       shiny$img(
         src = sprintf("static/logo/%s.png", data$team),
         style = "height: 100px;",
         alt = data$team,
         title = data$team
       )
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$playerInfo <- shiny$renderUI({
       data <- playerData()
-      
+
       value <-
         data |>
         dplyr$select(
@@ -169,7 +169,7 @@ server <- function(id) {
           name = str_remove(name, pattern = "pos_") |>
             str_to_upper()
         )
-      
+
       shiny$tagList(
         bslib$layout_columns(
           col_widths = c(6, 6),
@@ -207,13 +207,13 @@ server <- function(id) {
           )
         )
       )
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$matchStatistics <- renderReactable({
       data <- playerData()
-      
-      if (data$pos_gk == 20){
+
+      if (data$pos_gk == 20) {
         matches <-
           readAPI(
             url = "https://api.simulationsoccer.com/index/latestGames",
@@ -226,27 +226,27 @@ server <- function(id) {
             query = list(name = data$name)
           )
       }
-      
-      if (!(matches |> is_empty())){
+
+      if (!(matches |> is_empty())) {
         matches |>
           recordReactable()
       } else {
         NULL
       }
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$playerAttributes <- shiny$renderUI({
       data <- playerData()
-      
+
       attributeReactable(data, session, output)
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$tpeProgression <- plotly$renderPlotly({
       tpe <- historyTPE()
-      
-      if(nrow(tpe) < 2){
+
+      if (nrow(tpe) < 2) {
         plotly$plot_ly(mode = "markers", type = "scatter") |>
           plotly$add_annotations(
             text = "The player has had no TPE<br>progression in the Portal",
@@ -262,27 +262,29 @@ server <- function(id) {
             xaxis = list(showgrid = FALSE, zeroline = FALSE, showline = FALSE, showticklabels = FALSE),
             yaxis = list(showgrid = FALSE, zeroline = FALSE, showline = FALSE, showticklabels = FALSE),
             margin = list(l = 0, r = 0, b = 0, t = 0),
-            plot_bgcolor = "#333333",   # background color
+            plot_bgcolor = "#333333", # background color
             paper_bgcolor = "#333333"
           ) |>
           plotly$config(
-            displayModeBar = TRUE,  # Enable display of mode bar (optional, true by default)
+            displayModeBar = TRUE, # Enable display of mode bar (optional, true by default)
             modeBarButtonsToRemove = list(
               "toImage", "zoom2d", "pan2d", "select2d",
               "lasso2d", "zoomIn2d", "zoomOut2d",
               "autoScale2d", "resetScale2d"
             ),
-            displaylogo = FALSE  # Remove Plotly logo
+            displaylogo = FALSE # Remove Plotly logo
           )
       } else {
         visData <-
           tpe |>
           dplyr$mutate(
             WeekStart =
-              floor_date(Time |>
-                           as_date(),
-                         "week",
-                         week_start = 1)
+              floor_date(
+                Time |>
+                  as_date(),
+                "week",
+                week_start = 1
+              )
           ) |>
           dplyr$group_by(WeekStart) |>
           dplyr$summarize(total = sum(`TPE Change`, na.rm = TRUE)) |>
@@ -290,68 +292,73 @@ server <- function(id) {
             WeekStart =
               seq(
                 min(WeekStart),
-                floor_date(today() |>
-                             as_date(tz = "US/Pacific"),
-                           "week",
-                           week_start = 1),
+                floor_date(
+                  today() |>
+                    as_date(tz = "US/Pacific"),
+                  "week",
+                  week_start = 1
+                ),
                 by = "week"
               ),
             fill = list(total = 0)
           ) |>
           dplyr$ungroup() |>
-          dplyr$mutate(cumulative = cumsum(total),
-                       week = seq_len(dplyr$n())) |>
+          dplyr$mutate(
+            cumulative = cumsum(total),
+            week = seq_len(dplyr$n())
+          ) |>
           suppressMessages()
-        
+
         plotly$plot_ly(visData, hoverinfo = "text") |>
-          plotly$add_trace(x = ~week, y = ~cumulative, type = "scatter", mode = "markers+lines",
-                           line = list(color = constant$sslGold),
-                           marker = list(size = 5, color = constant$sslGold),
-                           text = ~paste("Week:", week, "<br>TPE:", cumulative)
+          plotly$add_trace(
+            x = ~week, y = ~cumulative, type = "scatter", mode = "markers+lines",
+            line = list(color = constant$sslGold),
+            marker = list(size = 5, color = constant$sslGold),
+            text = ~ paste("Week:", week, "<br>TPE:", cumulative)
           ) |>
           plotly$layout(
             title = list(
               text = "TPE Progression",
-              font = list(color = "white")  # Set title text color to white
+              font = list(color = "white") # Set title text color to white
             ),
             xaxis = list(
               title = "Time",
-              tickfont = list(color = "white"),  # Set x-axis tick labels color to white
-              titlefont = list(color = "white"),  # Set x-axis title color to white
+              tickfont = list(color = "white"), # Set x-axis tick labels color to white
+              titlefont = list(color = "white"), # Set x-axis title color to white
               dtick = 1,
               showgrid = FALSE
             ),
             yaxis = list(
               title = "TPE",
               range = c(300, 2100),
-              tickfont = list(color = "white"),  # Set y-axis tick labels color to white
-              titlefont = list(color = "white"),  # Set y-axis title color to white
-              dtick = 200,  # Show tickmarks at intervals of 200
-              gridcolor = "rgba(255, 255, 255, 0.5)",  # Set gridline color to white with opacity
-              gridwidth = 1  # Set gridline width
+              tickfont = list(color = "white"), # Set y-axis tick labels color to white
+              titlefont = list(color = "white"), # Set y-axis title color to white
+              dtick = 200, # Show tickmarks at intervals of 200
+              gridcolor = "rgba(255, 255, 255, 0.5)", # Set gridline color to white with opacity
+              gridwidth = 1 # Set gridline width
             ),
-            plot_bgcolor = "#333333",   # background color
-            paper_bgcolor = "#333333",   # plot area background color
-            showlegend = FALSE  # Hide legend (optional)
+            plot_bgcolor = "#333333", # background color
+            paper_bgcolor = "#333333", # plot area background color
+            showlegend = FALSE # Hide legend (optional)
           ) |>
           plotly$config(
-            displayModeBar = TRUE,  # Enable display of mode bar (optional, true by default)
+            displayModeBar = TRUE, # Enable display of mode bar (optional, true by default)
             modeBarButtonsToRemove = list(
               "zoom2d", "pan2d", "select2d",
               "lasso2d", "zoomIn2d", "zoomOut2d",
               "autoScale2d", "resetScale2d"
             ),
-            displaylogo = FALSE  # Remove Plotly logo
+            displaylogo = FALSE # Remove Plotly logo
           )
       }
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$tpe <- renderReactable({
       data <- playerData()
       tpe <- historyTPE()
-      
-      if(tpe |> is_empty()){
+
+      if (tpe |> is_empty()) {
         NULL
       } else {
         tpe |>
@@ -363,13 +370,13 @@ server <- function(id) {
               )
           )
       }
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$update <- renderReactable({
       data <- playerData()
       updates <- getUpdateHistory(data$pid)
-      if(updates |> is_empty()){
+      if (updates |> is_empty()) {
         NULL
       } else {
         updates |>
@@ -381,13 +388,13 @@ server <- function(id) {
               )
           )
       }
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$bank <- renderReactable({
       data <- playerData()
       bank <- getBankHistory(data$pid)
-      if(bank |> is_empty()){
+      if (bank |> is_empty()) {
         NULL
       } else {
         bank |>
@@ -400,7 +407,7 @@ server <- function(id) {
               )
           )
       }
-    }) |> 
+    }) |>
       shiny$bindCache(query())
   })
 }

@@ -8,18 +8,18 @@ box::use(
 )
 
 box::use(
-  app/logic/constant,
-  app/logic/db/get[getDraftClass],
-  app/logic/ui/reactableHelper[draftClassReactable],
-  app/logic/ui/selector[leagueSelectInput],
-  app/logic/ui/spinner[withSpinnerCustom],
-  app/logic/ui/tags[flexCol, flexRow],
+  app / logic / constant,
+  app / logic / db / get[getDraftClass],
+  app / logic / ui / reactableHelper[draftClassReactable],
+  app / logic / ui / selector[leagueSelectInput],
+  app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / ui / tags[flexCol, flexRow],
 )
 
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
-  
+
   shiny$tagList(
     bslib$card(
       bslib$card_header(
@@ -29,9 +29,9 @@ ui <- function(id) {
         shiny$selectInput(
           inputId = ns("selectedClass"),
           label = "Select a class",
-          choices = 
+          choices =
             c(
-              1:(constant$currentSeason$season + 1) |> 
+              1:(constant$currentSeason$season + 1) |>
                 sort(decreasing = TRUE)
             )
         ),
@@ -39,7 +39,7 @@ ui <- function(id) {
       ),
       bslib$card_body(
         shiny$h1("Draft Class Tracker"),
-        reactableOutput(ns("tracker")) |> 
+        reactableOutput(ns("tracker")) |>
           withSpinnerCustom(height = 400)
       )
     )
@@ -49,21 +49,19 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
-    
     ### Data
     draftclass <- shiny$reactive({
       getDraftClass(input$selectedClass)
-    }) |> 
+    }) |>
       shiny$bindEvent(input$selectedClass)
-    
+
     ### Output
     output$tracker <- renderReactable({
       data <- draftclass()
-      
-      data |> 
+
+      data |>
         draftClassReactable()
-    }) |> 
+    }) |>
       shiny$bindCache(input$selectedClass)
-    
   })
 }

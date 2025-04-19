@@ -10,8 +10,8 @@ flexCol <- function(cont, style = "", onclick = "") {
     class = "flex-col-wrapper",
     style = style,
     onclick = onclick
-  )
-)}
+  ))
+}
 
 #' @export
 flexRow <- function(cont, style = "", onclick = "") {
@@ -20,8 +20,8 @@ flexRow <- function(cont, style = "", onclick = "") {
     class = "flex-row-wrapper",
     style = style,
     onclick = onclick
-  )
-)}
+  ))
+}
 
 closeNarrowMenuJS <- "
   var mobileNav = document.querySelector('.nav-container_narrow');

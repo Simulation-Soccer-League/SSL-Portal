@@ -2,32 +2,30 @@ box::use(
   shiny,
 )
 
-box::use(
-  
-)
+box::use()
 
 
 #' @export
-leagueSelectInput <- function(season, session){
-  if(season != "ALL"){
+leagueSelectInput <- function(season, session) {
+  if (season != "ALL") {
     season <- season |> as.numeric()
-    
-    if(season < 5){
+
+    if (season < 5) {
       shiny$selectInput(
         inputId = session$ns("selectedLeague"),
         label = "League",
-        choices = 
+        choices =
           c(
             "League" = "1",
             "Cup" = "0",
             "ALL"
           )
       )
-    } else if (season == 12){
+    } else if (season == 12) {
       shiny$selectInput(
         inputId = session$ns("selectedLeague"),
         label = "League",
-        choices = 
+        choices =
           c(
             "Major" = "1",
             "Minor" = "2",
@@ -36,11 +34,11 @@ leagueSelectInput <- function(season, session){
             "ALL"
           )
       )
-    } else if (season < 12){
+    } else if (season < 12) {
       shiny$selectInput(
         inputId = session$ns("selectedLeague"),
         label = "League",
-        choices = 
+        choices =
           c(
             "Division 1" = "1",
             "Division 2" = "2",
@@ -52,7 +50,7 @@ leagueSelectInput <- function(season, session){
       shiny$selectInput(
         inputId = session$ns("selectedLeague"),
         label = "League",
-        choices = 
+        choices =
           c(
             "Major" = "1",
             "Minor" = "2",
@@ -65,7 +63,7 @@ leagueSelectInput <- function(season, session){
     shiny$selectInput(
       inputId = session$ns("selectedLeague"),
       label = "League",
-      choices = 
+      choices =
         c(
           "Major / Division 1" = "1",
           "Minor / Division 2" = "2",

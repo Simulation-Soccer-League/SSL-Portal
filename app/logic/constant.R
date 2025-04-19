@@ -4,7 +4,7 @@ box::use(
 )
 
 box::use(
-  app/logic/db/api,
+  app / logic / db / api,
 )
 
 #' @export
@@ -31,8 +31,10 @@ positionalCoord <-
   tibble$tibble(
     x = c(375, 130, 375, 620, 130, 375, 620, 130, 375, 620, 130, 375, 620, 375),
     y = c(775, 625, 625, 625, 455, 455, 455, 310, 310, 310, 150, 150, 150, 50),
-    position = c("ST", "LAM", "CAM", "RAM", "LM", "CM", "RM", "LWB", "DM",
-                 "RWB", "LD", "CD", "RD", "GK")
+    position = c(
+      "ST", "LAM", "CAM", "RAM", "LM", "CM", "RM", "LWB", "DM",
+      "RWB", "LD", "CD", "RD", "GK"
+    )
   )
 
 #' #' @export
