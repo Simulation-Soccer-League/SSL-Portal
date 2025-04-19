@@ -1,18 +1,18 @@
 box::use(
-  dplyr,
   bslib,
-  reactable[reactable, reactableOutput, renderReactable, colDef],
-  shiny,
+  dplyr,
+  reactable[colDef, reactable],
   rlang[is_empty],
+  shiny,
   tippy[tippy],
 )
 
 box::use(
-  app / logic / ui / spinner[withSpinnerCustom],
   app / logic / constant,
   app / logic / db / get[getStandings],
-  app / logic / ui / tags[flexRow, flexCol],
   app / logic / ui / selector[leagueSelectInput],
+  app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / ui / tags[flexRow],
 )
 
 #' @export
@@ -103,10 +103,12 @@ server <- function(id) {
                           NA
                         )
                       ),
-                    # color =
-                    #   ifelse(index > 6, "white", "black"),
                     borderTop =
-                      dplyr$if_else((index == 7 & relegation & league == 1) | (index == 3 & relegation & league == 2),
+                      dplyr$if_else(
+                        (
+                          (index == 7 & relegation & league == 1)
+                          | (index == 3 & relegation & league == 2)
+                        ),
                         "solid",
                         "none"
                       )
@@ -115,7 +117,12 @@ server <- function(id) {
               ),
               columns = list(
                 Team = colDef(name = "", width = 200, align = "left", cell = function(value) {
-                  image <- shiny$img(src = sprintf("static/logo/%s (Custom).png", value), style = "height: 30px;", alt = value, title = value)
+                  image <- shiny$img(
+                    src = sprintf("static/logo/%s (Custom).png", value),
+                    style = "height: 30px;",
+                    alt = value,
+                    title = value
+                  )
 
                   list <-
                     shiny$tagList(

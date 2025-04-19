@@ -3,7 +3,8 @@ linters:
     defaults = box.linters::rhino_default_linters,
     line_length_linter = line_length_linter(100),
     object_name_linter("camelCase"),
-    trailing_whitespace_linter = NULL
+    trailing_whitespace_linter = NULL,
+    box_func_import_count_linter = NULL
   )
 exclusions: list(
     # excluded from line_length_linter:

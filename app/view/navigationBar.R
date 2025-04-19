@@ -1,23 +1,22 @@
 box::use(
-  future,
-  methods[is],
+  lubridate[now],
+  shiny.router[route_link],
   shiny[
-    moduleServer, NS, tagList, tags,
-    icon, div, uiOutput, renderUI,
-    observe, bindEvent, a, actionButton,
-    p, showModal, removeModal, modalDialog,
-    modalButton, textInput, passwordInput,
-    verbatimTextOutput, renderText, reactive,
-    actionLink
+    a, actionButton, actionLink, bindEvent,
+    div, icon, modalButton, modalDialog,
+    moduleServer, NS, observe,
+    passwordInput, removeModal, renderUI,
+    showModal, tagList, tags, textInput,
+    uiOutput, verbatimTextOutput
   ],
-  shiny.router[route_link, change_page],
-  shinyFeedback[feedbackWarning]
+  shinyFeedback[feedbackWarning],
+  stringr[str_split],
 )
 
 box::use(
-  app / logic / ui / tags[flexCol, flexRow, navMenu, navMenuItem],
   app / logic / db / login[customCheckCredentials, getRefreshToken, setRefreshToken],
   app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / ui / tags[flexRow, navMenu, navMenuItem],
 )
 
 getNavItems <- function(ns, suffix) {
@@ -27,7 +26,6 @@ getNavItems <- function(ns, suffix) {
         navMenu(
           label = "Trackers",
           items = list(
-            # a("Players", href = route_link("tracker/player")),
             a("Search", href = route_link("search")),
             a("Organizations", href = route_link("tracker/organization")),
             a("Draft Class", href = route_link("tracker/draftclass"))
@@ -132,8 +130,10 @@ ui <- function(id) {
               mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
               this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
 
-              this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
-              this.querySelector('.nav-toggle-icon_open').style.display = isOpen ? 'none' : 'block';
+              this.querySelector('.nav-toggle-icon_closed').style.display =
+                isOpen ? 'block' : 'none';
+              this.querySelector('.nav-toggle-icon_open').style.display =
+                isOpen ? 'none' : 'block';
             }
         "
         ),
@@ -243,8 +243,6 @@ server <- function(id, auth, resAuth) {
             as.list()
 
           setRefreshToken(uid = refreshtoken$uid, token = refreshtoken$token)
-
-          # session$reload()
         }
       }
     }) |>
@@ -258,8 +256,18 @@ server <- function(id, auth, resAuth) {
           footer = tagList(
             modalButton("Cancel"), actionButton(session$ns("loggingIn"), "Login"),
             tags$div(
-              tags$a("Register a new user!", href = "https://forum.simulationsoccer.com/member.php?action=register", target = "_blank", style = "float: left;"),
-              tags$a("Forgot password?", href = "https://forum.simulationsoccer.com/member.php?action=lostpw", target = "_blank", style = "float:right;")
+              tags$a(
+                "Register a new user!",
+                href = "https://forum.simulationsoccer.com/member.php?action=register",
+                target = "_blank", 
+                style = "float: left;"
+              ),
+              tags$a(
+                "Forgot password?",
+                href = "https://forum.simulationsoccer.com/member.php?action=lostpw",
+                target = "_blank", 
+                style = "float:right;"
+              )
             )
           )
         )
