@@ -16,13 +16,13 @@
 
 /* General styles */
 body {
-  font-family: 'Gotham SSm A', 'Gotham SSm B', Helvetica, sans-serif;
+  font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
   color: white;
   background: var(--bottomBackground);
 }
 
 h1, h2, h3, h4, h5 {
-  font-family: 'Gotham SSm A', 'Gotham SSm B', Helvetica, sans-serif;
+  font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
   font-weight: 800;
   font-style: normal;
   color: white;
@@ -562,22 +562,22 @@ $navbar-items-width: 112px;
   border-right: 2px solid var(--sslGold);
 }
 
-.skin-blue .sidebar-menu .treeview-menu>li.active>a, .skin-blue .sidebar-menu .treeview-menu>li>a:hover {
+.skin-blue .sidebar-menu .treeview-menu > li.active > a, .skin-blue .sidebar-menu .treeview-menu > li > a:hover {
   color: var(--sslBlueD);
 }
 
-.skin-blue .sidebar-menu>li>.treeview-menu {
+.skin-blue .sidebar-menu > li > .treeview-menu {
   margin: 0px;
   background: var(--sslGold);
 }
 
-.skin-blue .sidebar-menu>li:hover>a, .skin-blue .sidebar-menu>li.active>a, .skin-blue .sidebar-menu>li.menu-open>a {
+.skin-blue .sidebar-menu > li:hover > a, .skin-blue .sidebar-menu > li.active > a, .skin-blue .sidebar-menu > li.menu-open > a {
   color: #fff;
   background: var(--sslGold);
   /*background-image: url(https://i.imgur.com/gVNA3OP.jpg);*/
 }
 
-.skin-blue .sidebar-menu>li.active>a {
+.skin-blue .sidebar-menu > li.active > a {
   border: none;
 }
 
@@ -585,7 +585,7 @@ $navbar-items-width: 112px;
   background-color: var(--sslGold);
 }
 
-.skin-blue .sidebar-menu>li.active>a,.skin-blue .sidebar-menu>li:hover>a {
+.skin-blue .sidebar-menu > li.active > a, .skin-blue .sidebar-menu > li:hover > a {
   color: #fff;
   background: var(--bottomBackground);
   border-left-color: var(--sslGold); 
@@ -735,12 +735,12 @@ $navbar-items-width: 112px;
   border-bottom: 1px solid var(--sslGold);
 }
 
-.nav-tabs>li.active>a {
+.nav-tabs > li.active > a {
   background-color: var(--topBackground);
   color: var(--lighterText);
 }
 
-.nav-tabs>li>a {
+.nav-tabs > li > a {
   color: var(--lighterText);
 }
 
@@ -767,7 +767,7 @@ $navbar-items-width: 112px;
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   z-index: 10;
 }
 
@@ -845,7 +845,7 @@ $navbar-items-width: 112px;
   color: inherit;
   background: inherit;
   border: none;
-  font-family: 'Gotham SSm A', 'Gotham SSm B', Helvetica, sans-serif;
+  font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
   font-weight: 800;
   font-style: normal;
   margin: 0 20px;
