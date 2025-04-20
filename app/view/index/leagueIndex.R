@@ -108,14 +108,14 @@ server <- function(id) {
             print(chosenStat)
             shiny$tagList(
               shiny$div(
-                class = "leaderTable",
+                class = "leader-table",
                 style = "width: 80%",
                 reactableOutput(session$ns(paste0(chosenStat, "_leader")))
               )
             )
           }
         ) |> 
-          shiny$div(class = "attributeTables")
+          shiny$div(class = "attribute-tables")
       })
       
       lapply(outstatistics, function(stat){
@@ -148,14 +148,14 @@ server <- function(id) {
             print(chosenStat)
             shiny$tagList(
               shiny$div(
-                class = "leaderTable",
+                class = "leader-table",
                 style = "width: 80%",
                 reactableOutput(session$ns(paste0(chosenStat, "_leader")))
               )
             )
           }
         ) |> 
-          shiny$div(class = "attributeTables")
+          shiny$div(class = "attribute-tables")
       })
       
       lapply(keepstatistics, function(stat){

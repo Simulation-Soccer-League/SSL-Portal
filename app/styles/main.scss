@@ -28,12 +28,12 @@ h1, h2, h3, h4, h5 {
   color: white;
 }
 
-.keyAttribute {
+.key-attribute {
   color: var(--key);
   font-weight: 600;
 }
 
-.importantAttribute {
+.important-attribute {
   color: var(--important);
   font-weight: 600;
 }
@@ -45,15 +45,15 @@ h1, h2, h3, h4, h5 {
 */
 
 /* Display grid for the box container with 4 columns   */
-#standingsCup-boxes {
+#standings-cup-boxes {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
 }
 
-#standingsCup-boxes > div:nth-child(-n+3),
-#standingsCup-boxes > div:nth-child(n+7):nth-child(-n+9),
-#standingsCup-boxes > div:nth-child(n+13):nth-child(-n+15),
-#standingsCup-boxes > div:nth-child(n+19):nth-child(-n+21) {
+#standings-cup-boxes > div:nth-child(-n+3),
+#standings-cup-boxes > div:nth-child(n+7):nth-child(-n+9),
+#standings-cup-boxes > div:nth-child(n+13):nth-child(-n+15),
+#standings-cup-boxes > div:nth-child(n+19):nth-child(-n+21) {
   margin-bottom: -15px;
 }
 
@@ -94,16 +94,16 @@ h1, h2, h3, h4, h5 {
   flex-direction: column; /* Stack children vertically */
 }
 
-.attributeTables {
+.attribute-tables {
   display: flex;
   justify-content: space-around;
 }
 
-.attributeCost {
+.attribute-cost {
   justify-content: center; /* Center content horizontally */
 }
 
-.attributeInput input {
+.attribute-input input {
   border-radius: 5px;
   border: 1px solid black;
   flex: 1; /* Take up all available space */
@@ -679,19 +679,19 @@ $navbar-items-width: 112px;
   text-overflow: ellipsis;
 }
 
-.Reactable {
+.Reactable { // sass-lint:disable-line selector-class-pattern
   background-color: var(--top-background);
 }
 
-.Reactable .rt-table {
+.Reactable .rt-table { // sass-lint:disable-line selector-class-pattern
   background: inherit;
   border: 1px solid var(--ssl-gold);
   scrollbar-color: #666666 #999999;
 }
 
-.Reactable .rt-tbody, 
-.Reactable .rt-tfoot, 
-.Reactable .rt-thead {
+.Reactable .rt-tbody,  // sass-lint:disable-line selector-class-pattern
+.Reactable .rt-tfoot,  // sass-lint:disable-line selector-class-pattern
+.Reactable .rt-thead { // sass-lint:disable-line selector-class-pattern
   -ms-flex-negative: 0;
   flex-shrink: 0;
   background-color: var(--middle-background);
@@ -719,14 +719,14 @@ $navbar-items-width: 112px;
   color: var(--lighter-text);
 }
 
-.stickyReactableColumn, .stickyReactableHeader {
+.sticky-reactable-column, .sticky-reactable-header {
   position: sticky !important; 
   left: 0;
   background: var(--top-background);
   z-index: 1;
 }
 
-.leaderTable {
+.leader-table {
   padding-top: 20px
 }
 
@@ -744,7 +744,7 @@ $navbar-items-width: 112px;
   color: var(--lighter-text);
 }
 
-.attribute, .attributeCost {
+.attribute, .attribute-cost {
   background-color: var(--middle-background);
   border: 1px solid grey;
   border-radius: 5px;
@@ -781,15 +781,15 @@ $navbar-items-width: 112px;
   border-radius: 4px;
 }
 
-.verifyBox {
+.verify-box {
   background: var(--lighter-text);
   color: var(--darker-text);
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-/* Target the table inside the .verifyBox class */
-.verifyBox .ReactTable {
+/* Target the table inside the .verify-box class */
+.verify-box .ReactTable { // sass-lint:disable-line selector-class-pattern
   background-color: #f9f9f9; /* Light background for the table */
   border: 1px solid #ddd; /* Light border around the table */
   border-radius: 5px; /* Optional rounded corners */
@@ -797,7 +797,7 @@ $navbar-items-width: 112px;
 }
 
 /* Style for the table header */
-.verifyBox .rt-th {
+.verify-box .rt-th {
   text-transform: uppercase; /* Make header text uppercase */
   background-color: #e0e0e0; /* Slightly darker background for header */
   color: #333; /* Dark text color for contrast */
@@ -805,12 +805,12 @@ $navbar-items-width: 112px;
   padding: 10px; /* Padding inside header cells */
 }
 
-.verifyBox .rt-th-inner {
+.verify-box .rt-th-inner {
   background-color: inherit;
 }
 
 /* Style for the table rows (cells) */
-.verifyBox .rt-td {
+.verify-box .rt-td {
   color: #333; /* Dark text color for visibility */
   padding: 10px; /* Padding inside cells */
   border-bottom: 1px solid #ddd; /* Light border between rows */
@@ -818,16 +818,16 @@ $navbar-items-width: 112px;
 }
 
 /* Optional: Style the last row border */
-.verifyBox .rt-tr-group:last-child .rt-td {
+.verify-box .rt-tr-group:last-child .rt-td {
   border-bottom: none; /* Remove the border from the last row */
 }
 
 /* Optional: Add hover effect for rows */
-.verifyBox .rt-tr:hover .rt-td {
+.verify-box .rt-tr:hover .rt-td {
   background-color: #f0f0f0; /* Slightly darker background on hover */
 }
 
-.stickyFooter {
+.sticky-footer {
   position: fixed;
   bottom: 0;
   right: 90%;
@@ -836,12 +836,12 @@ $navbar-items-width: 112px;
   box-sizing: border-box;
 }
 
-.navbarHead {
+.navbar-head {
   display: flex;
   flex-direction: row;
 }
 
-.navbarHead button {
+.navbar-head button {
   color: inherit;
   background: inherit;
   border: none;
@@ -852,21 +852,21 @@ $navbar-items-width: 112px;
 }
 
 /* Index Tables */
-.tableClubName {
+.table-club-name {
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-align: end;
 }
 
-.leaderTable .tableClubName {
+.leader-table .table-club-name {
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-align: left;
 }
 
-.tableClubName span {
+.table-club-name span {
   padding-left: 10px;
   text-wrap: pretty;
 }
@@ -888,16 +888,16 @@ $navbar-items-width: 112px;
 }
 
 /* CSS styles for player and user statuses */
-.Active {
+.active {
   color: #66b38c;
 }
 
-.Inactive,
-.Retiring {
+.inactive,
+.retiring {
   color: #d96f68;
 }
 
-.Retired {
+.retired {
   color: #f5d17e;
 }
 
