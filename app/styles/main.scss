@@ -44,6 +44,356 @@ h1, h2, h3, h4, h5 {
 }
 */
 
+/* Navbar with logo */
+.ssl-navbar {
+  background-color: var(--ssl-blue-d);
+  height: 72px;
+  margin-bottom: 20px;
+  position: relative;
+
+  .nav-container {
+    display: flex;
+    flex-direction: row;
+    margin-left: 128px;
+    margin-right: 12px;
+    height: inherit;
+    max-width: 100%;
+    align-items: end;
+    justify-content: space-between;
+  }
+
+  .logo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 12px;
+  }
+}
+
+.nav-toggle {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  margin-top: 8px;
+  margin-left: 8px;
+  height: 24px;
+  width: 24px;
+  background-color: yellow;
+  z-index: 100;
+}
+
+.nav-container-narrow {
+  display: none;
+}
+
+$navbar-label-height: 32px;
+$navbar-items-width: 112px;
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #eee;
+  font-weight: 600;
+  padding: 0 8px;
+  height: $navbar-label-height;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  z-index: 102;
+
+  a {
+    display: inline-block;
+    width: 100%;
+    padding: 8px;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  &:hover {
+    background: #eee;
+    color: black;
+    cursor: pointer;
+  }
+
+  &:active {
+    filter: brightness(90%);
+  }
+
+  &:has(.nav-menu-items):hover {
+    cursor: default;
+  }
+
+  &:has(.nav-menu-items):active {
+    filter: none;
+  }
+
+  &:hover .nav-menu-items {
+    display: block;
+  }
+}
+
+.nav-menu-items {
+  display: none;
+  background: #eee;
+  position: absolute;
+  top: $navbar-label-height;
+  left: 0;
+  width: $navbar-items-width;
+  font-weight: normal;
+  box-shadow: 0 0 2px black;
+  border-bottom-left-radius: 2px;
+  z-index: 101;
+
+  .nav-menu-item-caret-down {
+    display: none;
+  }
+
+  .nav-menu-item,
+  .nav-menu-sub-item {
+    border-bottom: 1px solid #aaaaaa;
+    border-bottom-left-radius: 2px;
+
+    &:hover {
+      background: #4b8dad;
+      color: #eee;
+      cursor: pointer;
+    }
+
+    &:active {
+      filter: brightness(90%);
+    }
+
+    &:has(.nav-menu-sub-items):hover {
+      cursor: default;
+    }
+
+    &:has(.nav-menu-sub-items):active {
+      filter: none;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .nav-menu-item:has(.nav-menu-sub-items) {
+    padding: 8px;
+  }
+
+  &:hover .nav-menu-sub-items {
+    display: block;
+  }
+}
+
+.nav-menu-sub-items {
+  display: none;
+  background: #eee;
+  position: absolute;
+  top: 0;
+  color: black;
+  left: $navbar-items-width;
+  width: max-content;
+  box-shadow: 0 0 2px black;
+  border-bottom-right-radius: 2px;
+  z-index: 100;
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 767px) {
+  // Make sure page content isn't hidden behind fixed nav
+  #router-page-wrapper {
+    padding-top: 92px;
+  }
+
+  // For some reason this Shiny-generated element doesn't span the full width of the menu.
+  // Setting this rule to force it to match all other menu items.
+  .shiny-spinner-output-container:has(#app-nav-jobs-navigation-mobile) {
+    width: 100%;
+  }
+
+  .ssl-navbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 90;
+
+    .nav-container {
+      display: none;
+    }
+
+    .logo {
+      right: 0;
+      left: auto;
+    }
+  }
+
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--ssl-blue-d);
+    transition: left 0.5s ease-in-out;
+    z-index: 9999;
+    color: white;
+
+    .nav-toggle-icon-open {
+      display: none;
+    }
+  }
+
+  .nav-container-narrow {
+    background: var(--bottom-background);
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    position: fixed;
+    gap: 24px;
+    left: 0;
+    top: 0;
+    right: 0;
+    max-width: 0;
+    overflow: hidden;
+    margin: 0;
+    z-index: 99;
+    transition: max-width 0.5s ease-in-out;
+    box-shadow: 0 0 30px black;
+    border-bottom-right-radius: 12px;
+
+    & > div {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    height: auto;
+    padding: 0;
+
+    & > div:has(> span),
+    & > div:has(> a),
+    & > a {
+      border-bottom: 1px solid black;
+      width: 100%;
+    }
+
+    a,
+    span {
+      padding: 12px 8px;
+      color: #eee;
+    }
+
+    .fa-door-open,
+    .fa-user {
+      display: none;
+    }
+  }
+
+  .nav-menu-items {
+    background: none;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 0;
+    width: 100%;
+    box-shadow: none;
+
+    &.show-items {
+      height: max-content;
+    }
+
+    .nav-menu-item {
+      background: var(--middle-background);
+      border-bottom: 1px solid black !important;
+      padding: 0 !important;
+    }
+
+    .nav-menu-item:has(.nav-menu-sub-items) > div {
+      justify-content: flex-start !important;
+    }
+
+    // When sub-items are showing
+    .nav-menu-item:has(.nav-menu-sub-items[style*="max-content"]) > div {
+      border-bottom: 1px solid black;
+    }
+
+    .nav-menu-item-caret-down {
+      display: block;
+    }
+
+    .nav-menu-item-caret-right {
+      display: none;
+    }
+
+    a,
+    span {
+      padding-left: 16px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+  }
+
+  .nav-menu-sub-items {
+    background: none;
+    display: block;
+    overflow: hidden;
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 0;
+    width: 100%;
+    box-shadow: none;
+
+    .nav-menu-sub-item {
+      background: var(--top-background);
+      border-bottom: 1px solid black;
+      color: #eee;
+    }
+
+    a,
+    span {
+      padding-left: 24px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+  }
+}
+
+/* Makes result boxes overflow and creates a scroller */
+.results {
+  overflow-x: scroll;
+  display: flex;
+  flex-direction: row;
+  scrollbar-color: #666666 #999999;
+}
+
+.results > div {
+  min-width: 140px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+
+.shiny-split-layout {
+  display: flex; /* Use Flexbox */
+}
+
+.shiny-split-layout > div {
+  display: flex; /* Nested Flexbox */
+  flex-direction: column; /* Stack children vertically */
+}
+
 /* Display grid for the box container with 4 columns   */
 #standings-cup-boxes {
   display: grid;
@@ -73,7 +423,7 @@ h1, h2, h3, h4, h5 {
 .scores {
   font-size: 1.2em;
   width: 20px;
-  padding: 0px 15%;
+  padding: 0 15%;
   float: right;
 }
 
@@ -83,15 +433,6 @@ h1, h2, h3, h4, h5 {
 
 .scores:nth-child(even) {
   border-left: 1px solid;
-}
-
-.shiny-split-layout {
-  display: flex; /* Use Flexbox */
-}
-
-.shiny-split-layout > div {
-  display: flex; /* Nested Flexbox */
-  flex-direction: column; /* Stack children vertically */
 }
 
 .attribute-tables {
@@ -153,24 +494,10 @@ h1, h2, h3, h4, h5 {
 .card-body {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
   padding: 10px;
   border: 2px solid var(--ssl-gold);
-}
-
-/* Makes result boxes overflow and creates a scroller */
-.results {
-  overflow-x: scroll;
-  display: flex;
-  flex-direction: row;
-  scrollbar-color: #666666 #999999;
-}
-
-.results > div {
-  min-width: 140px;
-  padding-right: 5px;
-  padding-left: 5px;
 }
 
 /* Buttons in dropdowns take the entire width */
@@ -185,14 +512,6 @@ h1, h2, h3, h4, h5 {
   background-color: white;
   border: 1px solid black;
   color: black;
-}
-
-.tippy-popper[x-placement^="bottom"] .ssl-theme .tippy-arrow {
-  border-bottom: 8px solid white;
-}
-
-.tippy-popper[x-placement^="top"] .ssl-theme .tippy-arrow {
-  border-top: 8px solid white;
 }
 
 .tippy-tooltip.ssl-theme .tippy-arrow {
@@ -211,324 +530,12 @@ h1, h2, h3, h4, h5 {
   font-size: 14px;
 }
 
-/* Navbar with logo */
-.ssl-navbar {
-  background-color: var(--ssl-blue-d);
-  height: 72px;
-  margin-bottom: 20px;
-  position: relative;
-
-  .nav-container {
-    display: flex;
-    flex-direction: row;
-    margin-left: 128px;
-    margin-right: 12px;
-    height: inherit;
-    max-width: 100%;
-    align-items: end;
-    justify-content: space-between;
-  }
-
-  .logo {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 12px;
-  }
+.tippy-popper[x-placement^="bottom"] .ssl-theme .tippy-arrow {
+  border-bottom: 8px solid white;
 }
 
-.nav-toggle {
-  display: none;
-  position: fixed;
-  left: 0;
-  top: 0;
-  margin-top: 8px;
-  margin-left: 8px;
-  height: 24px;
-  width: 24px;
-  background-color: yellow;
-  z-index: 100;
-}
-
-.nav-container_narrow {
-  display: none;
-}
-
-$navbar-label-height: 32px;
-$navbar-items-width: 112px;
-
-.nav-menu {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  color: #eeeeee;
-  font-weight: 600;
-  padding: 0 8px;
-  height: $navbar-label-height;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  z-index: 102;
-
-  a {
-    display: inline-block;
-    width: 100%;
-    padding: 8px;
-    color: inherit;
-    text-decoration: none;
-  }
-
-  &:hover {
-    background: #eeeeee;
-    color: black;
-    cursor: pointer;
-  }
-
-  &:active {
-    filter: brightness(90%);
-  }
-
-  &:has(.nav-menu_items):hover {
-    cursor: default;
-  }
-
-  &:has(.nav-menu_items):active {
-    filter: none;
-  }
-
-  &:hover .nav-menu_items {
-    display: block;
-  }
-}
-
-.nav-menu_items {
-  display: none;
-  background: #eeeeee;
-  position: absolute;
-  top: $navbar-label-height;
-  left: 0;
-  width: $navbar-items-width;
-  font-weight: normal;
-  box-shadow: 0 0 2px black;
-  border-bottom-left-radius: 2px;
-  z-index: 101;
-
-  .nav-menu_item-caret-down {
-    display: none;
-  }
-
-  .nav-menu_item,
-  .nav-menu_sub-item {
-    border-bottom: 1px solid #aaaaaa;
-    border-bottom-left-radius: 2px;
-
-    &:hover {
-      background: #4b8dad;
-      color: #eeeeee;
-      cursor: pointer;
-    }
-
-    &:active {
-      filter: brightness(90%);
-    }
-
-    &:has(.nav-menu_sub-items):hover {
-      cursor: default;
-    }
-
-    &:has(.nav-menu_sub-items):active {
-      filter: none;
-    }
-
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-
-  .nav-menu_item:has(.nav-menu_sub-items) {
-    padding: 8px;
-  }
-
-  &:hover .nav-menu_sub-items {
-    display: block;
-  }
-}
-
-.nav-menu_sub-items {
-  display: none;
-  background: #eeeeee;
-  position: absolute;
-  top: 0;
-  color: black;
-  left: $navbar-items-width;
-  width: max-content;
-  box-shadow: 0 0 2px black;
-  border-bottom-right-radius: 2px;
-  z-index: 100;
-
-  div {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 767px) {
-  // Make sure page content isn't hidden behind fixed nav
-  #router-page-wrapper {
-    padding-top: 92px;
-  }
-
-  // For some reason this Shiny-generated element doesn't span the full width of the menu.
-  // Setting this rule to force it to match all other menu items.
-  .shiny-spinner-output-container:has(#app-nav-jobsNavigationMobile) {
-    width: 100%;
-  }
-
-  .ssl-navbar {
-    position: fixed;
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 90;
-
-    .nav-container {
-      display: none;
-    }
-
-    .logo {
-      right: 0;
-      left: auto;
-    }
-  }
-
-  .nav-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--ssl-blue-d);
-    transition: left 0.5s ease-in-out;
-    z-index: 9999;
-    color: white;
-
-    .nav-toggle-icon_open {
-      display: none;
-    }
-  }
-
-  .nav-container_narrow {
-    background: var(--bottom-background);
-    display: flex;
-    flex-direction: column-reverse;
-    justify-content: space-between;
-    position: fixed;
-    gap: 24px;
-    left: 0;
-    top: 0;
-    right: 0;
-    max-width: 0px;
-    overflow: hidden;
-    margin: 0;
-    z-index: 99;
-    transition: max-width 0.5s ease-in-out;
-    box-shadow: 0 0 30px black;
-    border-bottom-right-radius: 12px;
-
-    & > div {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
-
-  .nav-menu {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-    height: auto;
-    padding: 0;
-
-    & > div:has(> span), & > div:has(> a), & > a {
-      border-bottom: 1px solid black;
-      width: 100%;
-    }
-
-    a, span {
-      padding: 12px 8px;
-      color: #eeeeee;
-    }
-
-    .fa-door-open,
-    .fa-user { 
-      display: none;
-    }
-  }
-
-  .nav-menu_items {
-    background: none;
-    display: block;
-    overflow: hidden;
-    white-space: nowrap;
-    position: relative;
-    top: 0;
-    left: 0;
-    height: 0px;
-    width: 100%;
-    box-shadow: none;
-
-    &.show-items {
-      height: max-content;
-    }
-
-    .nav-menu_item {
-      background: var(--middle-background);
-      border-bottom: 1px solid black !important;
-      padding: 0 !important;
-    }
-
-    .nav-menu_item:has(.nav-menu_sub-items) > div {
-      justify-content: flex-start !important;
-    }
-    // When sub-items are showing
-    .nav-menu_item:has(.nav-menu_sub-items[style*="max-content"]) > div {
-      border-bottom: 1px solid black;
-    }
-
-    .nav-menu_item-caret-down {
-      display: block;
-    }
-    .nav-menu_item-caret-right {
-      display: none;
-    }
-
-    a, span {
-      padding-left: 16px;
-      padding-top: 12px;
-      padding-bottom: 12px;
-    }
-  }
-
-  .nav-menu_sub-items {
-    background: none;
-    display: block;
-    overflow: hidden;
-    position: relative;
-    top: 0;
-    left: 0;
-    height: 0px;
-    width: 100%;
-    box-shadow: none;
-
-    .nav-menu_sub-item {
-      background: var(--top-background);
-      border-bottom: 1px solid black;
-      color: #eee;
-    }
-
-    a, span {
-      padding-left: 24px;
-      padding-top: 12px;
-      padding-bottom: 12px;
-    }
-  }
+.tippy-popper[x-placement^="top"] .ssl-theme .tippy-arrow {
+  border-top: 8px solid white;
 }
 
 /* Fixes so that the sidebar menus are visible from the first item regardless of the split of the nav-bar */
@@ -539,7 +546,7 @@ $navbar-items-width: 112px;
 @media (max-width: 767px) {
   .main-sidebar {
     padding-top: 18vh;
-  }  
+  }
 }
 
 .content-wrapper {
@@ -564,14 +571,16 @@ $navbar-items-width: 112px;
 
 .skin-blue .main-header .navbar {
   background-color: var(--ssl-blue-d);
-  /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
+
+  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
 }
 
 .skin-blue .wrapper,
 .skin-blue .main-sidebar,
 .skin-blue .left-side {
   background-color: var(--top-background);
-  /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
+
+  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
   border-right: 2px solid var(--ssl-gold);
 }
 
@@ -579,18 +588,9 @@ $navbar-items-width: 112px;
   background-color: var(--top-background);
   color: #fff;
   border-bottom: 0 solid #000;
-  /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
+
+  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
   border-right: 2px solid var(--ssl-gold);
-}
-
-.skin-blue .sidebar-menu .treeview-menu > li.active > a,
-.skin-blue .sidebar-menu .treeview-menu > li > a:hover {
-  color: var(--ssl-blue-d);
-}
-
-.skin-blue .sidebar-menu > li > .treeview-menu {
-  margin: 0px;
-  background: var(--ssl-gold);
 }
 
 .skin-blue .sidebar-menu > li:hover > a,
@@ -598,7 +598,15 @@ $navbar-items-width: 112px;
 .skin-blue .sidebar-menu > li.menu-open > a {
   color: #fff;
   background: var(--ssl-gold);
-  /*background-image: url(https://i.imgur.com/gVNA3OP.jpg);*/
+
+  /* background-image: url(https://i.imgur.com/gVNA3OP.jpg); */
+}
+
+.skin-blue .sidebar-menu > li.active > a,
+.skin-blue .sidebar-menu > li:hover > a {
+  color: #fff;
+  background: var(--bottom-background);
+  border-left-color: var(--ssl-gold);
 }
 
 .skin-blue .sidebar-menu > li.active > a {
@@ -609,11 +617,14 @@ $navbar-items-width: 112px;
   background-color: var(--ssl-gold);
 }
 
-.skin-blue .sidebar-menu > li.active > a,
-.skin-blue .sidebar-menu > li:hover > a {
-  color: #fff;
-  background: var(--bottom-background);
-  border-left-color: var(--ssl-gold); 
+.skin-blue .sidebar-menu .treeview-menu > li.active > a,
+.skin-blue .sidebar-menu .treeview-menu > li > a:hover {
+  color: var(--ssl-blue-d);
+}
+
+.skin-blue .sidebar-menu > li > .treeview-menu {
+  margin: 0;
+  background: var(--ssl-gold);
 }
 
 .content {
@@ -632,6 +643,7 @@ $navbar-items-width: 112px;
   display: block;
   padding: 10px;
   position: relative;
+
   /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
   border: 2px solid var(--ssl-gold);
   text-align: center;

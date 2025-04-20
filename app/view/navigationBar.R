@@ -105,7 +105,7 @@ ui <- function(id) {
       tags$title("SSL Portal")
     ),
     tags$nav(
-      class = "nav-container_narrow",
+      class = "nav-container-narrow",
       tagList(
         actionButton(
           inputId = "navToggle",
@@ -116,12 +116,12 @@ ui <- function(id) {
             ),
             div(
               icon("xmark"),
-              class = "nav-toggle-icon_open"
+              class = "nav-toggle-icon-open"
             )
           ),
           class = "nav-toggle",
           onclick = "
-            var mobileNav = document.querySelector('.nav-container_narrow');
+            var mobileNav = document.querySelector('.nav-container-narrow');
             var openMaxWidth = '80%';
 
             if (mobileNav) {
@@ -130,7 +130,7 @@ ui <- function(id) {
               this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
 
               this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
-              this.querySelector('.nav-toggle-icon_open').style.display = isOpen ? 'none' : 'block';
+              this.querySelector('.nav-toggle-icon-open').style.display = isOpen ? 'none' : 'block';
             }
         "),
         getNavItems(ns, "Mobile")
@@ -180,12 +180,12 @@ server <- function(id, auth, resAuth) {
       }
     }
 
-    output$jobsNavigationDesktop <- renderUI({
+    output$jobs-navigation-desktop <- renderUI({
       getJobsUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
 
-    output$jobsNavigationMobile <- renderUI({
+    output$jobs-navigation-mobile <- renderUI({
       getJobsUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
