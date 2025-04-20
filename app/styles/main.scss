@@ -1,18 +1,20 @@
+/* stylelint-disable color-function-notation */
 :root {
   --color: 0, 0%;
   --ssl-blue: #070b51;
   --ssl-blue-l: color-mix(in srgb, var(--ssl-blue) 95%, white);
   --ssl-blue-d: color-mix(in srgb, var(--ssl-blue) 95%, black);
   --ssl-gold: #bd9523;
-  --lighter-text: hsl(var(--color) / 100%);
-  --darker-text: hsl(var(--color) / 0%);
+  --lighter-text: hsl(var(--color), 100%);
+  --darker-text: hsl(var(--color), 0%);
   --key: #276bb0;
   --important: #60c689;
-  --top-background: hsl(var(--color) / 10%);
-  --middle-background: hsl(var(--color) / 20%);
-  --bottom-background: hsl(var(--color) / 30%);
-  --border-color: hsl(var(--color) / 25%);
+  --top-background: hsl(var(--color), 10%);
+  --middle-background: hsl(var(--color), 20%);
+  --bottom-background: hsl(var(--color), 30%);
+  --border-color: hsl(var(--color), 25%);
 }
+/* stylelint-enable color-function-notation */
 
 /* General styles */
 body {
@@ -209,7 +211,8 @@ $navbar-items-width: 112px;
 
   // For some reason this Shiny-generated element doesn't span the full width of the menu.
   // Setting this rule to force it to match all other menu items.
-  .shiny-spinner-output-container:has(#app-nav-jobs-navigation-mobile) {
+  /* stylelint-disable-next-line selector-id-pattern */
+  .shiny-spinner-output-container:has(#app-nav-jobsNavigationMobile) {
     width: 100%;
   }
 

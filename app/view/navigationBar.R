@@ -180,12 +180,12 @@ server <- function(id, auth, resAuth) {
       }
     }
 
-    output$jobs-navigation-desktop <- renderUI({
+    output$jobsNavigationDesktop <- renderUI({
       getJobsUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
 
-    output$jobs-navigation-mobile <- renderUI({
+    output$jobsNavigationMobile <- renderUI({
       getJobsUi(auth()$usergroup)
     }) |> 
       bindEvent(auth())
