@@ -1,12 +1,12 @@
 :root {
     --color: 0, 0%;
     --sslBlue: #070b51;
-	  --sslBlueL: color-mix(in srgb, var(--sslBlue) 95%, white);
-	  --sslBlueD: color-mix(in srgb, var(--sslBlue) 95%, black);
+    --sslBlueL: color-mix(in srgb, var(--sslBlue) 95%, white);
+    --sslBlueD: color-mix(in srgb, var(--sslBlue) 95%, black);
     --sslGold: #bd9523;
     --lighterText: hsl(var(--color), 100%);
     --darkerText: hsl(var(--color), 0%);
-    --key: #276BB0;
+    --key: #276bb0;
     --important: #60c689;
     --topBackground: hsl(var(--color), 10%);
     --middleBackground: hsl(var(--color), 20%);
@@ -900,15 +900,15 @@ $navbar-items-width: 112px;
 
 /* CSS styles for player and user statuses */
 .Active {
-  color: #66B38C;
+  color: #66b38c;
 }
 
 .Inactive, .Retiring {
-  color: #D96F68;
+  color: #d96f68;
 }
 
 .Retired {
-  color: #F5D17E;
+  color: #f5d17e;
 }
 
 .highcharts-background{
@@ -939,7 +939,7 @@ $navbar-items-width: 112px;
 
 .primary-button {
   background-color: #4b8dad;
-  border-color: #070B51;
+  border-color: #070b51;
   color: white;
 }
 
@@ -952,7 +952,7 @@ $navbar-items-width: 112px;
   border-radius: 8px;
   color: black;
   margin-bottom: 8px;
-  border-color: #BD9523;
+  border-color: #bd9523;
 
   @media (max-width: 767px) {
     width: 100%;
