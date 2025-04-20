@@ -1,24 +1,24 @@
 :root {
   --color: 0, 0%;
-  --sslBlue: #070b51;
-  --sslBlueL: color-mix(in srgb, var(--sslBlue) 95%, white);
-  --sslBlueD: color-mix(in srgb, var(--sslBlue) 95%, black);
-  --sslGold: #bd9523;
-  --lighterText: hsl(var(--color), 100%);
-  --darkerText: hsl(var(--color), 0%);
+  --ssl-blue: #070b51;
+  --ssl-blue-l: color-mix(in srgb, var(--ssl-blue) 95%, white);
+  --ssl-blue-d: color-mix(in srgb, var(--ssl-blue) 95%, black);
+  --ssl-gold: #bd9523;
+  --lighter-text: hsl(var(--color), 100%);
+  --darker-text: hsl(var(--color), 0%);
   --key: #276bb0;
   --important: #60c689;
-  --topBackground: hsl(var(--color), 10%);
-  --middleBackground: hsl(var(--color), 20%);
-  --bottomBackground: hsl(var(--color), 30%);
-  --borderColor: hsl(var(--color), 25%);
+  --top-background: hsl(var(--color), 10%);
+  --middle-background: hsl(var(--color), 20%);
+  --bottom-background: hsl(var(--color), 30%);
+  --border-color: hsl(var(--color), 25%);
 }
 
 /* General styles */
 body {
   font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
   color: white;
-  background: var(--bottomBackground);
+  background: var(--bottom-background);
 }
 
 h1, h2, h3, h4, h5 {
@@ -210,7 +210,7 @@ h1, h2, h3, h4, h5 {
 
 /* Navbar with logo */
 .ssl-navbar {
-  background-color: var(--sslBlueD);
+  background-color: var(--ssl-blue-d);
   height: 72px;
   margin-bottom: 20px;
   position: relative;
@@ -401,7 +401,7 @@ $navbar-items-width: 112px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--sslBlueD);
+    background-color: var(--ssl-blue-d);
     transition: left 0.5s ease-in-out;
     z-index: 9999;
     color: white;
@@ -412,7 +412,7 @@ $navbar-items-width: 112px;
   }
 
   .nav-container_narrow {
-    background: var(--bottomBackground);
+    background: var(--bottom-background);
     display: flex;
     flex-direction: column-reverse;
     justify-content: space-between;
@@ -474,7 +474,7 @@ $navbar-items-width: 112px;
     }
 
     .nav-menu_item {
-      background: var(--middleBackground);
+      background: var(--middle-background);
       border-bottom: 1px solid black !important;
       padding: 0 !important;
     }
@@ -513,7 +513,7 @@ $navbar-items-width: 112px;
     box-shadow: none;
 
     .nav-menu_sub-item {
-      background: var(--topBackground);
+      background: var(--top-background);
       border-bottom: 1px solid black;
       color: #eee;
     }
@@ -539,41 +539,41 @@ $navbar-items-width: 112px;
 
 .content-wrapper {
   min-height: 100%;
-  background-color: var(--middleBackground);
+  background-color: var(--middle-background);
   z-index: 800;
 }
 
 .skin-blue .main-header .navbar {
-  background-color: var(--sslBlueD);
+  background-color: var(--ssl-blue-d);
   /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
 }
 
 .skin-blue .wrapper, .skin-blue .main-sidebar, .skin-blue .left-side {
-  background-color: var(--topBackground);
+  background-color: var(--top-background);
   /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
-  border-right: 2px solid var(--sslGold);
+  border-right: 2px solid var(--ssl-gold);
 }
 
 .skin-blue .main-header .logo {
-  background-color: var(--topBackground);
+  background-color: var(--top-background);
   color: #fff;
   border-bottom: 0 solid rgba(0, 0, 0, 0);
   /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
-  border-right: 2px solid var(--sslGold);
+  border-right: 2px solid var(--ssl-gold);
 }
 
 .skin-blue .sidebar-menu .treeview-menu > li.active > a, .skin-blue .sidebar-menu .treeview-menu > li > a:hover {
-  color: var(--sslBlueD);
+  color: var(--ssl-blue-d);
 }
 
 .skin-blue .sidebar-menu > li > .treeview-menu {
   margin: 0px;
-  background: var(--sslGold);
+  background: var(--ssl-gold);
 }
 
 .skin-blue .sidebar-menu > li:hover > a, .skin-blue .sidebar-menu > li.active > a, .skin-blue .sidebar-menu > li.menu-open > a {
   color: #fff;
-  background: var(--sslGold);
+  background: var(--ssl-gold);
   /*background-image: url(https://i.imgur.com/gVNA3OP.jpg);*/
 }
 
@@ -582,13 +582,13 @@ $navbar-items-width: 112px;
 }
 
 .skin-blue .main-header .navbar .sidebar-toggle:hover {
-  background-color: var(--sslGold);
+  background-color: var(--ssl-gold);
 }
 
 .skin-blue .sidebar-menu > li.active > a, .skin-blue .sidebar-menu > li:hover > a {
   color: #fff;
-  background: var(--bottomBackground);
-  border-left-color: var(--sslGold); 
+  background: var(--bottom-background);
+  border-left-color: var(--ssl-gold); 
 }
 
 .content {
@@ -598,22 +598,22 @@ $navbar-items-width: 112px;
   padding-left: 15px;
   margin-right: auto;
   margin-left: auto;
-  background-color: var(--middleBackground);
+  background-color: var(--middle-background);
   background-image: url(https://i.imgur.com/9BuU3Op.jpeg);
 }
 
 .card-header {
-  color: var(--sslGold);
+  color: var(--ssl-gold);
   display: block;
   padding: 10px;
   position: relative;
   /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
-  border: 2px solid var(--sslGold);
+  border: 2px solid var(--ssl-gold);
   text-align: center;
 }
 
 .card.card-primary {
-  border-top-color: var(--sslGold);
+  border-top-color: var(--ssl-gold);
 }
 
 .card-footer {
@@ -621,9 +621,9 @@ $navbar-items-width: 112px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 3px;
   border-bottom-left-radius: 3px;
-  border-top: 1px solid var(--sslGold);
+  border-top: 1px solid var(--ssl-gold);
   padding: 10px;
-  background-color: var(--sslGold);
+  background-color: var(--ssl-gold);
   color: #fff;
 }
 
@@ -631,7 +631,7 @@ $navbar-items-width: 112px;
   position: relative;
   border-radius: 3px;
   background: #444;
-  border-top: 1px solid var(--sslGold);
+  border-top: 1px solid var(--ssl-gold);
   margin-bottom: 20px;
   width: 100%;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
@@ -639,9 +639,9 @@ $navbar-items-width: 112px;
 
 .results .card-header, .results .card-body {
   text-align: center;
-  border: 2px solid var(--sslGold);
+  border: 2px solid var(--ssl-gold);
   color: #fff;
-  background-color: var(--middleBackground);
+  background-color: var(--middle-background);
 }
 
 .card-body {
@@ -650,7 +650,7 @@ $navbar-items-width: 112px;
   border-bottom-right-radius: 0px;
   border-bottom-left-radius: 0px;
   padding: 10px;
-  border: 2px solid var(--sslGold);
+  border: 2px solid var(--ssl-gold);
 }
 
 .results {
@@ -662,8 +662,8 @@ $navbar-items-width: 112px;
 
 .rt-th, .rt-th-inner, .rt-pagination {
   overflow: visible !important;
-  background-color: var(--middleBackground);
-  Color: var(--sslGold);
+  background-color: var(--middle-background);
+  Color: var(--ssl-gold);
 }
 
 .rt-td-inner {
@@ -680,12 +680,12 @@ $navbar-items-width: 112px;
 }
 
 .Reactable {
-  background-color: var(--topBackground);
+  background-color: var(--top-background);
 }
 
 .Reactable .rt-table {
   background: inherit;
-  border: 1px solid var(--sslGold);
+  border: 1px solid var(--ssl-gold);
   scrollbar-color: #666666 #999999;
 }
 
@@ -694,11 +694,11 @@ $navbar-items-width: 112px;
 .Reactable .rt-thead {
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  background-color: var(--middleBackground);
+  background-color: var(--middle-background);
 }
 
 .rt-th {
-  border-bottom: 2px solid var(--sslGold);
+  border-bottom: 2px solid var(--ssl-gold);
   border-left-color: rgba(0,0,0,.05);
   border-left-width: 1px
 }
@@ -706,7 +706,7 @@ $navbar-items-width: 112px;
 .rt-td {
   border-left-color: rgba(0,0,0,.05);
   border-left-width: 1px;
-  border-top: 1px solid var(--sslGold)
+  border-top: 1px solid var(--ssl-gold)
 }
 
 .rt-search {
@@ -715,14 +715,14 @@ $navbar-items-width: 112px;
   width: -moz-available;          /* WebKit-based browsers will ignore this. */
   width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
   width: fill-available;
-  background-color: var(--bottomBackground);
-  color: var(--lighterText);
+  background-color: var(--bottom-background);
+  color: var(--lighter-text);
 }
 
 .stickyReactableColumn, .stickyReactableHeader {
   position: sticky !important; 
   left: 0;
-  background: var(--topBackground);
+  background: var(--top-background);
   z-index: 1;
 }
 
@@ -732,20 +732,20 @@ $navbar-items-width: 112px;
 
 /* Navtabs */
 .nav-tabs {
-  border-bottom: 1px solid var(--sslGold);
+  border-bottom: 1px solid var(--ssl-gold);
 }
 
 .nav-tabs > li.active > a {
-  background-color: var(--topBackground);
-  color: var(--lighterText);
+  background-color: var(--top-background);
+  color: var(--lighter-text);
 }
 
 .nav-tabs > li > a {
-  color: var(--lighterText);
+  color: var(--lighter-text);
 }
 
 .attribute, .attributeCost {
-  background-color: var(--middleBackground);
+  background-color: var(--middle-background);
   border: 1px solid grey;
   border-radius: 5px;
   padding: 4px;
@@ -760,9 +760,9 @@ $navbar-items-width: 112px;
   left: 0;
   text-align: center;
   width: 100%;
-  background-color: var(--topBackground);
+  background-color: var(--top-background);
   padding: 10px 20% 30px 30%;
-  border-top: 1px solid var(--sslGold);
+  border-top: 1px solid var(--ssl-gold);
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
@@ -772,18 +772,18 @@ $navbar-items-width: 112px;
 }
 
 .rank-list-item {
-  color: var(--darkerText);
+  color: var(--darker-text);
 }
 
 .modal-content {
-  background-color: var(--bottomBackground);
-  border: var(--topBackground);
+  background-color: var(--bottom-background);
+  border: var(--top-background);
   border-radius: 4px;
 }
 
 .verifyBox {
-  background: var(--lighterText);
-  color: var(--darkerText);
+  background: var(--lighter-text);
+  color: var(--darker-text);
   margin-top: 10px;
   margin-bottom: 10px;
 }
