@@ -4,14 +4,14 @@
   --ssl-blue-l: color-mix(in srgb, var(--ssl-blue) 95%, white);
   --ssl-blue-d: color-mix(in srgb, var(--ssl-blue) 95%, black);
   --ssl-gold: #bd9523;
-  --lighter-text: hsl(var(--color), 100%);
-  --darker-text: hsl(var(--color), 0%);
+  --lighter-text: hsl(var(--color) / 100%);
+  --darker-text: hsl(var(--color) / 0%);
   --key: #276bb0;
   --important: #60c689;
-  --top-background: hsl(var(--color), 10%);
-  --middle-background: hsl(var(--color), 20%);
-  --bottom-background: hsl(var(--color), 30%);
-  --border-color: hsl(var(--color), 25%);
+  --top-background: hsl(var(--color) / 10%);
+  --middle-background: hsl(var(--color) / 20%);
+  --bottom-background: hsl(var(--color) / 30%);
+  --border-color: hsl(var(--color) / 25%);
 }
 
 /* General styles */
@@ -21,7 +21,11 @@ body {
   background: var(--bottom-background);
 }
 
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
   font-weight: 800;
   font-style: normal;
@@ -38,7 +42,7 @@ h1, h2, h3, h4, h5 {
   font-weight: 600;
 }
 
-/* Should prevent rendering elements that have display none 
+/* Should prevent rendering elements that have display none
 .router-hidden {
   display: none;
 }
@@ -134,7 +138,25 @@ $navbar-items-width: 112px;
   }
 }
 
-.nav-menu-items {
+.nav-menu-sub-items {
+  display: none;
+  background: #eee;
+  position: absolute;
+  top: 0;
+  color: black;
+  left: $navbar-items-width;
+  width: max-content;
+  box-shadow: 0 0 2px black;
+  border-bottom-right-radius: 2px;
+  z-index: 100;
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.nav-menu-items { /* stylelint-disable-line no-descending-specificity */
   display: none;
   background: #eee;
   position: absolute;
@@ -152,8 +174,12 @@ $navbar-items-width: 112px;
 
   .nav-menu-item,
   .nav-menu-sub-item {
-    border-bottom: 1px solid #aaaaaa;
+    border-bottom: 1px solid #aaa;
     border-bottom-left-radius: 2px;
+
+    &:last-child {
+      border-bottom: none;
+    }
 
     &:hover {
       background: #4b8dad;
@@ -164,18 +190,6 @@ $navbar-items-width: 112px;
     &:active {
       filter: brightness(90%);
     }
-
-    &:has(.nav-menu-sub-items):hover {
-      cursor: default;
-    }
-
-    &:has(.nav-menu-sub-items):active {
-      filter: none;
-    }
-
-    &:last-child {
-      border-bottom: none;
-    }
   }
 
   .nav-menu-item:has(.nav-menu-sub-items) {
@@ -184,24 +198,6 @@ $navbar-items-width: 112px;
 
   &:hover .nav-menu-sub-items {
     display: block;
-  }
-}
-
-.nav-menu-sub-items {
-  display: none;
-  background: #eee;
-  position: absolute;
-  top: 0;
-  color: black;
-  left: $navbar-items-width;
-  width: max-content;
-  box-shadow: 0 0 2px black;
-  border-bottom-right-radius: 2px;
-  z-index: 100;
-
-  div {
-    display: flex;
-    flex-direction: column;
   }
 }
 
@@ -376,7 +372,7 @@ $navbar-items-width: 112px;
   overflow-x: scroll;
   display: flex;
   flex-direction: row;
-  scrollbar-color: #666666 #999999;
+  scrollbar-color: #666 #999;
 }
 
 .results > div {
@@ -394,6 +390,10 @@ $navbar-items-width: 112px;
   flex-direction: column; /* Stack children vertically */
 }
 
+.shiny-split-layout > div:has(> div.attribute) {
+  overflow: visible;
+}
+
 /* Display grid for the box container with 4 columns   */
 #standings-cup-boxes {
   display: grid;
@@ -407,9 +407,9 @@ $navbar-items-width: 112px;
   margin-bottom: -15px;
 }
 
-.small-box.bg-orange { 
-  background-color: #e08b46 !important; 
-  color: #000000 !important; 
+.small-box.bg-orange {
+  background-color: #e08b46 !important;
+  color: #000 !important;
 }
 
 .cup-info-div {
@@ -451,12 +451,13 @@ $navbar-items-width: 112px;
 }
 
 /* Hover information for text */
+
 /* Updated CSS */
 .hovertext {
   position: relative; /* Make sure the parent container has relative positioning */
 }
 
-.hovertext:before {
+.hovertext::before {
   content: attr(data_hover);
   visibility: hidden;
   opacity: 0;
@@ -468,16 +469,16 @@ $navbar-items-width: 112px;
   border-radius: 5px;
   padding: 5px;
   transition: opacity 0.3s ease-in-out;
-
   position: absolute;
   z-index: 999;
+
   /* Center on top of the element */
-  bottom: calc(100% + 5px);  
-  left: 50%; 
+  bottom: calc(100% + 5px);
+  left: 50%;
   transform: translate(-50%);
 }
 
-.hovertext:hover:before {
+.hovertext:hover::before {
   opacity: 1;
   visibility: visible;
 }
@@ -487,15 +488,11 @@ $navbar-items-width: 112px;
   column-count: 3;
 }
 
-.shiny-split-layout > div:has(> div.attribute) {
-  overflow: visible;
-}
-
 .card-body {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
+  border-bottom-left-radius: 0; /* stylelint-disable-line declaration-block-no-redundant-longhand-properties */
   padding: 10px;
   border: 2px solid var(--ssl-gold);
 }
@@ -657,7 +654,7 @@ $navbar-items-width: 112px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-bottom-right-radius: 3px;
-  border-bottom-left-radius: 3px;
+  border-bottom-left-radius: 3px; /* stylelint-disable-line declaration-block-no-redundant-longhand-properties */
   border-top: 1px solid var(--ssl-gold);
   padding: 10px;
   background-color: var(--ssl-gold);
@@ -703,6 +700,7 @@ $navbar-items-width: 112px;
   text-overflow: ellipsis;
 }
 
+/* stylelint-disable selector-class-pattern */
 .Reactable {
   background-color: var(--top-background);
 }
@@ -720,6 +718,7 @@ $navbar-items-width: 112px;
   flex-shrink: 0;
   background-color: var(--middle-background);
 }
+/* stylelint-enable selector-class-pattern */
 
 .rt-th {
   border-bottom: 2px solid var(--ssl-gold);
@@ -798,7 +797,7 @@ $navbar-items-width: 112px;
 }
 
 /* Target the table inside the .verify-box class */
-.verify-box .ReactTable {
+.verify-box .ReactTable { /* stylelint-disable-line selector-class-pattern */
   background-color: #f9f9f9; /* Light background for the table */
   border: 1px solid #ddd; /* Light border around the table */
   border-radius: 5px; /* Optional rounded corners */
