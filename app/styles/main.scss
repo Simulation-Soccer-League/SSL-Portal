@@ -143,8 +143,6 @@ h1, h2, h3, h4, h5 {
 
 /* splits information into multiple columns */
 .multicol {
-  -webkit-column-count: 3; /* Chrome, Safari, Opera */
-  -moz-column-count: 3; /* Firefox */
   column-count: 3;
 }
 
@@ -152,11 +150,21 @@ h1, h2, h3, h4, h5 {
   overflow: visible;
 }
 
+.card-body {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+  padding: 10px;
+  border: 2px solid var(--ssl-gold);
+}
+
 /* Makes result boxes overflow and creates a scroller */
 .results {
   overflow-x: scroll;
   display: flex;
   flex-direction: row;
+  scrollbar-color: #666666 #999999;
 }
 
 .results > div {
@@ -165,15 +173,10 @@ h1, h2, h3, h4, h5 {
   padding-left: 5px;
 }
 
-.results .card-header,
-.results .card-body {
-  text-align: center;
-}
-
 /* Buttons in dropdowns take the entire width */
 
 .tippy-popper button {
-  width: -webkit-fill-available;
+  width: fill-available;
 }
 
 /* Custom Tippy theme */
@@ -314,7 +317,8 @@ $navbar-items-width: 112px;
     display: none;
   }
 
-  .nav-menu_item, .nav-menu_sub-item {
+  .nav-menu_item,
+  .nav-menu_sub-item {
     border-bottom: 1px solid #aaaaaa;
     border-bottom-left-radius: 2px;
 
@@ -452,7 +456,8 @@ $navbar-items-width: 112px;
       color: #eeeeee;
     }
 
-    .fa-door-open, .fa-user { 
+    .fa-door-open,
+    .fa-user { 
       display: none;
     }
   }
@@ -543,12 +548,28 @@ $navbar-items-width: 112px;
   z-index: 800;
 }
 
+/* Navtabs */
+.nav-tabs {
+  border-bottom: 1px solid var(--ssl-gold);
+}
+
+.nav-tabs > li > a {
+  color: var(--lighter-text);
+}
+
+.nav-tabs > li.active > a {
+  background-color: var(--top-background);
+  color: var(--lighter-text);
+}
+
 .skin-blue .main-header .navbar {
   background-color: var(--ssl-blue-d);
   /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
 }
 
-.skin-blue .wrapper, .skin-blue .main-sidebar, .skin-blue .left-side {
+.skin-blue .wrapper,
+.skin-blue .main-sidebar,
+.skin-blue .left-side {
   background-color: var(--top-background);
   /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
   border-right: 2px solid var(--ssl-gold);
@@ -557,12 +578,13 @@ $navbar-items-width: 112px;
 .skin-blue .main-header .logo {
   background-color: var(--top-background);
   color: #fff;
-  border-bottom: 0 solid rgba(0, 0, 0, 0);
+  border-bottom: 0 solid #000;
   /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
   border-right: 2px solid var(--ssl-gold);
 }
 
-.skin-blue .sidebar-menu .treeview-menu > li.active > a, .skin-blue .sidebar-menu .treeview-menu > li > a:hover {
+.skin-blue .sidebar-menu .treeview-menu > li.active > a,
+.skin-blue .sidebar-menu .treeview-menu > li > a:hover {
   color: var(--ssl-blue-d);
 }
 
@@ -571,7 +593,9 @@ $navbar-items-width: 112px;
   background: var(--ssl-gold);
 }
 
-.skin-blue .sidebar-menu > li:hover > a, .skin-blue .sidebar-menu > li.active > a, .skin-blue .sidebar-menu > li.menu-open > a {
+.skin-blue .sidebar-menu > li:hover > a,
+.skin-blue .sidebar-menu > li.active > a,
+.skin-blue .sidebar-menu > li.menu-open > a {
   color: #fff;
   background: var(--ssl-gold);
   /*background-image: url(https://i.imgur.com/gVNA3OP.jpg);*/
@@ -585,7 +609,8 @@ $navbar-items-width: 112px;
   background-color: var(--ssl-gold);
 }
 
-.skin-blue .sidebar-menu > li.active > a, .skin-blue .sidebar-menu > li:hover > a {
+.skin-blue .sidebar-menu > li.active > a,
+.skin-blue .sidebar-menu > li:hover > a {
   color: #fff;
   background: var(--bottom-background);
   border-left-color: var(--ssl-gold); 
@@ -599,7 +624,7 @@ $navbar-items-width: 112px;
   margin-right: auto;
   margin-left: auto;
   background-color: var(--middle-background);
-  background-image: url(https://i.imgur.com/9BuU3Op.jpeg);
+  background-image: url("https://i.imgur.com/9BuU3Op.jpeg");
 }
 
 .card-header {
@@ -607,7 +632,7 @@ $navbar-items-width: 112px;
   display: block;
   padding: 10px;
   position: relative;
-  /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
+  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
   border: 2px solid var(--ssl-gold);
   text-align: center;
 }
@@ -634,36 +659,23 @@ $navbar-items-width: 112px;
   border-top: 1px solid var(--ssl-gold);
   margin-bottom: 20px;
   width: 100%;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 1px rgb(0 0 0 / 10%);
 }
 
-.results .card-header, .results .card-body {
+.results .card-header,
+.results .card-body {
   text-align: center;
   border: 2px solid var(--ssl-gold);
   color: #fff;
   background-color: var(--middle-background);
 }
 
-.card-body {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-  padding: 10px;
-  border: 2px solid var(--ssl-gold);
-}
-
-.results {
-  overflow-x: scroll;
-  display: flex;
-  flex-direction: row;
-  scrollbar-color: #666666 #999999;
-}
-
-.rt-th, .rt-th-inner, .rt-pagination {
+.rt-th,
+.rt-th-inner,
+.rt-pagination {
   overflow: visible !important;
   background-color: var(--middle-background);
-  Color: var(--ssl-gold);
+  color: var(--ssl-gold);
 }
 
 .rt-td-inner {
@@ -679,19 +691,19 @@ $navbar-items-width: 112px;
   text-overflow: ellipsis;
 }
 
-.Reactable { // sass-lint:disable-line selector-class-pattern
+.Reactable {
   background-color: var(--top-background);
 }
 
-.Reactable .rt-table { // sass-lint:disable-line selector-class-pattern
+.Reactable .rt-table {
   background: inherit;
   border: 1px solid var(--ssl-gold);
-  scrollbar-color: #666666 #999999;
+  scrollbar-color: #666 #999;
 }
 
-.Reactable .rt-tbody,  // sass-lint:disable-line selector-class-pattern
-.Reactable .rt-tfoot,  // sass-lint:disable-line selector-class-pattern
-.Reactable .rt-thead { // sass-lint:disable-line selector-class-pattern
+.Reactable .rt-tbody,
+.Reactable .rt-tfoot,
+.Reactable .rt-thead {
   -ms-flex-negative: 0;
   flex-shrink: 0;
   background-color: var(--middle-background);
@@ -699,52 +711,38 @@ $navbar-items-width: 112px;
 
 .rt-th {
   border-bottom: 2px solid var(--ssl-gold);
-  border-left-color: rgba(0,0,0,.05);
-  border-left-width: 1px
+  border-left-color: rgb(0 0 0 / 5%);
+  border-left-width: 1px;
 }
 
 .rt-td {
-  border-left-color: rgba(0,0,0,.05);
+  border-left-color: rgb(0 0 0 / 5%);
   border-left-width: 1px;
-  border-top: 1px solid var(--ssl-gold)
+  border-top: 1px solid var(--ssl-gold);
 }
 
 .rt-search {
   margin: 10px 20px 8px;
   width: 100%;
-  width: -moz-available;          /* WebKit-based browsers will ignore this. */
-  width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
   width: fill-available;
   background-color: var(--bottom-background);
   color: var(--lighter-text);
 }
 
-.sticky-reactable-column, .sticky-reactable-header {
-  position: sticky !important; 
+.sticky-reactable-column,
+.sticky-reactable-header {
+  position: sticky !important;
   left: 0;
   background: var(--top-background);
   z-index: 1;
 }
 
 .leader-table {
-  padding-top: 20px
+  padding-top: 20px;
 }
 
-/* Navtabs */
-.nav-tabs {
-  border-bottom: 1px solid var(--ssl-gold);
-}
-
-.nav-tabs > li.active > a {
-  background-color: var(--top-background);
-  color: var(--lighter-text);
-}
-
-.nav-tabs > li > a {
-  color: var(--lighter-text);
-}
-
-.attribute, .attribute-cost {
+.attribute,
+.attribute-cost {
   background-color: var(--middle-background);
   border: 1px solid grey;
   border-radius: 5px;
@@ -767,7 +765,6 @@ $navbar-items-width: 112px;
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
-  flex-wrap: wrap;
   z-index: 10;
 }
 
@@ -789,7 +786,7 @@ $navbar-items-width: 112px;
 }
 
 /* Target the table inside the .verify-box class */
-.verify-box .ReactTable { // sass-lint:disable-line selector-class-pattern
+.verify-box .ReactTable {
   background-color: #f9f9f9; /* Light background for the table */
   border: 1px solid #ddd; /* Light border around the table */
   border-radius: 5px; /* Optional rounded corners */
@@ -872,14 +869,14 @@ $navbar-items-width: 112px;
 }
 
 /* Edit Schedule selects */
-.smallSelect .selectize-input {
+.small-select .selectize-input {
   overflow: hidden;
   text-wrap: nowrap;
   text-overflow: ellipsis;
   text-indent: 1px;
 }
 
-.smallSelect .selectize-input::after {
+.small-select .selectize-input::after {
   display: none !important;
 }
 
