@@ -44,6 +44,13 @@ clubLogos <- function(value, index, currentData) {
             )
           }
         )
+    }
+    
+    tagList(
+      div(
+        class = "table-club-name",
+        span(value),
+        div(list)
       )
   } else {
     image <- img(
@@ -122,7 +129,7 @@ draftClassReactable <- function(data) {
             list <-
               tagList(
                 div(
-                  class = "tableClubName",
+                  class = "table-club-name",
                   div(style = "display: inline-block; width: 30px;", image),
                   span(value)
                 )
@@ -207,8 +214,8 @@ indexReactable <- function(currentData) {
           name = colDef(
             name = "PLAYER",
             minWidth = 250,
-            class = "stickyReactableColumn",
-            headerClass = "stickyReactableHeader",
+            class = "sticky-reactable-column",
+            headerClass = "sticky-reactable-header",
             searchable = TRUE,
             cell = function(value, index) {
               clubLogos(value, index, currentData)
@@ -374,6 +381,6 @@ attributeReactable <- function(data, session, output) {
         )
       )
     }
-  ) |>
-    div(class = "attributeTables")
+  ) |> 
+    div(class = "attribute-tables")
 }
