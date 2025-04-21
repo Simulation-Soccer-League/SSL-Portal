@@ -1,16 +1,15 @@
 box::use(
-  dplyr,
   bslib,
-  reactable[reactable, reactableOutput, renderReactable],
+  dplyr,
+  reactable[reactableOutput, renderReactable],
   shiny,
 )
 
 box::use(
-  app/logic/ui/spinner[withSpinnerCustom],
-  app/logic/constant,
-  app/logic/db/get[getAcademyIndex],
-  app/logic/ui/tags[flexRow, flexCol],
-  app/logic/ui/reactableHelper[recordReactable, indexReactable],
+  app / logic / constant,
+  app / logic / db / get[getAcademyIndex],
+  app / logic / ui / reactableHelper[indexReactable],
+  app / logic / ui / spinner[withSpinnerCustom],
 )
 
 #' @export
@@ -25,9 +24,9 @@ ui <- function(id) {
           shiny$selectInput(
             inputId = ns("selectedSeason"),
             label = "Select a season",
-            choices = 
+            choices =
               c(
-                13:constant$currentSeason$season |> 
+                13:constant$currentSeason$season |>
                   sort(decreasing = TRUE)
               )
           ),
@@ -37,27 +36,39 @@ ui <- function(id) {
       bslib$card_body(
         shiny$tabsetPanel(
           header = shiny$h1("Outfield"),
-          shiny$tabPanel("Statistics",
-                         reactableOutput(ns("outfieldBasic")) |> 
-                           withSpinnerCustom(height = 80)),
-          shiny$tabPanel("Adv. Statistics",
-                         reactableOutput(ns("outfieldAdvanced")) |> 
-                           withSpinnerCustom(height = 80)),
-          shiny$tabPanel("Leaders",
-                         shiny$uiOutput(ns("outfieldLeaders")) |> 
-                           withSpinnerCustom(height = 80))
+          shiny$tabPanel(
+            "Statistics",
+            reactableOutput(ns("outfieldBasic")) |>
+              withSpinnerCustom(height = 80)
+          ),
+          shiny$tabPanel(
+            "Adv. Statistics",
+            reactableOutput(ns("outfieldAdvanced")) |>
+              withSpinnerCustom(height = 80)
+          ),
+          shiny$tabPanel(
+            "Leaders",
+            shiny$uiOutput(ns("outfieldLeaders")) |>
+              withSpinnerCustom(height = 80)
+          )
         ),
         shiny$tabsetPanel(
           header = shiny$h1("Keeper"),
-          shiny$tabPanel("Statistics",
-                         reactableOutput(ns("keeperBasic")) |> 
-                           withSpinnerCustom(height = 80)),
-          shiny$tabPanel("Adv. Statistics",
-                         reactableOutput(ns("keeperAdvanced")) |> 
-                           withSpinnerCustom(height = 80)),
-          shiny$tabPanel("Leaders",
-                         shiny$uiOutput(ns("keeperLeaders")) |> 
-                           withSpinnerCustom(height = 80))
+          shiny$tabPanel(
+            "Statistics",
+            reactableOutput(ns("keeperBasic")) |>
+              withSpinnerCustom(height = 80)
+          ),
+          shiny$tabPanel(
+            "Adv. Statistics",
+            reactableOutput(ns("keeperAdvanced")) |>
+              withSpinnerCustom(height = 80)
+          ),
+          shiny$tabPanel(
+            "Leaders",
+            shiny$uiOutput(ns("keeperLeaders")) |>
+              withSpinnerCustom(height = 80)
+          )
         )
       )
     )
@@ -72,72 +83,71 @@ server <- function(id) {
       #### DATA GENERATION ####
       outfieldData <- shiny$reactive({
         season <- input$selectedSeason
-        
+
         getAcademyIndex(season = season)
-      }) |> 
+      }) |>
         shiny$bindEvent(input$selectedSeason)
-      
+
       keeperData <- shiny$reactive({
         season <- input$selectedSeason
-        
+
         getAcademyIndex(season = season, outfield = FALSE)
-      }) |> 
+      }) |>
         shiny$bindEvent(input$selectedSeason)
-      
+
       #### REACTABLE OUTPUT ####
       output$outfieldBasic <- renderReactable({
-        currentData <- 
-          outfieldData() |> 
+        currentData <-
+          outfieldData() |>
           dplyr$select(
             name:assists, `shots on target`:offsides, blocks, `shots blocked`, `average rating`
-          ) 
-        
-        currentData |> 
+          )
+
+        currentData |>
           indexReactable()
-      }) |> 
-        shiny$bindCache(input$selectedSeason)  
-      
+      }) |>
+        shiny$bindCache(input$selectedSeason)
+
       output$outfieldAdvanced <- renderReactable({
-        currentData <- 
-          outfieldData() |> 
+        currentData <-
+          outfieldData() |>
           dplyr$select(
-            name:club, 
+            name:club,
             xg,
             xa:`fk shots`,
             `open play key passes`:`goals outside box`,
             `press%`:`pen adj xG`
-          ) 
-        
-        currentData |> 
+          )
+
+        currentData |>
           indexReactable()
-      })  |> 
+      }) |>
         shiny$bindCache(input$selectedSeason)
-      
+
       output$keeperBasic <- renderReactable({
-        currentData <- 
-          keeperData() |> 
+        currentData <-
+          keeperData() |>
           dplyr$select(
             name:`save%`
-          ) 
-        
-        currentData |> 
+          )
+
+        currentData |>
           indexReactable()
-      }) |> 
+      }) |>
         shiny$bindCache(input$selectedSeason)
-      
+
       output$keeperAdvanced <- renderReactable({
-        currentData <- 
-          keeperData() |> 
+        currentData <-
+          keeperData() |>
           dplyr$select(
-            name:club, 
+            name:club,
             `penalties faced`:`xg prevented`
-          ) 
-        
-        currentData |> 
+          )
+
+        currentData |>
           indexReactable()
-      }) |> 
-        shiny$bindCache(input$selectedSeason) 
-      
+      }) |>
+        shiny$bindCache(input$selectedSeason)
     }
   )
 }
