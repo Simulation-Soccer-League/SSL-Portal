@@ -1,31 +1,31 @@
 box::use(
   dplyr[select],
-  reactable[colDef, colFormat, reactable, renderReactable, reactableOutput],
+  reactable[colDef, reactable, reactableOutput, renderReactable],
   shiny,
   shiny.router[route_link],
 )
 
 box::use(
-  app/logic/db/get[getPlayers],
+  app / logic / db / get[getPlayers],
 )
 
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
-    shiny$tagList(
-      shiny$h2("Player Search"),
-      reactableOutput(ns("players"))
-    )
+  shiny$tagList(
+    shiny$h2("Player Search"),
+    reactableOutput(ns("players"))
+  )
 }
 
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     output$players <- renderReactable({
-      data <- getPlayers(active = TRUE) |> 
+      data <- getPlayers(active = TRUE) |>
         select(name, username, pid, position, tpe, tpebank, class, playerStatus)
-      
-      data |> 
+
+      data |>
         reactable(
           searchable = TRUE,
           defaultColDef = colDef(searchable = FALSE),
@@ -35,12 +35,12 @@ server <- function(id) {
               cell = function(value, rowIndex) {
                 pid <- data[rowIndex, "pid"] # Get the corresponding pid
                 shiny$a(
-                  href = route_link(paste0("tracker/player?pid=", pid)), 
+                  href = route_link(paste0("tracker/player?pid=", pid)),
                   value # Display the name as the link text
                 )
               }
             ),
-            pid = colDef(show= FALSE)
+            pid = colDef(show = FALSE)
           )
         )
     })

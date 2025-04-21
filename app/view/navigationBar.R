@@ -1,21 +1,22 @@
 box::use(
-  future,
-  methods[is],
-  shiny[moduleServer, NS, tagList, tags, 
-        icon, div, uiOutput, renderUI, 
-        observe, bindEvent, a, actionButton, 
-        p, showModal, removeModal, modalDialog, 
-        modalButton, textInput, passwordInput, 
-        verbatimTextOutput, renderText, reactive,
-        actionLink],
-  shiny.router[route_link, change_page],
-  shinyFeedback[feedbackWarning]
+  lubridate[now],
+  shiny.router[route_link],
+  shiny[
+    a, actionButton, actionLink, bindEvent,
+    div, icon, modalButton, modalDialog,
+    moduleServer, NS, observe,
+    passwordInput, removeModal, renderUI,
+    showModal, tagList, tags, textInput,
+    uiOutput, verbatimTextOutput
+  ],
+  shinyFeedback[feedbackWarning],
+  stringr[str_split],
 )
 
 box::use(
-  app/logic/ui/tags[flexCol, flexRow, navMenu, navMenuItem],
-  app/logic/db/login[customCheckCredentials, getRefreshToken, setRefreshToken],
-  app/logic/ui/spinner[withSpinnerCustom],
+  app / logic / db / login[customCheckCredentials, getRefreshToken, setRefreshToken],
+  app / logic / ui / spinner[withSpinnerCustom],
+  app / logic / ui / tags[flexRow, navMenu, navMenuItem],
 )
 
 getNavItems <- function(ns, suffix) {
@@ -25,7 +26,6 @@ getNavItems <- function(ns, suffix) {
         navMenu(
           label = "Trackers",
           items = list(
-            # a("Players", href = route_link("tracker/player")),
             a("Search", href = route_link("search")),
             a("Organizations", href = route_link("tracker/organization")),
             a("Draft Class", href = route_link("tracker/draftclass"))
@@ -77,18 +77,18 @@ ui <- function(id) {
                       var res = Cookies.get();
                       Shiny.setInputValue('cookies', res);
                     }
-                  
+
                   // script.js
                     Shiny.addCustomMessageHandler('cookie-set', function(msg){
                       Cookies.set(msg.name, msg.value);
                       getCookies();
                     })
-                    
+
                     Shiny.addCustomMessageHandler('cookie-remove', function(msg){
                       Cookies.remove(msg.name);
                       getCookies();
                     })
-                  
+
                   $(document).on('shiny:connected', function(ev){
                     getCookies();
                   });"),
@@ -99,9 +99,10 @@ ui <- function(id) {
                   "),
     tags$head(
       tags$link(
-        rel = "icon", 
-        type = "image/png", 
-        href = "favicon.ico"),
+        rel = "icon",
+        type = "image/png",
+        href = "favicon.ico"
+      ),
       tags$title("SSL Portal")
     ),
     tags$nav(
@@ -128,11 +129,11 @@ ui <- function(id) {
               var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
               mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
               this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
-
               this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
               this.querySelector('.nav-toggle-icon-open').style.display = isOpen ? 'none' : 'block';
             }
-        "),
+        "
+        ),
         getNavItems(ns, "Mobile")
       )
     ),
@@ -157,7 +158,6 @@ ui <- function(id) {
 #' @export
 server <- function(id, auth, resAuth) {
   moduleServer(id, function(input, output, session) {
-    
     ### Output
     getJobsUi <- function(userGroup) {
       if (any(c(3, 4, 8, 11, 12, 14, 15) %in% userGroup)) {
@@ -182,12 +182,12 @@ server <- function(id, auth, resAuth) {
 
     output$jobsNavigationDesktop <- renderUI({
       getJobsUi(auth()$usergroup)
-    }) |> 
+    }) |>
       bindEvent(auth())
 
     output$jobsNavigationMobile <- renderUI({
       getJobsUi(auth()$usergroup)
-    }) |> 
+    }) |>
       bindEvent(auth())
 
     getPlayerUi <- function(userGroup) {
@@ -214,17 +214,17 @@ server <- function(id, auth, resAuth) {
       }
     }
 
-    
+
     output$yourPlayerDesktop <- renderUI({
       getPlayerUi(auth()$usergroup)
-    }) |> 
+    }) |>
       bindEvent(auth())
 
     output$yourPlayerMobile <- renderUI({
       getPlayerUi(auth()$usergroup)
-    }) |> 
+    }) |>
       bindEvent(auth())
-    
+
     ### Observers
     # Checks saved cookie for automatic login
     observe({
@@ -233,20 +233,18 @@ server <- function(id, auth, resAuth) {
         if ((now() |> as.numeric()) < refreshtoken$expires_at) {
           resAuth$uid <- refreshtoken$uid
           resAuth$username <- refreshtoken$username
-          resAuth$usergroup <- 
+          resAuth$usergroup <-
             paste(refreshtoken$usergroup, refreshtoken$additionalgroups, sep = ",") |>
             str_split(pattern = ",", simplify = TRUE) |>
             as.numeric() |>
             as.list()
-          
+
           setRefreshToken(uid = refreshtoken$uid, token = refreshtoken$token)
-          
-          # session$reload()
         }
       }
     }) |>
       bindEvent(input$cookies$token, ignoreNULL = TRUE, once = TRUE)
-    
+
     observe({
       showModal(
         modalDialog(
@@ -255,15 +253,25 @@ server <- function(id, auth, resAuth) {
           footer = tagList(
             modalButton("Cancel"), actionButton(session$ns("loggingIn"), "Login"),
             tags$div(
-              tags$a("Register a new user!", href = "https://forum.simulationsoccer.com/member.php?action=register", target = "_blank", style = "float: left;"),
-              tags$a("Forgot password?", href = "https://forum.simulationsoccer.com/member.php?action=lostpw", target = "_blank", style = "float:right;")  
+              tags$a(
+                "Register a new user!",
+                href = "https://forum.simulationsoccer.com/member.php?action=register",
+                target = "_blank", 
+                style = "float: left;"
+              ),
+              tags$a(
+                "Forgot password?",
+                href = "https://forum.simulationsoccer.com/member.php?action=lostpw",
+                target = "_blank", 
+                style = "float:right;"
+              )
             )
           )
         )
       )
-    }) |> 
+    }) |>
       bindEvent(input$login)
-    
+
     observe({
       res <- customCheckCredentials(user = input$user, password = input$password)
       if (res$result) {
@@ -274,7 +282,7 @@ server <- function(id, auth, resAuth) {
       } else {
         feedbackWarning("password", show = TRUE, text = "Password is incorrect.")
       }
-    }) |> 
+    }) |>
       bindEvent(input$loggingIn)
   })
 }
