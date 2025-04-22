@@ -1,53 +1,53 @@
 box::use(
-  shiny[div, icon, span, tagList],
+  shiny[div, icon, span, tag, tagList],
 )
 
 
 #' @export
 flexCol <- function(cont, style = "", onclick = "") {
-  shiny::tag("div", varArgs = list(
+  tag("div", varArgs = list(
     cont,
     class = "flex-col-wrapper",
     style = style,
     onclick = onclick
-  )
-)}
+  ))
+}
 
 #' @export
 flexRow <- function(cont, style = "", onclick = "") {
-  shiny::tag("div", varArgs = list(
+  tag("div", varArgs = list(
     cont,
     class = "flex-row-wrapper",
     style = style,
     onclick = onclick
-  )
-)}
+  ))
+}
 
 closeNarrowMenuJS <- "
-  var mobileNav = document.querySelector('.nav-container_narrow');
+  var mobileNav = document.querySelector('.nav-container-narrow');
   var mobileNavToggle = document.querySelector('.nav-toggle');
 
   mobileNav.style.maxWidth = '0px';
   mobileNavToggle.style.left = '0px';
   mobileNavToggle.querySelector('.nav-toggle-icon_closed').style.display = 'block';
-  mobileNavToggle.querySelector('.nav-toggle-icon_open').style.display = 'none';
+  mobileNavToggle.querySelector('.nav-toggle-icon-open').style.display = 'none';
 "
 
 #' @export
 navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
   if (!missing(cont) && label == "") {
-    shiny::tag("div", varArgs = list(cont, class = "nav-menu", onclick = closeNarrowMenuJS))
+    tag("div", varArgs = list(cont, class = "nav-menu", onclick = closeNarrowMenuJS))
   } else if (length(label) > 0) {
-    itemsClassNames <- c("nav-menu_items", if (showItems) " show-items" else "")
+    itemsClassNames <- c("nav-menu-items", if (showItems) " show-items" else "")
 
     div(
       class = "nav-menu",
       role = "button",
       onclick = c("
-        const allMenuItems = document.querySelectorAll('.nav-menu_items');
-        const allSubMenuItems = document.querySelectorAll('.nav-menu_sub-items');
-        const childMenuItems = this.querySelector('.nav-menu_items');
-        const childSubMenuItems = this.querySelector('.nav-menu_sub-items');
+        const allMenuItems = document.querySelectorAll('.nav-menu-items');
+        const allSubMenuItems = document.querySelectorAll('.nav-menu-sub-items');
+        const childMenuItems = this.querySelector('.nav-menu-items');
+        const childSubMenuItems = this.querySelector('.nav-menu-sub-items');
 
         if (childMenuItems) {
           const isClosed = getComputedStyle(childMenuItems).height === '0px';
@@ -80,12 +80,12 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
             role = "button",
             flexCol(
               tagList(
-                tags_list <- lapply(items, function(item) {
+                lapply(items, function(item) {
                   div(
-                    class = "nav-menu_item",
+                    class = "nav-menu-item",
                     onclick = c("
-                      const allSubMenuItems = document.querySelectorAll('.nav-menu_sub-items');
-                      const childSubMenuItems = this.querySelector('.nav-menu_sub-items');
+                      const allSubMenuItems = document.querySelectorAll('.nav-menu-sub-items');
+                      const childSubMenuItems = this.querySelector('.nav-menu-sub-items');
 
                       if (childSubMenuItems) {
                         const isClosed = getComputedStyle(childSubMenuItems).height === '0px';
@@ -125,23 +125,23 @@ navMenuItem <- function(cont, label = "", subItems = list()) {
         tagList(
           span(label, role = "button"),
           div(
-            class = "nav-menu_item-caret-right",
+            class = "nav-menu-item-caret-right",
             icon("caret-right")
           ),
           div(
-            class = "nav-menu_item-caret-down",
+            class = "nav-menu-item-caret-down",
             icon("caret-down")
           )
         )
       ),
       div(
-        class = "nav-menu_sub-items",
+        class = "nav-menu-sub-items",
         role = "button",
         div(
           tagList(
-            tags_list <- lapply(subItems, function(item) {
+            lapply(subItems, function(item) {
               div(
-                class = "nav-menu_sub-item",
+                class = "nav-menu-sub-item",
                 onclick = closeNarrowMenuJS,
                 item
               )

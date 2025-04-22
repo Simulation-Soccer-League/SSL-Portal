@@ -1,6 +1,5 @@
 box::use(
   cachem,
-  future[multisession, plan],
   shiny,
   shiny.router[route, router_server, router_ui],
   shinyFeedback[useShinyFeedback],
@@ -9,20 +8,20 @@ box::use(
 )
 
 box::use(
-  app/view/navigationBar,
-  app/view/index/academyIndex,
-  app/view/index/careerRecords,
-  app/view/index/leagueIndex,
-  app/view/index/schedule,
-  app/view/index/standings,
-  app/view/tracker/draftclass,
-  app/view/tracker/organization,
-  app/view/tracker/player,
-  app/view/tracker/playerSearch,
-  app/view/welcome,
+  app / view / index / academyIndex,
+  app / view / index / careerRecords,
+  app / view / index / leagueIndex,
+  app / view / index / schedule,
+  app / view / index / standings,
+  app / view / navigationBar,
+  app / view / tracker / draftclass,
+  app / view / tracker / organization,
+  app / view / tracker / player,
+  app / view / tracker / playerSearch,
+  app / view / welcome,
 )
 
-shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 60*60))
+shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 60 * 60))
 
 #' @export
 ui <- function(id) {
@@ -50,27 +49,26 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
-    
     router_server("/")
-    
+
     ## Reactives
     resAuth <- shiny$reactiveValues(
       uid = NULL,
       username = NULL,
       usergroup = NULL
     )
-    
+
     # Adds all authentication list to a reactive object
     authOutput <- shiny$reactive({
       shiny$reactiveValuesToList(resAuth)
     })
-    
+
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth)
-    
+
     welcome$server("welcome", usergroup = authOutput()$usergroup)
-    
+
     playerSearch$server("search")
-    
+
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
@@ -85,12 +83,13 @@ server <- function(id) {
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
       )
-    
+
     ## Observer that checks the current page and loads the server for the page ONCE
     shiny$observe({
       current <- str_remove(session$clientData$url_hash,
-                            pattern = "#!/")
-      
+        pattern = "#!/"
+      )
+
       if (current == "index/records" & !loadedServer$records) {
         careerRecords$server("records")
         loadedServer$records <- TRUE
@@ -113,11 +112,10 @@ server <- function(id) {
         draftclass$server("draftclass")
         loadedServer$draftclass <- TRUE
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
-         player$server("player")
-         loadedServer$player <- TRUE
+        player$server("player")
+        loadedServer$player <- TRUE
       }
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
-    
   })
 }

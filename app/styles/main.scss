@@ -1,217 +1,58 @@
+/* stylelint-disable color-function-notation */
 :root {
-    --color: 0, 0%;
-    --sslBlue: #070b51;
-	  --sslBlueL: color-mix(in srgb, var(--sslBlue) 95%, white);
-	  --sslBlueD: color-mix(in srgb, var(--sslBlue) 95%, black);
-    --sslGold: #bd9523;
-    --lighterText: hsl(var(--color), 100%);
-    --darkerText: hsl(var(--color), 0%);
-    --key: #276BB0;
-    --important: #60c689;
-    --topBackground: hsl(var(--color), 10%);
-    --middleBackground: hsl(var(--color), 20%);
-    --bottomBackground: hsl(var(--color), 30%);
-    --borderColor: hsl(var(--color), 25%);
+  --color: 0, 0%;
+  --ssl-blue: #070b51;
+  --ssl-blue-l: color-mix(in srgb, var(--ssl-blue) 95%, white);
+  --ssl-blue-d: color-mix(in srgb, var(--ssl-blue) 95%, black);
+  --ssl-gold: #bd9523;
+  --lighter-text: hsl(var(--color), 100%);
+  --darker-text: hsl(var(--color), 0%);
+  --key: #276bb0;
+  --important: #60c689;
+  --top-background: hsl(var(--color), 10%);
+  --middle-background: hsl(var(--color), 20%);
+  --bottom-background: hsl(var(--color), 30%);
+  --border-color: hsl(var(--color), 25%);
 }
+/* stylelint-enable color-function-notation */
 
 /* General styles */
 body {
-  font-family: 'Gotham SSm A', 'Gotham SSm B', Helvetica, sans-serif;
+  font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
   color: white;
-  background: var(--bottomBackground);
+  background: var(--bottom-background);
 }
 
-h1, h2, h3, h4, h5 {
-  font-family: 'Gotham SSm A', 'Gotham SSm B', Helvetica, sans-serif;
-  font-weight: 800; 
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
+  font-weight: 800;
   font-style: normal;
   color: white;
 }
 
-.keyAttribute {
-    color: var(--key);
-    font-weight: 600;
+.key-attribute {
+  color: var(--key);
+  font-weight: 600;
 }
 
-.importantAttribute {
-    color: var(--important);
-    font-weight: 600;
+.important-attribute {
+  color: var(--important);
+  font-weight: 600;
 }
 
-/* Should prevent rendering elements that have display none 
+/* Should prevent rendering elements that have display none
 .router-hidden {
   display: none;
 }
 */
 
-/* Display grid for the box container with 4 columns   */
-#standingsCup-boxes {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
-#standingsCup-boxes > div:nth-child(-n+3),
-#standingsCup-boxes > div:nth-child(n+7):nth-child(-n+9),
-#standingsCup-boxes > div:nth-child(n+13):nth-child(-n+15),
-#standingsCup-boxes > div:nth-child(n+19):nth-child(-n+21){
-  margin-bottom: -15px;
-}
-
-.small-box.bg-orange { 
-  background-color: #e08b46 !important; 
-  color: #000000 !important; 
-}
-
-.cup-info-div {
-  display: inline-block;
-  width: 100%;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.scores {
-  font-size: 1.2em;
-  width: 20px;
-  padding: 0px 15%;
-  float: right;
-}
-
-.scores:nth-child(odd) {
-  border-right: 1px solid;
-}
-
-.scores:nth-child(even) {
-  border-left: 1px solid;
-}
-
-.shiny-split-layout {
-  display: flex; /* Use Flexbox */
-}
-
-.shiny-split-layout > div {
-  display: flex; /* Nested Flexbox */
-  flex-direction: column; /* Stack children vertically */
-}
-
-.attributeTables {
-  display: flex;
-  justify-content: space-around;
-}
-
-.attributeCost {
-  justify-content: center; /* Center content horizontally */
-}
-
-.attributeInput input {
-  border-radius: 5px;
-  border: 1px solid black;
-  flex: 1; /* Take up all available space */
-}
-
-/* Hover information for text */
-/* Updated CSS */
-.hovertext {
-    position: relative; /* Make sure the parent container has relative positioning */
-}
-
-.hovertext:before {
-    content: attr(data_hover);
-    visibility: hidden;
-    opacity: 0;
-    min-width: 100px;
-    max-width: 300px;
-    background-color: black;
-    color: white;
-    text-align: center;
-    border-radius: 5px;
-    padding: 5px;
-    transition: opacity 0.3s ease-in-out;
-
-    position: absolute;
-    z-index: 999;
-    /* Center on top of the element */
-    bottom: calc(100% + 5px);  
-    left: 50%; 
-    transform: translate(-50%);
-}
-
-.hovertext:hover:before {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* splits information into multiple columns */
-.multicol {
-  -webkit-column-count: 3; /* Chrome, Safari, Opera */
-  -moz-column-count: 3; /* Firefox */
-  column-count: 3;
-}
-
-
-.shiny-split-layout > div:has(> div.attribute) {
-  overflow: visible;
-}
-
-/* Makes result boxes overflow and creates a scroller */
-.results {
-  overflow-x: scroll;
-  display: flex;
-  flex-direction: row;
-}
-
-.results > div {
-  min-width: 140px;
-  padding-right: 5px;
-  padding-left: 5px;
-}
-
-.results .card-header,
-.results .card-body {
-  text-align: center;
-}
-
-/* Buttons in dropdowns take the entire width */
-
-.tippy-popper button{
-  width: -webkit-fill-available;
-}
-
-/* Custom Tippy theme */
-
-.tippy-tooltip.ssl-theme {
-  background-color: white;
-  border: 1px solid black;
-  color: black;
-}
-
-.tippy-popper[x-placement^="bottom"] .ssl-theme .tippy-arrow {
-  border-bottom: 8px solid white;
-}
-
-.tippy-popper[x-placement^="top"] .ssl-theme .tippy-arrow {
-  border-top: 8px solid white;
-}
-
-.tippy-tooltip.ssl-theme .tippy-arrow {
-  border-right: 8px solid transparent;
-  border-left: 8px solid transparent;
-}
-
-.tippy-tooltip.ssl-theme .tippy-backdrop {
-  background-color: white;
-}
-
-.tippy-tooltip.ssl-theme .tippy-content {
-  position: relative;
-  padding: 5px 9px;
-  z-index: 1;
-  font-size: 14px;
-}
-
 /* Navbar with logo */
 .ssl-navbar {
-  background-color: var(--sslBlueD);
+  background-color: var(--ssl-blue-d);
   height: 72px;
   margin-bottom: 20px;
   position: relative;
@@ -248,7 +89,7 @@ h1, h2, h3, h4, h5 {
   z-index: 100;
 }
 
-.nav-container_narrow {
+.nav-container-narrow {
   display: none;
 }
 
@@ -260,7 +101,7 @@ $navbar-items-width: 112px;
   align-items: center;
   justify-content: center;
   position: relative;
-  color: #eeeeee;
+  color: #eee;
   font-weight: 600;
   padding: 0 8px;
   height: $navbar-label-height;
@@ -277,7 +118,7 @@ $navbar-items-width: 112px;
   }
 
   &:hover {
-    background: #eeeeee;
+    background: #eee;
     color: black;
     cursor: pointer;
   }
@@ -286,74 +127,22 @@ $navbar-items-width: 112px;
     filter: brightness(90%);
   }
 
-  &:has(.nav-menu_items):hover {
+  &:has(.nav-menu-items):hover {
     cursor: default;
   }
 
-  &:has(.nav-menu_items):active {
+  &:has(.nav-menu-items):active {
     filter: none;
   }
 
-  &:hover .nav-menu_items {
+  &:hover .nav-menu-items {
     display: block;
   }
 }
 
-.nav-menu_items {
+.nav-menu-sub-items {
   display: none;
-  background: #eeeeee;
-  position: absolute;
-  top: $navbar-label-height;
-  left: 0;
-  width: $navbar-items-width;
-  font-weight: normal;
-  box-shadow: 0 0 2px black;
-  border-bottom-left-radius: 2px;
-  z-index: 101;
-
-  .nav-menu_item-caret-down {
-    display: none;
-  }
-
-  .nav-menu_item, .nav-menu_sub-item {
-    border-bottom: 1px solid #aaaaaa;
-    border-bottom-left-radius: 2px;
-
-    &:hover {
-      background: #4b8dad;
-      color: #eeeeee;
-      cursor: pointer;
-    }
-
-    &:active {
-      filter: brightness(90%);
-    }
-
-    &:has(.nav-menu_sub-items):hover {
-      cursor: default;
-    }
-
-    &:has(.nav-menu_sub-items):active {
-      filter: none;
-    }
-
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-
-  .nav-menu_item:has(.nav-menu_sub-items) {
-    padding: 8px;
-  }
-
-  &:hover .nav-menu_sub-items {
-    display: block;
-  }
-}
-
-.nav-menu_sub-items {
-  display: none;
-  background: #eeeeee;
+  background: #eee;
   position: absolute;
   top: 0;
   color: black;
@@ -369,6 +158,51 @@ $navbar-items-width: 112px;
   }
 }
 
+.nav-menu-items { /* stylelint-disable-line no-descending-specificity */
+  display: none;
+  background: #eee;
+  position: absolute;
+  top: $navbar-label-height;
+  left: 0;
+  width: $navbar-items-width;
+  font-weight: normal;
+  box-shadow: 0 0 2px black;
+  border-bottom-left-radius: 2px;
+  z-index: 101;
+
+  .nav-menu-item-caret-down {
+    display: none;
+  }
+
+  .nav-menu-item,
+  .nav-menu-sub-item {
+    border-bottom: 1px solid #aaa;
+    border-bottom-left-radius: 2px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: #4b8dad;
+      color: #eee;
+      cursor: pointer;
+    }
+
+    &:active {
+      filter: brightness(90%);
+    }
+  }
+
+  .nav-menu-item:has(.nav-menu-sub-items) {
+    padding: 8px;
+  }
+
+  &:hover .nav-menu-sub-items {
+    display: block;
+  }
+}
+
 @media (max-width: 767px) {
   // Make sure page content isn't hidden behind fixed nav
   #router-page-wrapper {
@@ -377,6 +211,7 @@ $navbar-items-width: 112px;
 
   // For some reason this Shiny-generated element doesn't span the full width of the menu.
   // Setting this rule to force it to match all other menu items.
+  /* stylelint-disable-next-line selector-id-pattern */
   .shiny-spinner-output-container:has(#app-nav-jobsNavigationMobile) {
     width: 100%;
   }
@@ -402,18 +237,18 @@ $navbar-items-width: 112px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--sslBlueD);
+    background-color: var(--ssl-blue-d);
     transition: left 0.5s ease-in-out;
     z-index: 9999;
     color: white;
 
-    .nav-toggle-icon_open {
+    .nav-toggle-icon-open {
       display: none;
     }
   }
 
-  .nav-container_narrow {
-    background: var(--bottomBackground);
+  .nav-container-narrow {
+    background: var(--bottom-background);
     display: flex;
     flex-direction: column-reverse;
     justify-content: space-between;
@@ -422,7 +257,7 @@ $navbar-items-width: 112px;
     left: 0;
     top: 0;
     right: 0;
-    max-width: 0px;
+    max-width: 0;
     overflow: hidden;
     margin: 0;
     z-index: 99;
@@ -443,22 +278,26 @@ $navbar-items-width: 112px;
     height: auto;
     padding: 0;
 
-    & > div:has(> span), & > div:has(> a), & > a {
+    & > div:has(> span),
+    & > div:has(> a),
+    & > a {
       border-bottom: 1px solid black;
       width: 100%;
     }
 
-    a, span {
+    a,
+    span {
       padding: 12px 8px;
-      color: #eeeeee;
+      color: #eee;
     }
 
-    .fa-door-open, .fa-user { 
+    .fa-door-open,
+    .fa-user {
       display: none;
     }
   }
 
-  .nav-menu_items {
+  .nav-menu-items {
     background: none;
     display: block;
     overflow: hidden;
@@ -466,7 +305,7 @@ $navbar-items-width: 112px;
     position: relative;
     top: 0;
     left: 0;
-    height: 0px;
+    height: 0;
     width: 100%;
     box-shadow: none;
 
@@ -474,57 +313,229 @@ $navbar-items-width: 112px;
       height: max-content;
     }
 
-    .nav-menu_item {
-      background: var(--middleBackground);
+    .nav-menu-item {
+      background: var(--middle-background);
       border-bottom: 1px solid black !important;
       padding: 0 !important;
     }
 
-    .nav-menu_item:has(.nav-menu_sub-items) > div {
+    .nav-menu-item:has(.nav-menu-sub-items) > div {
       justify-content: flex-start !important;
     }
+
     // When sub-items are showing
-    .nav-menu_item:has(.nav-menu_sub-items[style*="max-content"]) > div {
+    .nav-menu-item:has(.nav-menu-sub-items[style*="max-content"]) > div {
       border-bottom: 1px solid black;
     }
 
-    .nav-menu_item-caret-down {
+    .nav-menu-item-caret-down {
       display: block;
     }
-    .nav-menu_item-caret-right {
+
+    .nav-menu-item-caret-right {
       display: none;
     }
 
-    a, span {
+    a,
+    span {
       padding-left: 16px;
       padding-top: 12px;
       padding-bottom: 12px;
     }
   }
 
-  .nav-menu_sub-items {
+  .nav-menu-sub-items {
     background: none;
     display: block;
     overflow: hidden;
     position: relative;
     top: 0;
     left: 0;
-    height: 0px;
+    height: 0;
     width: 100%;
     box-shadow: none;
 
-    .nav-menu_sub-item {
-      background: var(--topBackground);
+    .nav-menu-sub-item {
+      background: var(--top-background);
       border-bottom: 1px solid black;
       color: #eee;
     }
 
-    a, span {
+    a,
+    span {
       padding-left: 24px;
       padding-top: 12px;
       padding-bottom: 12px;
     }
   }
+}
+
+/* Makes result boxes overflow and creates a scroller */
+.results {
+  overflow-x: scroll;
+  display: flex;
+  flex-direction: row;
+  scrollbar-color: #666 #999;
+}
+
+.results > div {
+  min-width: 140px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+
+.shiny-split-layout {
+  display: flex; /* Use Flexbox */
+}
+
+.shiny-split-layout > div {
+  display: flex; /* Nested Flexbox */
+  flex-direction: column; /* Stack children vertically */
+}
+
+.shiny-split-layout > div:has(> div.attribute) {
+  overflow: visible;
+}
+
+/* Display grid for the box container with 4 columns   */
+#standings-cup-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+#standings-cup-boxes > div:nth-child(-n+3),
+#standings-cup-boxes > div:nth-child(n+7):nth-child(-n+9),
+#standings-cup-boxes > div:nth-child(n+13):nth-child(-n+15),
+#standings-cup-boxes > div:nth-child(n+19):nth-child(-n+21) {
+  margin-bottom: -15px;
+}
+
+.small-box.bg-orange {
+  background-color: #e08b46 !important;
+  color: #000 !important;
+}
+
+.cup-info-div {
+  display: inline-block;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.scores {
+  font-size: 1.2em;
+  width: 20px;
+  padding: 0 15%;
+  float: right;
+}
+
+.scores:nth-child(odd) {
+  border-right: 1px solid;
+}
+
+.scores:nth-child(even) {
+  border-left: 1px solid;
+}
+
+.attribute-tables {
+  display: flex;
+  justify-content: space-around;
+}
+
+.attribute-cost {
+  justify-content: center; /* Center content horizontally */
+}
+
+.attribute-input input {
+  border-radius: 5px;
+  border: 1px solid black;
+  flex: 1; /* Take up all available space */
+}
+
+/* Hover information for text */
+
+/* Updated CSS */
+.hovertext {
+  position: relative; /* Make sure the parent container has relative positioning */
+}
+
+.hovertext::before {
+  content: attr(data_hover);
+  visibility: hidden;
+  opacity: 0;
+  min-width: 100px;
+  max-width: 300px;
+  background-color: black;
+  color: white;
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px;
+  transition: opacity 0.3s ease-in-out;
+  position: absolute;
+  z-index: 999;
+
+  /* Center on top of the element */
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translate(-50%);
+}
+
+.hovertext:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* splits information into multiple columns */
+.multicol {
+  column-count: 3;
+}
+
+.card-body {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0; /* stylelint-disable-line declaration-block-no-redundant-longhand-properties */
+  padding: 10px;
+  border: 2px solid var(--ssl-gold);
+}
+
+/* Buttons in dropdowns take the entire width */
+
+.tippy-popper button {
+  width: fill-available;
+}
+
+/* Custom Tippy theme */
+
+.tippy-tooltip.ssl-theme {
+  background-color: white;
+  border: 1px solid black;
+  color: black;
+}
+
+.tippy-tooltip.ssl-theme .tippy-arrow {
+  border-right: 8px solid transparent;
+  border-left: 8px solid transparent;
+}
+
+.tippy-tooltip.ssl-theme .tippy-backdrop {
+  background-color: white;
+}
+
+.tippy-tooltip.ssl-theme .tippy-content {
+  position: relative;
+  padding: 5px 9px;
+  z-index: 1;
+  font-size: 14px;
+}
+
+.tippy-popper[x-placement^="bottom"] .ssl-theme .tippy-arrow {
+  border-bottom: 8px solid white;
+}
+
+.tippy-popper[x-placement^="top"] .ssl-theme .tippy-arrow {
+  border-top: 8px solid white;
 }
 
 /* Fixes so that the sidebar menus are visible from the first item regardless of the split of the nav-bar */
@@ -535,140 +546,148 @@ $navbar-items-width: 112px;
 @media (max-width: 767px) {
   .main-sidebar {
     padding-top: 18vh;
-  }  
+  }
 }
 
-
-
 .content-wrapper {
-    min-height: 100%;
-    background-color: var(--middleBackground);
-    z-index: 800;
+  min-height: 100%;
+  background-color: var(--middle-background);
+  z-index: 800;
+}
+
+/* Navtabs */
+.nav-tabs {
+  border-bottom: 1px solid var(--ssl-gold);
+}
+
+.nav-tabs > li > a {
+  color: var(--lighter-text);
+}
+
+.nav-tabs > li.active > a {
+  background-color: var(--top-background);
+  color: var(--lighter-text);
 }
 
 .skin-blue .main-header .navbar {
-    background-color: var(--sslBlueD);
-    /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
+  background-color: var(--ssl-blue-d);
+
+  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
 }
 
-.skin-blue .wrapper, .skin-blue .main-sidebar, .skin-blue .left-side {
-    background-color: var(--topBackground);
-    /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
-    border-right: 2px solid var(--sslGold);
+.skin-blue .wrapper,
+.skin-blue .main-sidebar,
+.skin-blue .left-side {
+  background-color: var(--top-background);
+
+  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
+  border-right: 2px solid var(--ssl-gold);
 }
 
 .skin-blue .main-header .logo {
-    background-color: var(--topBackground);
-    color: #fff;
-    border-bottom: 0 solid rgba(0, 0, 0, 0);
-    /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
-    border-right: 2px solid var(--sslGold);
+  background-color: var(--top-background);
+  color: #fff;
+  border-bottom: 0 solid #000;
+
+  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
+  border-right: 2px solid var(--ssl-gold);
 }
 
-.skin-blue .sidebar-menu .treeview-menu>li.active>a, .skin-blue .sidebar-menu .treeview-menu>li>a:hover {
-    color: var(--sslBlueD);
+.skin-blue .sidebar-menu > li:hover > a,
+.skin-blue .sidebar-menu > li.active > a,
+.skin-blue .sidebar-menu > li.menu-open > a {
+  color: #fff;
+  background: var(--ssl-gold);
+
+  /* background-image: url(https://i.imgur.com/gVNA3OP.jpg); */
 }
 
-.skin-blue .sidebar-menu>li>.treeview-menu {
-    margin: 0px;
-    background: var(--sslGold);
-    }
-    
-.skin-blue .sidebar-menu>li:hover>a, .skin-blue .sidebar-menu>li.active>a, .skin-blue .sidebar-menu>li.menu-open>a {
-    color: #fff;
-    background: var(--sslGold);
-    /*background-image: url(https://i.imgur.com/gVNA3OP.jpg);*/
+.skin-blue .sidebar-menu > li.active > a,
+.skin-blue .sidebar-menu > li:hover > a {
+  color: #fff;
+  background: var(--bottom-background);
+  border-left-color: var(--ssl-gold);
 }
 
-.skin-blue .sidebar-menu>li.active>a {
-    border: none;
+.skin-blue .sidebar-menu > li.active > a {
+  border: none;
 }
 
 .skin-blue .main-header .navbar .sidebar-toggle:hover {
-    background-color: var(--sslGold);
+  background-color: var(--ssl-gold);
 }
 
-.skin-blue .sidebar-menu>li.active>a,.skin-blue .sidebar-menu>li:hover>a {
-    color: #fff;
-    background: var(--bottomBackground);
-    border-left-color: var(--sslGold); 
-    
+.skin-blue .sidebar-menu .treeview-menu > li.active > a,
+.skin-blue .sidebar-menu .treeview-menu > li > a:hover {
+  color: var(--ssl-blue-d);
+}
+
+.skin-blue .sidebar-menu > li > .treeview-menu {
+  margin: 0;
+  background: var(--ssl-gold);
 }
 
 .content {
-    min-height: 1000px;
-    padding: 15px;
-    padding-right: 15px;
-    padding-left: 15px;
-    margin-right: auto;
-    margin-left: auto;
-    background-color: var(--middleBackground);
-    background-image: url(https://i.imgur.com/9BuU3Op.jpeg);
+  min-height: 1000px;
+  padding: 15px;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+  background-color: var(--middle-background);
+  background-image: url("https://i.imgur.com/9BuU3Op.jpeg");
 }
 
 .card-header {
-    color: var(--sslGold);
-    display: block;
-    padding: 10px;
-    position: relative;
-    /*background-image: url(https://i.imgur.com/k7qNGB5.jpg);*/
-    border: 2px solid var(--sslGold);
-    text-align: center;
+  color: var(--ssl-gold);
+  display: block;
+  padding: 10px;
+  position: relative;
+
+  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
+  border: 2px solid var(--ssl-gold);
+  text-align: center;
 }
 
 .card.card-primary {
-    border-top-color: var(--sslGold);
+  border-top-color: var(--ssl-gold);
 }
 
-
 .card-footer {
-    border-top-left-radius: 0;
-   border-top-right-radius: 0;
-    border-bottom-right-radius: 3px;
-    border-bottom-left-radius: 3px;
-    border-top: 1px solid var(--sslGold);
-    padding: 10px;
-    background-color: var(--sslGold);
-    color: #ffffff;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px; /* stylelint-disable-line declaration-block-no-redundant-longhand-properties */
+  border-top: 1px solid var(--ssl-gold);
+  padding: 10px;
+  background-color: var(--ssl-gold);
+  color: #fff;
 }
 
 .card {
-    position: relative;
-    border-radius: 3px;
-    background: #444444;
-    border-top: 1px solid var(--sslGold);
-    margin-bottom: 20px;
-    width: 100%;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  position: relative;
+  border-radius: 3px;
+  background: #444;
+  border-top: 1px solid var(--ssl-gold);
+  margin-bottom: 20px;
+  width: 100%;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 10%);
 }
 
-.results .card-header, .results .card-body {
-    text-align: center;
-    border: 2px solid var(--sslGold);
-    color: #ffffff;
-    background-color: var(--middleBackground);
+.results .card-header,
+.results .card-body {
+  text-align: center;
+  border: 2px solid var(--ssl-gold);
+  color: #fff;
+  background-color: var(--middle-background);
 }
 
-.card-body {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0px;
-	border-bottom-left-radius: 0px;
-    padding: 10px;
-    border: 2px solid var(--sslGold);
-}
-
-.results {
-    overflow-x: scroll;
-    display: flex;
-    flex-direction: row;
-    scrollbar-color: #666666 #999999;
-}
-
-.rt-th, .rt-th-inner, .rt-pagination {
-    overflow: visible !important;
-    background-color: var(--middleBackground);
-    Color: var(--sslGold);
+.rt-th,
+.rt-th-inner,
+.rt-pagination {
+  overflow: visible !important;
+  background-color: var(--middle-background);
+  color: var(--ssl-gold);
 }
 
 .rt-td-inner {
@@ -684,82 +703,67 @@ $navbar-items-width: 112px;
   text-overflow: ellipsis;
 }
 
+/* stylelint-disable selector-class-pattern */
 .Reactable {
-  background-color: var(--topBackground);
+  background-color: var(--top-background);
 }
 
 .Reactable .rt-table {
-    background: inherit;
-    border: 1px solid var(--sslGold);
-    scrollbar-color: #666666 #999999;
+  background: inherit;
+  border: 1px solid var(--ssl-gold);
+  scrollbar-color: #666 #999;
 }
 
-.Reactable .rt-tbody, 
-.Reactable .rt-tfoot, 
+.Reactable .rt-tbody,
+.Reactable .rt-tfoot,
 .Reactable .rt-thead {
-    -ms-flex-negative: 0;
-    flex-shrink: 0;
-    background-color: var(--middleBackground);
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  background-color: var(--middle-background);
 }
+/* stylelint-enable selector-class-pattern */
 
 .rt-th {
-    border-bottom: 2px solid var(--sslGold);
-    border-left-color: rgba(0,0,0,.05);
-    border-left-width: 1px
+  border-bottom: 2px solid var(--ssl-gold);
+  border-left-color: rgb(0 0 0 / 5%);
+  border-left-width: 1px;
 }
 
 .rt-td {
-    border-left-color: rgba(0,0,0,.05);
-    border-left-width: 1px;
-    border-top: 1px solid var(--sslGold)
+  border-left-color: rgb(0 0 0 / 5%);
+  border-left-width: 1px;
+  border-top: 1px solid var(--ssl-gold);
 }
 
 .rt-search {
   margin: 10px 20px 8px;
   width: 100%;
-  width: -moz-available;          /* WebKit-based browsers will ignore this. */
-  width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
   width: fill-available;
-  background-color: var(--bottomBackground);
-  color: var(--lighterText);
+  background-color: var(--bottom-background);
+  color: var(--lighter-text);
 }
 
-
-.stickyReactableColumn, .stickyReactableHeader {
-  position: sticky !important; 
+.sticky-reactable-column,
+.sticky-reactable-header {
+  position: sticky !important;
   left: 0;
-  background: var(--topBackground);
+  background: var(--top-background);
   z-index: 1;
 }
 
-.leaderTable {
-  padding-top: 20px
+.leader-table {
+  padding-top: 20px;
 }
 
-
-/* Navtabs */
-.nav-tabs {
-  border-bottom: 1px solid var(--sslGold);
-}
-
-.nav-tabs>li.active>a {
-  background-color: var(--topBackground);
-  color: var(--lighterText);
-}
-
-.nav-tabs>li>a {
-  color: var(--lighterText);
-}
-
-
-.attribute, .attributeCost {
-    background-color: var(--middleBackground);
-    border: 1px solid grey;
-    border-radius: 5px;
-    padding: 4px;
-    flex: 1; /* Distribute remaining space evenly */
-    display: flex; /* Use Flexbox */
-    align-items: center; /* Align items vertically */
+.attribute,
+.attribute-cost {
+  background-color: var(--middle-background);
+  border: 1px solid grey;
+  border-radius: 5px;
+  padding: 4px;
+  flex: 1; /* Distribute remaining space evenly */
+  display: flex; /* Use Flexbox */
+  align-items: center; /* Align items vertically */
 }
 
 .frozen-bottom {
@@ -768,37 +772,35 @@ $navbar-items-width: 112px;
   left: 0;
   text-align: center;
   width: 100%;
-  background-color: var(--topBackground);
-    padding: 10px 20% 30px 30%;
-    border-top: 1px solid var(--sslGold);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    align-items: center;
-    flex-wrap: wrap; 
-    z-index: 10;
+  background-color: var(--top-background);
+  padding: 10px 20% 30px 30%;
+  border-top: 1px solid var(--ssl-gold);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  z-index: 10;
 }
 
-
 .rank-list-item {
-  color: var(--darkerText);
+  color: var(--darker-text);
 }
 
 .modal-content {
-  background-color: var(--bottomBackground);
-  border: var(--topBackground);
+  background-color: var(--bottom-background);
+  border: var(--top-background);
   border-radius: 4px;
 }
 
-.verifyBox {
-  background: var(--lighterText);
-  color: var(--darkerText);
+.verify-box {
+  background: var(--lighter-text);
+  color: var(--darker-text);
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-/* Target the table inside the .verifyBox class */
-.verifyBox .ReactTable {
+/* Target the table inside the .verify-box class */
+.verify-box .ReactTable { /* stylelint-disable-line selector-class-pattern */
   background-color: #f9f9f9; /* Light background for the table */
   border: 1px solid #ddd; /* Light border around the table */
   border-radius: 5px; /* Optional rounded corners */
@@ -806,7 +808,7 @@ $navbar-items-width: 112px;
 }
 
 /* Style for the table header */
-.verifyBox .rt-th {
+.verify-box .rt-th {
   text-transform: uppercase; /* Make header text uppercase */
   background-color: #e0e0e0; /* Slightly darker background for header */
   color: #333; /* Dark text color for contrast */
@@ -814,82 +816,81 @@ $navbar-items-width: 112px;
   padding: 10px; /* Padding inside header cells */
 }
 
-.verifyBox .rt-th-inner {
+.verify-box .rt-th-inner {
   background-color: inherit;
 }
 
 /* Style for the table rows (cells) */
-.verifyBox .rt-td {
+.verify-box .rt-td {
   color: #333; /* Dark text color for visibility */
   padding: 10px; /* Padding inside cells */
   border-bottom: 1px solid #ddd; /* Light border between rows */
-  background-color: #ffffff; /* Light background for table rows */
+  background-color: #fff; /* Light background for table rows */
 }
 
 /* Optional: Style the last row border */
-.verifyBox .rt-tr-group:last-child .rt-td {
+.verify-box .rt-tr-group:last-child .rt-td {
   border-bottom: none; /* Remove the border from the last row */
 }
 
 /* Optional: Add hover effect for rows */
-.verifyBox .rt-tr:hover .rt-td {
+.verify-box .rt-tr:hover .rt-td {
   background-color: #f0f0f0; /* Slightly darker background on hover */
 }
 
-.stickyFooter {
-  position:fixed;
-  bottom:0;
-  right:90%;
-  left:0;
-  padding:10px;
-  box-sizing:border-box;
+.sticky-footer {
+  position: fixed;
+  bottom: 0;
+  right: 90%;
+  left: 0;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
-.navbarHead {
+.navbar-head {
   display: flex;
-  /* padding: 20px 0px;*/
   flex-direction: row;
 }
 
-.navbarHead button {
-    color: inherit;
-    background: inherit;
-    border: none;
-    font-family: 'Gotham SSm A', 'Gotham SSm B', Helvetica, sans-serif;
-    font-weight: 800;
-    font-style: normal;
-    margin: 0px 20px;
+.navbar-head button {
+  color: inherit;
+  background: inherit;
+  border: none;
+  font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
+  font-weight: 800;
+  font-style: normal;
+  margin: 0 20px;
 }
 
 /* Index Tables */
-.tableClubName {
+.table-club-name {
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-align: end;
 }
 
-.leaderTable .tableClubName {
+.leader-table .table-club-name {
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-align: left;
 }
 
-.tableClubName span {
+.table-club-name span {
   padding-left: 10px;
   text-wrap: pretty;
 }
 
 /* Edit Schedule selects */
-.smallSelect .selectize-input{
+.small-select .selectize-input {
   overflow: hidden;
   text-wrap: nowrap;
   text-overflow: ellipsis;
   text-indent: 1px;
 }
 
-.smallSelect .selectize-input::after{
+.small-select .selectize-input::after {
   display: none !important;
 }
 
@@ -897,21 +898,21 @@ $navbar-items-width: 112px;
   text-wrap: nowrap;
 }
 
-
 /* CSS styles for player and user statuses */
-.Active {
-  color: #66B38C;
+.active {
+  color: #66b38c;
 }
 
-.Inactive, .Retiring {
-  color: #D96F68;
+.inactive,
+.retiring {
+  color: #d96f68;
 }
 
-.Retired {
-  color: #F5D17E;
+.retired {
+  color: #f5d17e;
 }
 
-.highcharts-background{
+.highcharts-background {
   fill: #efefef;
 }
 
@@ -939,7 +940,7 @@ $navbar-items-width: 112px;
 
 .primary-button {
   background-color: #4b8dad;
-  border-color: #070B51;
+  border-color: #070b51;
   color: white;
 }
 
@@ -952,7 +953,7 @@ $navbar-items-width: 112px;
   border-radius: 8px;
   color: black;
   margin-bottom: 8px;
-  border-color: #BD9523;
+  border-color: #bd9523;
 
   @media (max-width: 767px) {
     width: 100%;
