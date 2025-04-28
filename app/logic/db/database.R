@@ -12,30 +12,34 @@ db_user <- Sys.getenv("DBUSER")
 db_password <- Sys.getenv("DBPASSWORD")
 
 sqlQuery <- function(query, db) {
-  con <-
-    DBI$dbConnect(
-      RMySQL$MySQL(),
-      dbname = config$get(db),
-      host = db_host,
-      port = db_port,
-      user = db_user,
-      password = db_password
-    )
-
-  DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
-  DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
-  DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")
-
-  req <- glue$glue_sql(query, .con = con)
-
-  req <- DBI$dbSendQuery(con, req)
-  res <- DBI$dbFetch(req, n = -1)
-
-  DBI$dbClearResult(req)
-
-  DBI$dbDisconnect(con)
-
-  res
+  
+  tryCatch({
+    con <-
+      DBI$dbConnect(
+        RMySQL$MySQL(),
+        dbname = config$get(db),
+        host = db_host,
+        port = db_port,
+        user = db_user,
+        password = db_password
+      )
+    
+    DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
+    DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
+    DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")
+    
+    req <- glue$glue_sql(query, .con = con)
+    
+    req <- DBI$dbSendQuery(con, req)
+    res <- DBI$dbFetch(req, n = -1)
+    
+    DBI$dbClearResult(req)
+    
+    res
+  },
+  finally = {
+    DBI$dbDisconnect(con)
+  })
 }
 
 #' Function for queries to mybb
