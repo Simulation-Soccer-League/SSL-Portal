@@ -3,6 +3,7 @@ box::use(
   dplyr,
   purrr[map],
   shiny,
+  shinyjs,
   shiny.router[change_page],
   stringr[str_remove_all, str_to_title],
   tidyr[pivot_longer, replace_na],
@@ -13,7 +14,7 @@ box::use(
   app/logic/constant,
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/player/playerChecks[eligibleRedist, eligibleReroll],
+  app/logic/player/playerChecks[eligibleRedist, eligibleReroll, updateSummary],
   app/view/tracker/player,
 )
 
@@ -22,8 +23,7 @@ ui <- function(id) {
   ns <- shiny$NS(id)
   
   shiny$tagList(
-    shiny$textOutput(ns("text")),
-    shiny$uiOutput(ns("attributes"))  
+    shiny$uiOutput(ns("ui"))  
   )
   
 }
@@ -44,6 +44,26 @@ server <- function(id, auth, updated, type) {
       })
     } else {
       #### OUTPUT UI ####
+      output$ui <- shiny$renderUI({
+        shiny$tagList(
+          shiny$textOutput(ns("text")),
+          shiny$actionButton(
+            ns("verifyUpdate"),
+            label = 
+              dplyr$if_else(
+                type == "update", "Update",
+                dplyr$if_else(
+                  type == "regress", "Regress",
+                  dplyr$if_else(
+                    type == "reroll", "Reroll", "Redistribute"
+                  )
+                )),
+            class = "primary-button"
+          ),
+          shiny$uiOutput(ns("attributes"))  
+        )
+      })
+      
       output$attributes <- shiny$renderUI({
         map(
           .x = processedData()$group |> unique() |> sort(),
@@ -65,23 +85,43 @@ server <- function(id, auth, updated, type) {
                     dplyr$select(Value) |> 
                     unlist()
                   
-                  shiny$tagList(
-                    shiny$numericInput(
-                      inputId = ns(currentAtt |> str_remove_all(" ")),
-                      label = 
-                        tippy(
-                          currentAtt,
-                          constant$attributes |> 
-                            dplyr$filter(attribute == currentAtt) |> 
-                            dplyr$select(explanation),
-                          theme = "ssl"
-                        ),
-                      value = value,
-                      min = value,
-                      max = 20
-                    ),
-                    shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" "))))
-                  )
+                  if(currentAtt %in% c("Natural Fitness", "Stamina")){
+                    shiny$tagList(
+                      shiny$numericInput(
+                        inputId = ns(currentAtt |> str_remove_all(" ")),
+                        label = 
+                          tippy(
+                            currentAtt,
+                            constant$attributes |> 
+                              dplyr$filter(attribute == currentAtt) |> 
+                              dplyr$select(explanation),
+                            theme = "ssl"
+                          ),
+                        value = 20,
+                        max = 20,
+                        min = 20
+                      ) |> 
+                        shinyjs$disabled()
+                    )
+                  } else {
+                    shiny$tagList(
+                      shiny$numericInput(
+                        inputId = ns(currentAtt |> str_remove_all(" ")),
+                        label = 
+                          tippy(
+                            currentAtt,
+                            constant$attributes |> 
+                              dplyr$filter(attribute == currentAtt) |> 
+                              dplyr$select(explanation),
+                            theme = "ssl"
+                          ),
+                        value = value,
+                        min = dplyr$if_else(type == "update", value, 5),
+                        max = dplyr$if_else(type == "regression", value, 20)
+                      ),
+                      shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" "))))
+                    )
+                  }
                 }
               )
             })
@@ -129,7 +169,6 @@ server <- function(id, auth, updated, type) {
         ) |> 
           shiny$div(class = "attributeUpdate")
       })
-      
       
       output$text <- shiny$renderText({
         bankedTPE()
@@ -205,6 +244,69 @@ server <- function(id, auth, updated, type) {
         )
       
       #### OBSERVERS ####
+      
+      ## Verify the update
+      shiny$observe({
+        if(bankedTPE() < 0){
+          shinyFeedback$showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            "You have spent too much TPE on your attributes! Reduce some of your attributes and try again."
+          )
+        } else {
+          updates <- updateSummary(playerData(), input)
+          
+          if(updates |> nrow() == 0){
+            shinyFeedback$showToast(
+              .options = constant$sslToastOptions,
+              "warning",
+              "You have not changed your build yet, there is nothing to update."
+            )
+          }
+        }
+      }) |> 
+        shiny$bindEvent(
+          input$verifyUpdate
+        )
+      
+      ## Fixes inputs outside of allowed ranges
+      lapply(
+        X = processedData()$Attribute |> str_remove_all(" "),
+        FUN = function(att){
+          shiny$observe({
+            currentVal <- input[[att]]
+            
+            shiny$req(currentVal)
+            
+            value <- 
+              processedData() |> 
+              dplyr$filter((Attribute |> str_remove_all(" ")) == att) |> 
+              dplyr$select(Value) |> 
+              unlist()
+            
+            # Determine the dynamic min and max values.
+            minVal <- dplyr$if_else(type == "update", value, 5)
+            maxVal <- dplyr$if_else(type == "regression", value, 20)
+            
+            # Constrain the input value within dynamic boundaries.
+            adjustedVal <- min(max(currentVal, minVal), maxVal)
+            
+            # Update the numeric input only if the current value is out of bounds.
+            if (currentVal != adjustedVal) {
+              shiny$updateNumericInput(
+                session,
+                inputId = att,
+                value = adjustedVal
+              )
+            }
+          }) |> 
+            shiny$bindEvent(
+              input[[att]],
+              ignoreInit = TRUE
+            )
+        }
+      )
+      
     }
   })
 }

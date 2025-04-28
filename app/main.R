@@ -142,7 +142,7 @@ server <- function(id) {
       } else if (current == "myPlayer/redistribute") {
         playerUpdate$server("redist", auth = authOutput(), updated = updated(), type = "redistribution")
       } else if (current == "myPlayer/regress") {
-        playerUpdate$server("regress", auth = authOutput(), updated = updated(), type = "regress")
+        playerUpdate$server("regress", auth = authOutput(), updated = updated(), type = "regression")
       } 
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
