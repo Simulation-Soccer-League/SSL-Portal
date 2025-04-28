@@ -1,6 +1,5 @@
 ## Function for queries to mybb
 box::use(
-  config,
   DBI,
   glue,
   RMySQL,
@@ -12,12 +11,11 @@ dbUser <- Sys.getenv("DBUSER")
 dbPassword <- Sys.getenv("DBPASSWORD")
 
 sqlQuery <- function(query, db) {
-  
   tryCatch({
     con <-
       DBI$dbConnect(
         RMySQL$MySQL(),
-        dbname = config$get(db),
+        dbname = Sys.getenv(db),
         host = dbHost,
         port = dbPort,
         user = dbUser,

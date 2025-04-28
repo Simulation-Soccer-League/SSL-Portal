@@ -44,7 +44,7 @@ clubLogos <- function(value, index, currentData) {
             )
           }
         )
-    }
+      )
     
     tagList(
       div(
@@ -52,6 +52,7 @@ clubLogos <- function(value, index, currentData) {
         span(value),
         div(list)
       )
+    )
   } else {
     image <- img(
       src = sprintf("static/logo/%s (Custom).png", clubData),
