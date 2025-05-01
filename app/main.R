@@ -77,7 +77,7 @@ server <- function(id) {
     
     updated <- shiny$reactiveVal(0)
     
-    navigationBar$server("nav", auth = authOutput, resAuth = resAuth)
+    navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated)
     
     welcome$server("welcome", usergroup = authOutput()$usergroup)
     
@@ -87,7 +87,7 @@ server <- function(id) {
     loadedServer <-
       shiny$reactiveValues(
         create = FALSE, player = FALSE, index = FALSE, playerUpdate = FALSE,
-        playerReroll = FALSE, playerRedist = FALSE,
+        playerReroll = FALSE, playerRedist = FALSE, playerRegress = FALSE,
         myPlayer = FALSE,
         academy = FALSE, uploadGame = FALSE,
         bankOverview = FALSE, welcome = FALSE, records = FALSE,
@@ -130,19 +130,23 @@ server <- function(id) {
          player$server("player")
          loadedServer$player <- TRUE
       } else if (current == "myPlayer/" & !loadedServer$myPlayer) {
-        myPlayer$server("myPlayer", auth = authOutput(), updated = updated())
+        myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
         loadedServer$myPlayer <- TRUE
       } else if (current == "filework/export" & !loadedServer$export) {
-        export$server("export", auth = authOutput(), updated = updated())
+        export$server("export", auth = authOutput(), updated = updated)
         loadedServer$export <- TRUE
-      } else if (current == "myPlayer/update") {
-        playerUpdate$server("update", auth = authOutput(), updated = updated(), type = "update")
-      } else if (current == "myPlayer/reroll") {
-        playerUpdate$server("reroll", auth = authOutput(), updated = updated(), type = "reroll")
-      } else if (current == "myPlayer/redistribute") {
-        playerUpdate$server("redist", auth = authOutput(), updated = updated(), type = "redistribution")
-      } else if (current == "myPlayer/regress") {
-        playerUpdate$server("regress", auth = authOutput(), updated = updated(), type = "regression")
+      } else if (current == "myPlayer/update" & !loadedServer$playerUpdate) {
+        playerUpdate$server("update", auth = authOutput(), updated = updated, type = "update")
+        loadedServer$playerUpdate <- TRUE
+      } else if (current == "myPlayer/reroll" & !loadedServer$playerReroll) {
+        playerUpdate$server("reroll", auth = authOutput(), updated = updated, type = "reroll")
+        loadedServer$playerReroll <- TRUE
+      } else if (current == "myPlayer/redistribute" & !loadedServer$playerRedist) {
+        playerUpdate$server("redist", auth = authOutput(), updated = updated, type = "redistribution")
+        loadedServer$playerRedist <- TRUE
+      } else if (current == "myPlayer/regress" & !loadedServer$playerRegress) {
+        playerUpdate$server("regress", auth = authOutput(), updated = updated, type = "regression")
+        loadedServer$playerRegress <- TRUE
       } 
     }) |>
       shiny$bindEvent(session$clientData$url_hash)

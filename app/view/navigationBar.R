@@ -170,7 +170,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, auth, resAuth) {
+server <- function(id, auth, resAuth, updated) {
   moduleServer(id, function(input, output, session) {
     
     ### Output

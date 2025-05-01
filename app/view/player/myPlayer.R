@@ -25,6 +25,8 @@ server <- function(id, auth, updated) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    print("myPlayer")
+    
     if (any(auth$usergroup |> is.null(), auth$suspended |> is.null())){
       output$ui <- shiny$renderUI({
         "YOU DO NOT HAVE ACCESS TO THIS PAGE, PLEASE LOG IN!"
@@ -98,17 +100,17 @@ server <- function(id, auth, updated) {
       
       #### REACTIVES ####
       bankedTPE <- shiny$reactive({
-        auth$uid |> 
-        getActivePlayer() |> 
-        getPlayer() |> 
+        playerData() |>  
         dplyr$select(tpebank)
       })
       
       playerData <- shiny$reactive({
+        print(updated())
+        
         getActivePlayer(auth$uid) |> 
           getPlayer()
       }) |> 
-        shiny$bindCache(auth$id, updated)
+        shiny$bindEvent(updated())
       
       #### OBSERVERS ####
       shiny$observe({

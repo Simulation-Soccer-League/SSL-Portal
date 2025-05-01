@@ -2,7 +2,9 @@ box::use(
   bslib,
   dplyr,
   purrr[map],
+  reactable[reactable],
   shiny,
+  shinyFeedback,
   shinyjs,
   shiny.router[change_page],
   stringr[str_remove_all, str_to_title],
@@ -12,7 +14,9 @@ box::use(
 
 box::use(
   app/logic/constant,
+  app/logic/db/logFunctions[logUpdate],
   app/logic/db/login[isNonActiveForumUser],
+  app/logic/db/updateFunctions[updatePlayerData],
   app/logic/db/get[getActivePlayer, getPlayer],
   app/logic/player/playerChecks[eligibleRedist, eligibleReroll, updateSummary],
   app/view/tracker/player,
@@ -58,6 +62,11 @@ server <- function(id, auth, updated, type) {
                     type == "reroll", "Reroll", "Redistribute"
                   )
                 )),
+            class = "primary-button"
+          ),
+          shiny$actionButton(
+            ns("back"),
+            label = "Back",
             class = "primary-button"
           ),
           shiny$uiOutput(ns("attributes"))  
@@ -244,6 +253,10 @@ server <- function(id, auth, updated, type) {
         )
       
       #### OBSERVERS ####
+      shiny$observe({
+        change_page("myPlayer/")
+      }) |> 
+        shiny$bindEvent(input$back)
       
       ## Verify the update
       shiny$observe({
@@ -262,11 +275,49 @@ server <- function(id, auth, updated, type) {
               "warning",
               "You have not changed your build yet, there is nothing to update."
             )
+          } else {
+            shiny$showModal(
+              shiny$modalDialog(
+                title = "Verify your update",
+                reactable(updates),
+                easyClose = FALSE,
+                footer = shiny$tagList(
+                  shiny$modalButton("Cancel"),
+                  shiny$actionButton(ns("confirmUpdate"), "OK")
+                )
+              )
+            )
           }
         }
       }) |> 
         shiny$bindEvent(
-          input$verifyUpdate
+          input$verifyUpdate,
+          ignoreInit = TRUE
+        )
+      
+      shiny$observe({
+        shiny$removeModal()
+        
+        updates <- updateSummary(playerData(), input)
+        
+        logUpdate(uid = auth$uid, pid = playerData()$pid, updates = updates)
+        
+        updatePlayerData(pid = playerData()$pid, updates = updates, bankedTPE = bankedTPE())
+        
+        updated(updated() + 1)
+        
+        shinyFeedback$showToast(
+          .options = constant$sslToastOptions,
+          "success",
+          "You have successfully updated your player!"
+        )
+        
+        change_page("myPlayer/")
+        
+      }) |> 
+        shiny$bindEvent(
+          input$confirmUpdate,
+          ignoreInit = TRUE
         )
       
       ## Fixes inputs outside of allowed ranges
