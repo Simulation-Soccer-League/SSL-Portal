@@ -25,16 +25,17 @@ server <- function(id, auth, updated) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    print("myPlayer")
-    
     if (any(auth$usergroup |> is.null(), auth$suspended |> is.null())){
       output$ui <- shiny$renderUI({
         "YOU DO NOT HAVE ACCESS TO THIS PAGE, PLEASE LOG IN!"
       })
     } else if (isNonActiveForumUser(auth$usergroup, auth$suspended)){
-      # TODO ADD NOTE THAT YOU HAVE NO ACTIVE PLAYER
       output$ui <- shiny$renderUI({
         "YOU DO NOT HAVE ACCESS TO THIS PAGE"
+      })
+    } else if (getActivePlayer(auth$uid) |> nrow() == 0) {
+      output$ui <- shiny$renderUI({
+        "YOU DO NOT HAVE ANY ACTIVE PLAYER, PLEASE CREATE ONE FIRST."
       })
     } else {
       
@@ -105,8 +106,6 @@ server <- function(id, auth, updated) {
       })
       
       playerData <- shiny$reactive({
-        print(updated())
-        
         getActivePlayer(auth$uid) |> 
           getPlayer()
       }) |> 
