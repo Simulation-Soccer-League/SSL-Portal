@@ -16,6 +16,7 @@ box::use(
   app/view/index/schedule,
   app/view/index/standings,
   app/view/jobs/filework/export,
+  app/view/player/createPlayer,
   app/view/player/myPlayer,
   app/view/player/playerUpdate,
   app/view/tracker/draftclass,
@@ -51,7 +52,8 @@ ui <- function(id) {
       route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
       route("myPlayer/redistribute", playerUpdate$ui(ns("redist"))),
       route("myPlayer/regress", playerUpdate$ui(ns("regress"))),
-      route("filework/export", export$ui(ns("export")))
+      route("filework/export", export$ui(ns("export"))),
+      route("createPlayer", createPlayer$ui(ns("create")))
     )
   )
 }
@@ -64,9 +66,9 @@ server <- function(id) {
     
     ## Reactives
     resAuth <- shiny$reactiveValues(
-      uid = 6,
-      username = "Canadice",
-      usergroup = 4,
+      uid = 564,
+      username = "Test User",
+      usergroup = 2,
       suspended = 0
     )
     
@@ -147,6 +149,9 @@ server <- function(id) {
       } else if (current == "myPlayer/regress" & !loadedServer$playerRegress) {
         playerUpdate$server("regress", auth = authOutput(), updated = updated, type = "regression")
         loadedServer$playerRegress <- TRUE
+      } else if (current == "createPlayer" & !loadedServer$create) {
+        createPlayer$server("create", auth = authOutput(), updated = updated)
+        loadedServer$create <- TRUE
       } 
     }) |>
       shiny$bindEvent(session$clientData$url_hash)

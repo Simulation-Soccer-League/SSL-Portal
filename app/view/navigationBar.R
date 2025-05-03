@@ -8,7 +8,7 @@ box::use(
         modalButton, textInput, passwordInput, 
         verbatimTextOutput, renderText, reactive,
         actionLink],
-  shiny.router[route_link],
+  shiny.router[change_page, route_link],
   shinyFeedback[feedbackWarning]
 )
 
@@ -16,6 +16,7 @@ box::use(
   app/logic/ui/tags[flexCol, flexRow, navMenu, navMenuItem],
   app/logic/db/login[customCheckCredentials, getRefreshToken, setRefreshToken],
   app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/player/playerChecks[hasActivePlayer],
 )
 
 #' @export
@@ -159,7 +160,6 @@ ui <- function(id) {
                 )
               )
             ),
-            verbatimTextOutput(ns("workers")),
             uiOutput(ns("yourPlayer")) |>
               withSpinnerCustom(height = 20)
           )
@@ -202,8 +202,13 @@ server <- function(id, auth, resAuth, updated) {
           actionLink("Login", icon = icon("user"), inputId = session$ns("login"))
         )
       } else {
-        flexRow(
-          tagList(
+        if(!hasActivePlayer(auth()$uid)){
+          playerMenu <- 
+            navMenu(
+              actionLink("Create a Player", icon = icon("square-plus"), inputId = session$ns("create"))
+            )
+        } else {
+          playerMenu <- 
             navMenu(
               label = "Player",
               items = list(
@@ -211,7 +216,12 @@ server <- function(id, auth, resAuth, updated) {
                 a("Bank/Store", href = route_link("bank"))
               ),
               showItems = TRUE
-            ),
+            )
+        }
+        
+        flexRow(
+          tagList(
+            playerMenu,
             navMenu(
               actionLink("Logout", icon = icon("door-open"), inputId = session$ns("logout"))
             )
@@ -274,5 +284,11 @@ server <- function(id, auth, resAuth, updated) {
       }
     }) |> 
       bindEvent(input$loggingIn)
+    
+    ## Changing page to create
+    observe({
+      change_page("createPlayer")
+    }) |> 
+      bindEvent(input$create)
   })
 }

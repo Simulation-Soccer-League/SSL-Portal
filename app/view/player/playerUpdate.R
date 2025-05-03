@@ -3,6 +3,7 @@ box::use(
   dplyr,
   purrr[map],
   reactable[reactable],
+  rlang[`!!!`],
   shiny,
   shinyFeedback,
   shinyjs,
@@ -165,18 +166,20 @@ server <- function(id, auth, updated, type) {
           }
         )
         
-        map(
-          .x = processedData()$group |> unique() |> sort(),
-          .f = function(chosengroup){
-            shiny$tagList(
-              shiny$div(
-                style = "width: 80%",
-                shiny$uiOutput(ns(chosengroup))   
-              )
-            )
-          }
-        ) |> 
-          shiny$div(class = "attributeUpdate")
+        uiList <- 
+          map(
+            .x = processedData()$group |> unique() |> sort(),
+            .f = function(chosengroup){
+              shiny$uiOutput(ns(chosengroup))
+            }
+          )
+        
+        
+        bslib$layout_column_wrap(
+          width = 1 / length(uiList),
+          !!!unname(uiList)
+        )
+        
       })
       
       output$text <- shiny$renderText({

@@ -1,5 +1,6 @@
 box::use(
   # magick,
+  dplyr[mutate],
   tibble,
 )
 
@@ -547,7 +548,10 @@ sslNations <-
 tpeCost <- api$readAPI(url = "https://api.simulationsoccer.com/admin/tpeTable")
 
 #' @export
-attributes <- api$readAPI(url = "https://api.simulationsoccer.com/admin/attributes")
+attributes <- api$readAPI(url = "https://api.simulationsoccer.com/admin/attributes") |> 
+  mutate(
+    group = factor(group, levels = c("Physical", "Mental", "Technical", "Goalkeeper"))
+  )
 
 #' @export
 currentSeason <- api$readAPI(url = "https://api.simulationsoccer.com/admin/getCurrentSeason")

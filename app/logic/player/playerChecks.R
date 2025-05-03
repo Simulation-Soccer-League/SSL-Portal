@@ -1,11 +1,13 @@
 box::use(
   dplyr,
+  purrr[is_empty],
   stringr[str_extract, str_remove_all, str_to_title],
 )
 
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
+  app/logic/db/get[getActivePlayer],
 )
 
 #' @export
@@ -66,4 +68,11 @@ updateSummary <- function(current, inputs){
   
   
   return(updates)
+}
+
+#' @export
+hasActivePlayer <- function(uid){
+  actives <- getActivePlayer(uid)
+  
+  !is_empty(actives)
 }

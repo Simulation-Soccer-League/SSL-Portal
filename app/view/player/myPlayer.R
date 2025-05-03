@@ -1,6 +1,7 @@
 box::use(
   bslib,
   dplyr,
+  rlang[`!!!`],
   shiny,
   shiny.router[change_page],
   tippy[tippy],
@@ -10,7 +11,7 @@ box::use(
   app/logic/constant,
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/player/playerChecks[eligibleRedist, eligibleReroll],
+  app/logic/player/playerChecks[eligibleRedist, eligibleReroll, hasActivePlayer],
   app/view/tracker/player,
 )
 
@@ -33,7 +34,7 @@ server <- function(id, auth, updated) {
       output$ui <- shiny$renderUI({
         "YOU DO NOT HAVE ACCESS TO THIS PAGE"
       })
-    } else if (getActivePlayer(auth$uid) |> nrow() == 0) {
+    } else if (!hasActivePlayer(auth$uid)) {
       output$ui <- shiny$renderUI({
         "YOU DO NOT HAVE ANY ACTIVE PLAYER, PLEASE CREATE ONE FIRST."
       })
@@ -88,8 +89,8 @@ server <- function(id, auth, updated) {
         
         shiny$tagList(
           bslib$layout_column_wrap(
-            width = 1/length(buttonList),
-            buttonList
+            width = 1 / length(buttonList),
+            !!!unname(buttonList)
           ),
           shiny$br(),
           player$ui(ns("player"))
