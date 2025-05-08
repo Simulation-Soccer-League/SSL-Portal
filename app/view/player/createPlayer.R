@@ -4,6 +4,7 @@ box::use(
   purrr[map],
   rlang[`!!!`],
   shiny,
+  shinyFeedback[feedback, feedbackDanger, feedbackWarning, hideFeedback, showToast],
   shinyjs,
   shiny.router[change_page],
   sortable[add_rank_list, bucket_list],
@@ -16,7 +17,13 @@ box::use(
   app/logic/constant,
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/player/playerChecks[eligibleRedist, eligibleReroll, hasActivePlayer],
+  app/logic/player/playerChecks[
+    checkDuplicatedNames,
+    eligibleRedist, 
+    eligibleReroll, 
+    hasActivePlayer,
+    verifyBuild
+    ],
   app/view/tracker/player,
 )
 
@@ -50,7 +57,7 @@ server <- function(id, auth, updated) {
         shiny$tagList(
           shiny$h3("Instructions"),
           shiny$p("Please fill out all the given areas with information about
-                  your player and their build."),
+                  your player and their build. Required fields are marked with *."),
           shiny$p(
             paste("To help you in this process, we have created a", 
                   shiny$a("Player Compendium", 
@@ -68,7 +75,7 @@ server <- function(id, auth, updated) {
           bslib$layout_column_wrap(
             width = 1/3,
             shiny$textInput(ns("firstName"), "Enter a first name:", placeholder = "First Name"),
-            shiny$textInput(ns("lastName"), "Enter a last name:", placeholder = "Last Name"),
+            shiny$textInput(ns("lastName"), "*Enter a last name:", placeholder = "Last Name"),
             shiny$textInput(
               ns("birthplace"), 
               tippy("Enter a place of birth:", "Only thematic", theme = "ssl"), 
@@ -76,7 +83,7 @@ server <- function(id, auth, updated) {
             ),
             shiny$selectInput(
               ns("nationality"), 
-              tippy("Select a nationality:", "Defines your player's international region affiliation, see the WSFC Tracker for details and current region sizes", theme = "ssl"),
+              tippy("*Select a nationality:", "Defines your player's international region affiliation, see the WSFC Tracker for details and current region sizes", theme = "ssl"),
               choices = constant$sslNations
             ),
             shiny$numericInput(
@@ -94,7 +101,7 @@ server <- function(id, auth, updated) {
               max = 350, 
               step = 5
             ),
-            shiny$selectInput(ns("footedness"), "Select preferred foot:", choices = c("", "Left", "Right")),
+            shiny$selectInput(ns("footedness"), "*Select preferred foot:", choices = c("", "Left", "Right")),
             shiny$textInput(
               ns("render"), 
               tippy("Select a player likeness:", 
@@ -115,7 +122,7 @@ server <- function(id, auth, updated) {
             width = 1/3,
             shiny$selectInput(
               ns("hairColor"), 
-              tippy("Select hair color:", "Lower values are lighter shades", theme = "ssl"), 
+              tippy("*Select hair color:", "Lower values are lighter shades", theme = "ssl"), 
               choices = 
                 c(
                   "",
@@ -136,10 +143,10 @@ server <- function(id, auth, updated) {
                   "Red 3" = "RED3"
                 )
             ),
-            shiny$selectInput(ns("hairLength"), "Select hair length:", choices = c("", "Bald", "Buzzcut", "Short", "Medium", "Long")),
+            shiny$selectInput(ns("hairLength"), "*Select hair length:", choices = c("", "Bald", "Buzzcut", "Short", "Medium", "Long")),
             shiny$selectInput(
               ns("skinColor"), 
-              "Select skin tone:", 
+              "*Select skin tone:", 
               choices = 
                 c(
                   "",
@@ -167,6 +174,7 @@ server <- function(id, auth, updated) {
             )
           ),
           shiny$h4("Player Attributes", align = "center"),
+          shiny$uiOutput(ns("roleSelector")),
           shiny$uiOutput(ns("attributes")),
           shiny$uiOutput(ns("outfieldExtras")),
           bslib$layout_column_wrap(
@@ -348,7 +356,24 @@ server <- function(id, auth, updated) {
       })
       
       output$tpeRemaining <- shiny$renderText({
-        bankedTPE()
+        paste("TPE Remaining: ", bankedTPE())
+      })
+      
+      output$roleSelector <- shiny$renderUI({
+        shiny$tagList(
+          paste("Football Manager uses <i>roles</i> and <i>duties</i> to control what your player will do within a
+        set tactic. There exists many different roles with different importances given to specific
+        attributes. Selecting a role and duty you want to build towards in the list below will highlight the <span
+        class='keyAttribute'>very important</span> and
+        <span class='importantAttribute'>important</span>          attributes.") |> shiny$HTML(),
+          shiny$br(),
+          shiny$selectInput(
+            ns("selectedRole"), 
+            label = tippy("Select a player role", 
+                          tooltip = "Please note, the role you play will be determined by your Manager. If you want to play a specific role, make sure to speak with your Manager.",
+                          theme = "ssl"), 
+            choices = names(constant$roleAttributes))
+        )
       })
   
       #### REACTIVES ####
@@ -424,6 +449,51 @@ server <- function(id, auth, updated) {
                 inputId = att,
                 value = adjustedVal
               )
+            }
+          }) |> 
+            shiny$bindEvent(
+              input[[att]],
+              ignoreInit = TRUE
+            )
+        }
+      )
+      
+      lapply(
+        X = c("weight", "height"),
+        FUN = function(att){
+          shiny$observe({
+            currentVal <- input[[att]]
+            
+            shiny$req(currentVal)
+            
+            # Determine the dynamic min and max values.
+            minVal <- dplyr$if_else(att == "weight", 100, 55)
+            maxVal <- dplyr$if_else(att == "weight", 350, 90)
+            
+            # Constrain the input value within dynamic boundaries.
+            adjustedVal <- min(max(currentVal, minVal), maxVal)
+            
+            # Update the numeric input only if the current value is out of bounds.
+            if (currentVal != adjustedVal) {
+              shiny$updateNumericInput(
+                session,
+                inputId = att,
+                value = adjustedVal
+              )
+              
+              
+              
+              feedbackWarning(
+                session = session,
+                inputId = att, 
+                show = TRUE, 
+                paste("The player's", att, "exceeds the limits and has been changed to the min/max.")
+              )
+            } else {
+              # hideFeedback(
+              #   session = session,
+              #   inputId = att
+              # )
             }
           }) |> 
             shiny$bindEvent(
@@ -558,6 +628,129 @@ server <- function(id, auth, updated) {
           ignoreInit = TRUE,
           ignoreNULL = FALSE
         )
+      
+      ## Highlights different attributes based on selected role
+      shiny$observe({
+        lapply(
+          X = constant$attributes$attribute |> str_remove_all(" "),
+          FUN = function(att){
+            if(constant$roleAttributes[[input$selectedRole]][[att]] == 1){
+              feedback(
+                session = session,
+                show = TRUE,
+                inputId = att,
+                color = constant$importantColor,
+                icon = shiny$icon("exclamation-sign", lib = "glyphicon")
+              )
+            } else if(constant$roleAttributes[[input$selectedRole]][[att]] == 2){
+              feedback(
+                session = session,
+                show = TRUE,
+                inputId = att,
+                color = constant$keyColor,
+                icon = shiny$icon("exclamation-sign", lib = "glyphicon")
+              )
+            } else {
+              hideFeedback(
+                session = session,
+                inputId = att
+              )
+            }
+          }
+        )
+      }) |> 
+        shiny$bindEvent(input$selectedRole)
+      
+      ## Verifies the creation
+      shiny$observe({
+        # Checks required fields
+        if(
+          (sapply(
+            c(input$lastName, input$nationality, input$footedness, 
+              input$hairColor, input$hairLength, input$skinColor), 
+            FUN = function(x) x == "", simplify = TRUE
+          ) |> any()) | 
+          (
+            input$playerType == "Outfield" & 
+            (input$traits |> length() != 2 | 
+             input$primary |> length() != 1 | 
+             input$secondary |> length() != 2)
+           )
+        ) {
+          showToast(
+            .options = constant$sslToastOptions,
+            "error", 
+            "You have missed some required field. Please check the marked fields."
+          )
+          
+          feedbackDanger("lastName", input$lastName == "", "Please enter a last name for your player. If you only want to use one name, please enter it here instead of as a first name.")
+          feedbackDanger("nationality", input$nationality == "", "Please enter the nationality of your player.")
+          feedbackDanger("footedness", input$footedness == "", "Please enter the footedness of your player.")
+          feedbackDanger("hairColor", input$hairColor == "", "Please enter the hair color for your player.")
+          feedbackDanger("hairLength", input$hairLength == "", "Please enter the hair length for your player.")
+          feedbackDanger("skinColor", input$skinColor == "", "Please enter the skin tone for your player.")
+          
+          if(input$traits |> length() != 2){
+            showToast(
+              .options = constant$sslToastOptions,
+              "error", 
+              "Please select two (2) traits."
+            )
+          }
+          
+          if(input$primary |> length() != 1){
+            showToast(
+              .options = constant$sslToastOptions,
+              "error", 
+              "You can select one (1) primary position."
+            )
+          }
+          
+          if(input$secondary |> length() != 2){
+            showToast(
+              .options = constant$sslToastOptions,
+              "error", 
+              "You can select two (2) secondary positions."
+            )
+          }
+        } else if (checkDuplicatedNames(input$first, input$last)){
+          showToast(
+            .options = constant$sslToastOptions,
+            "error", 
+            "Another player in the league's history have used this name. 
+            Please change it to something else."
+          )
+        } else if( constant$attributes$attribute |> str_remove_all(" ") |> 
+                   sapply(X = _, FUN = function(att){input[[att]] > 20 | input[[att]] < 5}, simplify = TRUE) |> 
+                   unlist() |> 
+                   any()
+        ) {
+          showToast(
+            .options = constant$sslToastOptions,
+            "error", 
+            "One or more of your attributes are lower than 5 or higher than 20, 
+            which exceeds the range of attributes we allow."
+          )
+        } else if (bankedTPE() < 0){
+          showToast(
+            .options = constant$sslToastOptions,
+            "error", 
+            "You have spent too much TPE. Please adjust and resubmit."
+          )
+        } else if (bankedTPE() > 50) {
+          showToast(
+            .options = constant$sslToastOptions,
+            "error", 
+            "Please allocate as much of the TPE you are given as possible. 
+            If you need help with your build, 
+            reach out to an Academy coach on Discord."
+          )
+        } else {
+          # Finally if all checks pass, produce a verification modal
+          verifyBuild(input, bankedTPE, session)
+        }
+      }) |> 
+        shiny$bindEvent(input$submit)
     }
   })
 }
