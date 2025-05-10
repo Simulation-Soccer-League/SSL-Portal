@@ -16,7 +16,7 @@ box::use(
   app/logic/ui/tags[flexCol, flexRow, navMenu, navMenuItem],
   app/logic/db/login[customCheckCredentials, getRefreshToken, setRefreshToken],
   app/logic/ui/spinner[withSpinnerCustom],
-  app/logic/player/playerChecks[hasActivePlayer],
+  app/logic/player/playerChecks[checkApprovingPlayer, hasActivePlayer],
 )
 
 #' @export
@@ -202,7 +202,9 @@ server <- function(id, auth, resAuth, updated) {
           actionLink("Login", icon = icon("user"), inputId = session$ns("login"))
         )
       } else {
-        if(!hasActivePlayer(auth()$uid)){
+        if(checkApprovingPlayer(auth()$uid)){
+          playerMenu <- "Awating Approval"
+        } else if(!hasActivePlayer(auth()$uid)){
           playerMenu <- 
             navMenu(
               actionLink("Create a Player", icon = icon("square-plus"), inputId = session$ns("create"))
@@ -229,7 +231,7 @@ server <- function(id, auth, resAuth, updated) {
         )
       }
     }) |> 
-      bindEvent(auth())
+      bindEvent(auth(), updated())
     
     ### Observers
     # Checks saved cookie for automatic login

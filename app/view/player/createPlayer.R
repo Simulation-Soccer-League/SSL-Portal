@@ -18,10 +18,12 @@ box::use(
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/get[getActivePlayer, getPlayer],
   app/logic/player/playerChecks[
+    checkApprovingPlayer,
     checkDuplicatedNames,
     eligibleRedist, 
     eligibleReroll, 
     hasActivePlayer,
+    submitBuild,
     verifyBuild
     ],
   app/view/tracker/player,
@@ -48,7 +50,11 @@ server <- function(id, auth, updated) {
       })
     } else if (hasActivePlayer(auth$uid)) {
       output$ui <- shiny$renderUI({
-        "YOU ALREADY HAVE A CREATED PLAYER."
+        "YOU HAVE ALREADY CREATED A PLAYER."
+      })
+    } else if (checkApprovingPlayer(auth$uid)) {
+      output$ui <- shiny$renderUI({
+        "YOUR PLAYER IS AWAITING APPROVAL."
       })
     } else {
       
@@ -751,6 +757,28 @@ server <- function(id, auth, updated) {
         }
       }) |> 
         shiny$bindEvent(input$submit)
+      
+      
+      shiny$observe({
+        shiny$removeModal()
+        
+        showToast(
+          .options = constant$sslToastOptions,
+          "success", 
+          "Your player has been submitted for approval. 
+          You will be notified via the forum or Discord by a 
+          member of the BoD when the approval has been completed 
+          or if there are any issues."
+        )
+        
+        submitBuild(input, bankedTPE, auth)
+        
+        updated(updated() + 1)
+        
+        change_page("/")
+        
+      }) |> 
+        shiny$bindEvent(input$confirmBuild)
     }
   })
 }
