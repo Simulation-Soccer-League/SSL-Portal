@@ -129,7 +129,7 @@ server <- function(id) {
         draftclass$server("draftclass")
         loadedServer$draftclass <- TRUE
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
-         player$server("player")
+         player$server("player", updated = updated)
          loadedServer$player <- TRUE
       } else if (current == "myPlayer/" & !loadedServer$myPlayer) {
         myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
