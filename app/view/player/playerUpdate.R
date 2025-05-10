@@ -1,13 +1,14 @@
 box::use(
   bslib,
   dplyr,
-  purrr[map],
+  purrr[map, is_empty],
   reactable[reactable],
   rlang[`!!!`],
   shiny,
-  shinyFeedback,
+  shinyFeedback[feedback, feedbackDanger, feedbackWarning, hideFeedback, showToast],
   shinyjs,
   shiny.router[change_page],
+  sortable[add_rank_list, bucket_list],
   stringr[str_remove_all, str_to_title],
   tidyr[pivot_longer, replace_na],
   tippy[tippy],
@@ -51,41 +52,91 @@ server <- function(id, auth, updated, type) {
       #### OUTPUT UI ####
       output$ui <- shiny$renderUI({
         shiny$tagList(
-          shiny$textOutput(ns("text")),
-          shiny$actionButton(
-            ns("verifyUpdate"),
-            label = 
-              dplyr$if_else(
-                type == "update", "Update",
+          if(type %in% c("reroll", "redistribution")){
+            shiny$uiOutput(ns("playerInfo"))
+          },
+          shiny$uiOutput(ns("roleSelector")),
+          shiny$uiOutput(ns("attributes")),
+          if(type %in% c("reroll", "redistribution")){
+            shiny$uiOutput(ns("outfieldExtras"))
+          },
+          bslib$layout_column_wrap(
+            width = 1/3,
+            shiny$textOutput(ns("tpeRemaining")),
+            shiny$actionButton(
+              ns("verifyUpdate"),
+              label = 
                 dplyr$if_else(
-                  type == "regress", "Regress",
+                  type == "update", "Update",
                   dplyr$if_else(
-                    type == "reroll", "Reroll", "Redistribute"
-                  )
-                )),
-            class = "primary-button"
-          ),
-          shiny$actionButton(
-            ns("back"),
-            label = "Back",
-            class = "primary-button"
-          ),
-          shiny$uiOutput(ns("attributes"))  
+                    type == "regress", "Regress",
+                    dplyr$if_else(
+                      type == "reroll", "Reroll", "Redistribute"
+                    )
+                  )),
+              class = "primary-button"
+            ),
+            shiny$actionButton(
+              ns("back"),
+              label = "Back",
+              class = "primary-button"
+            )
+          ) |> 
+            shiny$div(class = "frozen-bottom")
         )
       })
       
       output$attributes <- shiny$renderUI({
+        if(type %in% c("reroll", "redistribution")){
+          groups <- attributeGroups()
+          attributes <- constant$attributes$attribute
+        } else {
+          groups <- processedData()$group |> unique() |> sort()
+          attributes <- processedData()$Attribute
+        }
         map(
-          .x = processedData()$group |> unique() |> sort(),
+          .x = groups,
           .f = function(chosengroup){
             output[[chosengroup]] <- shiny$renderUI({
-              temp <- 
-                processedData() |> 
-                dplyr$filter(
-                  group == chosengroup
-                ) |> 
-                dplyr$select(Attribute, Value)
-              
+              if(type %in% c("update", "regress")){
+                temp <- 
+                  processedData() |> 
+                  dplyr$filter(
+                    group == chosengroup
+                  ) |> 
+                  dplyr$select(Attribute, Value)
+              } else if(type == "redistribution"){
+                temp <- 
+                  constant$attributes |> 
+                  dplyr$filter(
+                    if (input$playerType == "Goalkeeper"){
+                      group == chosengroup & keeper == TRUE
+                    } else {
+                      group == chosengroup
+                    }
+                  ) |> 
+                  dplyr$select(Attribute = attribute) |> 
+                  dplyr$left_join(
+                    processedData(),
+                    by = "Attribute"
+                  ) |> 
+                  dplyr$mutate(
+                    Value = dplyr$if_else(Value |> is.na(), 5, Value)
+                  )
+              } else {
+                temp <- 
+                  constant$attributes |> 
+                  dplyr$filter(
+                    if (input$playerType == "Goalkeeper"){
+                      group == chosengroup & keeper == TRUE
+                    } else {
+                      group == chosengroup
+                    }
+                  ) |> 
+                  dplyr$select(Attribute = attribute) |> 
+                  dplyr$mutate(Value = 5)
+              }
+
               lapply(
                 temp$Attribute,
                 FUN = function(currentAtt){
@@ -125,7 +176,7 @@ server <- function(id, auth, updated, type) {
                               dplyr$select(explanation),
                             theme = "ssl"
                           ),
-                        value = value,
+                        value = dplyr$if_else(type == "reroll", 5, value),
                         min = dplyr$if_else(type == "update", value, 5),
                         max = dplyr$if_else(type == "regression", value, 20)
                       ),
@@ -139,7 +190,7 @@ server <- function(id, auth, updated, type) {
         )
         
         map(
-          .x = processedData()$Attribute,
+          .x = attributes,
           .f = function(attribute){
             output[[paste0("cost", attribute |> str_remove_all(" "))]] <- shiny$renderUI({
               curValue <- input[[attribute |> str_remove_all(" ")]]
@@ -168,12 +219,11 @@ server <- function(id, auth, updated, type) {
         
         uiList <- 
           map(
-            .x = processedData()$group |> unique() |> sort(),
+            .x = groups,
             .f = function(chosengroup){
               shiny$uiOutput(ns(chosengroup))
             }
           )
-        
         
         bslib$layout_column_wrap(
           width = 1 / length(uiList),
@@ -182,8 +232,175 @@ server <- function(id, auth, updated, type) {
         
       })
       
-      output$text <- shiny$renderText({
-        bankedTPE()
+      output$playerInfo <- shiny$renderUI({
+        bslib$layout_column_wrap(
+          width = 1/3,
+          shiny$textInput(
+            ns("firstName"), 
+            "Enter a first name:", 
+            value = dplyr$if_else(type == "redistribution", playerData()$first, ""),
+            placeholder = "First Name"
+          ),
+          shiny$textInput(
+            ns("lastName"), 
+            "*Enter a last name:", 
+            value = dplyr$if_else(type == "redistribution", playerData()$last, ""),
+            placeholder = "Last Name"
+          ),
+          shiny$textInput(
+            ns("birthplace"), 
+            tippy("Enter a place of birth:", "Only thematic", theme = "ssl"), 
+            value = dplyr$if_else(type == "redistribution", playerData()$birthplace, ""),
+            placeholder = "City"
+          ),
+          shiny$selectInput(
+            ns("nationality"), 
+            tippy("*Select a nationality:", "Defines your player's international region affiliation, see the WSFC Tracker for details and current region sizes", theme = "ssl"),
+            choices = constant$sslNations,
+            selected = dplyr$if_else(type == "redistribution", playerData()$nationality, "")
+          ) |> 
+            shinyjs$disabled(),
+          shiny$numericInput(
+            ns("height"), 
+            tippy("Enter height (inches):", "Only cosmetic", theme = "ssl"), 
+            value = dplyr$if_else(type == "redistribution", playerData()$height, 62), 
+            min = 55, 
+            max = 90
+          ),
+          shiny$numericInput(
+            ns("weight"), 
+            tippy("Enter weight (pounds):", "Only cosmetic", theme = "ssl"), 
+            value = dplyr$if_else(type == "redistribution", playerData()$weight, 180), 
+            min = 100, 
+            max = 350, 
+            step = 5
+          ),
+          shiny$selectInput(
+            ns("footedness"), 
+            "*Select preferred foot:", 
+            choices = c("", "Left", "Right"),
+            selected = 
+              dplyr$if_else(
+                type == "redistribution", 
+                dplyr$if_else(playerData()$`left foot` == 20, "Left", "Right"), 
+                "")
+            ),
+          shiny$textInput(
+            ns("render"), 
+            tippy("Select a player likeness:", 
+                  "A player render is a person or thing you want your player to look like for graphics used within the league.",
+                  theme = "ssl"), 
+            value = dplyr$if_else(type == "redistribution", playerData()$render, ""),
+            placeholder = "ex. Lionel Messi"
+          ),
+          if(playerData()$pos_gk == 20 | type == "reroll"){
+            shiny$radioButtons(
+              ns("playerType"), 
+              "Outfield or Goalkeeper", 
+              choices = c("Outfield", "Goalkeeper"), 
+              selected = "Goalkeeper", 
+              inline = TRUE
+            )
+          } else {
+            shiny$radioButtons(
+              ns("playerType"), 
+              "Outfield or Goalkeeper", 
+              choices = c("Outfield", "Goalkeeper"), 
+              selected = "Outfield", 
+              inline = TRUE
+            ) |> 
+              shinyjs$disabled()
+          }
+          
+        )
+      })
+      
+      output$roleSelector <- shiny$renderUI({
+        shiny$tagList(
+          paste("Football Manager uses <i>roles</i> and <i>duties</i> to control what your player will do within a
+        set tactic. There exists many different roles with different importances given to specific
+        attributes. Selecting a role and duty you want to build towards in the list below will highlight the <span
+        class='keyAttribute'>very important</span> and
+        <span class='importantAttribute'>important</span>          attributes.") |> shiny$HTML(),
+          shiny$br(),
+          shiny$selectInput(
+            ns("selectedRole"), 
+            label = tippy("Select a player role", 
+                          tooltip = "Please note, the role you play will be determined by your Manager. If you want to play a specific role, make sure to speak with your Manager.",
+                          theme = "ssl"), 
+            choices = names(constant$roleAttributes))
+        )
+      })
+      
+      output$outfieldExtras <- shiny$renderUI({
+        shiny$req(input$playerType)
+        if(input$playerType == "Outfield") {
+          shiny$tagList(
+            shiny$tags$script(
+              paste0(
+                "Shiny.addCustomMessageHandler('disableCheckbox', function(checkboxId) {
+                  if (typeof checkboxId === 'string') {
+                    checkboxId = [checkboxId]; // Convert single string to array
+                  }
+                  var checkboxes = document.getElementsByName('", ns("traits"), "');
+                  for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].disabled = false; // Disable specific checkboxes
+                  }
+                  for (var i = 0; i < checkboxes.length; i++) {
+                    for (var j = 0; j < checkboxId.length; j++) {
+                      if(checkboxes[i].value == checkboxId[j]){
+                        checkboxes[i].disabled = true; // Disable specific checkboxes
+                      } else {
+                        
+                      }
+                    }
+                  }
+                });
+              "
+              ) |> 
+                shiny$HTML()
+            ),
+            shiny$h4("Player Traits and Positions", align = "center"),
+            bucket_list(
+              header = "An outfield player may select one primary position and two secondary positions.",
+              group_name = ns("pos"),
+              orientation = "horizontal",
+              add_rank_list(
+                text = "Select ONE primary position:",
+                labels = NULL,
+                input_id = ns("primary")
+              ),
+              add_rank_list(
+                text = "Select TWO secondary positions:",
+                labels = NULL,
+                input_id = ns("secondary")
+              ),
+              add_rank_list(
+                text = "Drag from here",
+                labels = constant$positions,
+                input_id = ns("unusedPositions")
+              )
+            ),
+            shiny$checkboxGroupInput(
+              ns("traits"), 
+              "Select two (2) traits:", 
+              choices = constant$traits |> 
+                unlist(use.names = FALSE),
+              selected = 
+                shiny$if_else(
+                  type == "redistribution", 
+                  playerData()$traits |> 
+                    str_split(constant$traitSep, simplify = TRUE),
+                  ""
+                )
+            ) |> 
+              shiny$div(class = "multicol")
+          )
+        }
+      })
+      
+      output$tpeRemaining <- shiny$renderText({
+        paste("TPE Remaining: ", bankedTPE())
       })
       #### OUTPUT SERVER ####
       
@@ -191,6 +408,25 @@ server <- function(id, auth, updated, type) {
       playerData <- shiny$reactive({
         getActivePlayer(auth$uid) |> 
           getPlayer() 
+      })
+      
+      # Based attributes on the input$playerType
+      attributeGroups <- shiny$reactive({
+        shiny$req(input$playerType)
+        if(type %in% c("reroll", "redistribution")){
+          constant$attributes |> 
+            dplyr$filter(
+              if (input$playerType == "Goalkeeper"){
+                (group %in% c("Goalkeeper", "Technical") & keeper == "TRUE") | (group %in% c("Physical", "Mental"))
+              } else {
+                group %in% c("Physical", "Mental", "Technical")
+              }
+            ) |> 
+            dplyr$select(group) |> 
+            unique() |> 
+            dplyr$arrange() |> 
+            unlist()
+        }
       })
       
       processedData <- shiny$reactive({
@@ -223,21 +459,24 @@ server <- function(id, auth, updated, type) {
             } else {
               group %in% c("Physical", "Mental", "Technical")
             }
-          ) |> 
+          ) |>
           dplyr$arrange(group)
       })
       
       bankedTPE <- shiny$reactive({
         appliedTPE <- 
           map(
-            .x = processedData()$Attribute |> str_remove_all(" "),
+            .x = constant$attributes$attribute |> str_remove_all(" "),
             .f = function(currentAtt){
               curValue <- input[[currentAtt]]
               
-              constant$tpeCost |> 
-                dplyr$filter(value == curValue) |> 
-                dplyr$select(cumCost) |> 
-                unlist()
+              if(!(curValue |> is_empty())){
+                constant$tpeCost |> 
+                  dplyr$filter(value == curValue) |> 
+                  dplyr$select(cumCost) |> 
+                  unlist()
+              }
+              
             }
           ) |> 
             unlist() |> 
@@ -247,7 +486,7 @@ server <- function(id, auth, updated, type) {
       }) |> 
         shiny$bindEvent(
           lapply(
-            X = processedData()$Attribute |> str_remove_all(" "),
+            X = constant$attributes$attribute |> str_remove_all(" "),
             FUN = function(x){
               input[[x]]
             }
@@ -264,7 +503,7 @@ server <- function(id, auth, updated, type) {
       ## Verify the update
       shiny$observe({
         if(bankedTPE() < 0){
-          shinyFeedback$showToast(
+          showToast(
             .options = constant$sslToastOptions,
             "error",
             "You have spent too much TPE on your attributes! Reduce some of your attributes and try again."
@@ -273,7 +512,7 @@ server <- function(id, auth, updated, type) {
           updates <- updateSummary(playerData(), input)
           
           if(updates |> nrow() == 0){
-            shinyFeedback$showToast(
+            showToast(
               .options = constant$sslToastOptions,
               "warning",
               "You have not changed your build yet, there is nothing to update."
@@ -309,7 +548,7 @@ server <- function(id, auth, updated, type) {
         
         updated(updated() + 1)
         
-        shinyFeedback$showToast(
+        showToast(
           .options = constant$sslToastOptions,
           "success",
           "You have successfully updated your player!"
@@ -360,6 +599,209 @@ server <- function(id, auth, updated, type) {
             )
         }
       )
+      
+      lapply(
+        X = c("weight", "height"),
+        FUN = function(att){
+          shiny$observe({
+            currentVal <- input[[att]]
+            
+            shiny$req(currentVal)
+            
+            # Determine the dynamic min and max values.
+            minVal <- dplyr$if_else(att == "weight", 100, 55)
+            maxVal <- dplyr$if_else(att == "weight", 350, 90)
+            
+            # Constrain the input value within dynamic boundaries.
+            adjustedVal <- min(max(currentVal, minVal), maxVal)
+            
+            # Update the numeric input only if the current value is out of bounds.
+            if (currentVal != adjustedVal) {
+              shiny$updateNumericInput(
+                session,
+                inputId = att,
+                value = adjustedVal
+              )
+              
+              
+              
+              feedbackWarning(
+                session = session,
+                inputId = att, 
+                show = TRUE, 
+                paste("The player's", att, "exceeds the limits and has been changed to the min/max.")
+              )
+            } else {
+              # hideFeedback(
+              #   session = session,
+              #   inputId = att
+              # )
+            }
+          }) |> 
+            shiny$bindEvent(
+              input[[att]],
+              ignoreInit = TRUE
+            )
+        }
+      )
+      
+      ## Disables clashing traits
+      shiny$observe({
+        selected <- input$traits
+        
+        disable_list <- character()
+        if ("Cuts Inside From Both Wings" %in% selected) {
+          disable_list <- c(disable_list, "Avoids Using Weaker Foot")
+        }
+        if ("Knocks Ball Past Opponent" %in% selected) {
+          disable_list <- c(disable_list, "Runs With Ball Rarely")
+        }
+        if ("Runs With Ball Rarely" %in% selected) {
+          disable_list <- c(disable_list, "Knocks Ball Past Opponent", "Runs With Ball Often", "Runs With Ball Down Left", "Runs With Ball Down Right", "Runs With Ball Through Centre")
+        }
+        if ("Runs With Ball Often" %in% selected) {
+          disable_list <- c(disable_list, "Runs With Ball Rarely")
+        }
+        if ("Runs With Ball Down Left" %in% selected) {
+          disable_list <- c(disable_list, "Runs With Ball Down Right", "Runs With Ball Through Centre", "Runs With Ball Rarely")
+        }
+        if ("Runs With Ball Down Right" %in% selected) {
+          disable_list <- c(disable_list, "Runs With Ball Down Left", "Runs With Ball Through Centre", "Runs With Ball Rarely")
+        }
+        if ("Runs With Ball Through Centre" %in% selected) {
+          disable_list <- c(disable_list, "Runs With Ball Down Left", "Runs With Ball Down Right", "Runs With Ball Rarely")
+        }
+        if ("Arrives Late In Opponent's Area" %in% selected) {
+          disable_list <- c(disable_list, "Stays Back At All Times", "Gets Into Opposition Area")
+        }
+        if ("Gets Into Opposition Area" %in% selected) {
+          disable_list <- c(disable_list, "Arrives Late In Opponent's Area", "Hugs Line", "Stays Back At All Times")
+        }
+        if ("Comes Deep To Get Ball" %in% selected) {
+          disable_list <- c(disable_list, "Gets Forward Whenever Possible", "Likes To Try To Beat Offside Trap")
+        }
+        if ("Gets Forward Whenever Possible" %in% selected) {
+          disable_list <- c(disable_list, "Comes Deep To Get Ball", "Stays Back At All Times", "Hugs Line")
+        }
+        if ("Likes To Try To Beat Offside Trap" %in% selected) {
+          disable_list <- c(disable_list, "Comes Deep To Get Ball", "Does Not Move Into Channels", "Plays With Back To Goal")
+        }
+        if ("Hugs Line" %in% selected) {
+          disable_list <- c(disable_list, "Gets Into Opposition Area")
+        }
+        if ("Plays With Back To Goal" %in% selected) {
+          disable_list <- c(disable_list, "Likes To Try To Beat Offside Trap")
+        }
+        if ("Does Not Move Into Channels" %in% selected) {
+          disable_list <- c(disable_list, "Moves Into Channels", "Likes To Try To Beat Offside Trap")
+        }
+        if ("Moves Into Channels" %in% selected) {
+          disable_list <- c(disable_list, "Does Not Move Into Channels", "Stays Back At All Times")
+        }
+        if ("Stays Back At All Times" %in% selected) {
+          disable_list <- c(disable_list, "Arrives Late In Opponent's Area", "Gets Forward Whenever Possible", "Gets Into Opposition Area", "Moves Into Channels")
+        }
+        if ("Likes To Switch Ball To Other Flank" %in% selected) {
+          disable_list <- c(disable_list, "Plays Short Simple Passes")
+        }
+        if ("Looks For Pass Rather Than Attempting To Score" %in% selected) {
+          disable_list <- c(disable_list, "Tries First Time Shots")
+        }
+        if ("Plays No Through Balls" %in% selected) {
+          disable_list <- c(disable_list, "Tries Killer Balls Often")
+        }
+        if ("Plays Short Simple Passes" %in% selected) {
+          disable_list <- c(disable_list, "Likes To Switch Ball To Other Flank", "Tries Killer Balls Often", "Tries Long Range Passes")
+        }
+        if ("Tries Killer Balls Often" %in% selected) {
+          disable_list <- c(disable_list, "Plays Short Simple Passes", "Plays No Through Balls")
+        }
+        if ("Tries Long Range Passes" %in% selected) {
+          disable_list <- c(disable_list, "Plays Short Simple Passes")
+        }
+        if ("Hits Free Kicks With Power" %in% selected) {
+          disable_list <- c(disable_list, "Refrains From Taking Long Shots")
+        }
+        if ("Places Shots" %in% selected) {
+          disable_list <- c(disable_list, "Shoots With Power")
+        }
+        if ("Refrains From Taking Long Shots" %in% selected) {
+          disable_list <- c(disable_list, "Hits Free Kicks With Power", "Tries Long Range Free Kicks")
+        }
+        if ("Shoots From Distance" %in% selected) {
+          disable_list <- c(disable_list, "Looks For Pass Rather Than Attempting To Score", "Refrains From Taking Long Shots")
+        }
+        if ("Shoots With Power" %in% selected) {
+          disable_list <- c(disable_list, "Places Shots")
+        }
+        if ("Tries First Time Shots" %in% selected) {
+          disable_list <- c(disable_list, "Looks For Pass Rather Than Attempting To Score")
+        }
+        if ("Tries Long Range Free Kicks" %in% selected) {
+          disable_list <- c(disable_list, "Refrains From Taking Long Shots")
+        }
+        if ("Shoots From Distance" %in% selected) {
+          disable_list <- c(disable_list, "Refrains From Taking Long Shots")
+        }
+        if ("Dives Into Tackles" %in% selected) {
+          disable_list <- c(disable_list, "Does Not Dive Into Tackles")
+        }
+        if ("Does Not Dive Into Tackles" %in% selected) {
+          disable_list <- c(disable_list, "Dives Into Tackles")
+        }
+        if ("Avoids Using Weaker Foot" %in% selected) {
+          disable_list <- c(disable_list, "Cuts Inside From Both Wings")
+        }
+        if ("Tries To Play Way Out Of Trouble" %in% selected) {
+          disable_list <- c(disable_list, "Runs With Ball Rarely")
+        }
+        
+        # if(length(disable_list) == 0){
+        #   disable_list <- "none"
+        # }
+        
+        session$sendCustomMessage(
+          "disableCheckbox", 
+          disable_list |> unique()
+        )
+      }) |>  
+        shiny$bindEvent(
+          input$traits,
+          ignoreInit = TRUE,
+          ignoreNULL = FALSE
+        )
+      
+      ## Highlights different attributes based on selected role
+      shiny$observe({
+        lapply(
+          X = constant$attributes$attribute |> str_remove_all(" "),
+          FUN = function(att){
+            if(constant$roleAttributes[[input$selectedRole]][[att]] == 1){
+              feedback(
+                session = session,
+                show = TRUE,
+                inputId = att,
+                color = constant$importantColor,
+                icon = shiny$icon("exclamation-sign", lib = "glyphicon")
+              )
+            } else if(constant$roleAttributes[[input$selectedRole]][[att]] == 2){
+              feedback(
+                session = session,
+                show = TRUE,
+                inputId = att,
+                color = constant$keyColor,
+                icon = shiny$icon("exclamation-sign", lib = "glyphicon")
+              )
+            } else {
+              hideFeedback(
+                session = session,
+                inputId = att
+              )
+            }
+          }
+        )
+      }) |> 
+        shiny$bindEvent(input$selectedRole)
       
     }
   })

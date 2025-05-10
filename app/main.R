@@ -66,9 +66,9 @@ server <- function(id) {
     
     ## Reactives
     resAuth <- shiny$reactiveValues(
-      uid = 564,
-      username = "Test User",
-      usergroup = 2,
+      uid = 6,
+      username = "Canadice",
+      usergroup = 4,
       suspended = 0
     )
     
@@ -129,8 +129,8 @@ server <- function(id) {
         draftclass$server("draftclass")
         loadedServer$draftclass <- TRUE
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
-         player$server("player", updated = updated)
-         loadedServer$player <- TRUE
+        player$server("player", updated = updated)
+        loadedServer$player <- TRUE
       } else if (current == "myPlayer/" & !loadedServer$myPlayer) {
         myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
         loadedServer$myPlayer <- TRUE
