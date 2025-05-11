@@ -9,14 +9,14 @@ box::use(
   shinyjs,
   shiny.router[change_page],
   sortable[add_rank_list, bucket_list],
-  stringr[str_remove_all, str_split, str_to_title, str_to_upper],
+  stringr[str_remove_all, str_split, str_to_lower, str_to_title, str_to_upper],
   tidyr[pivot_longer, replace_na],
   tippy[tippy],
 )
 
 box::use(
   app/logic/constant,
-  app/logic/db/logFunctions[logUpdate],
+  app/logic/db/logFunctions[logUpdate, logRedist, logReroll],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updatePlayerData],
   app/logic/db/get[getActivePlayer, getPlayer],
@@ -633,14 +633,49 @@ server <- function(id, auth, updated, type) {
             Please change it to something else."
             )
           } else {
-            updates <- updateSummary(playerData(), input, type)
+            updates <- updateSummary(playerData(), input, type) 
             
-            if(updates |> nrow() == 0){
+            attributes <- updates |> 
+              dplyr$filter(
+                attribute %in% (constant$attributes$attribute |> str_to_lower())
+              ) |> 
+              dplyr$mutate(
+                dplyr$across(
+                  c(old, new),
+                  as.numeric
+                )
+              ) |> 
+              dplyr$left_join(
+                constant$tpeCost |> 
+                  dplyr$select(value, cumCost),
+                by = c("old" = "value")
+              ) |> 
+              dplyr$left_join(
+                constant$tpeCost |> 
+                  dplyr$select(value, cumCost),
+                by = c("new" = "value"),
+                suffix = c("old", "new")
+              ) |> 
+              dplyr$mutate(
+                diff = cumCostold - cumCostnew
+              ) |> 
+              dplyr$filter(diff > 0) |> 
+              dplyr$summarize(sum = sum(diff))
+            
+            if(attributes$sum > 100){
+              showToast(
+                .options = constant$sslToastOptions,
+                "error",
+                "You have removed more than the allowed 100 TPE in the redistribution."
+              )
+            } else if(updates |> nrow() == 0){
               showToast(
                 .options = constant$sslToastOptions,
                 "warning",
                 "You have not changed your build yet, there is nothing to update."
               )
+            # } else if() {
+              
             } else {
               shiny$showModal(
                 shiny$modalDialog(
@@ -702,6 +737,12 @@ server <- function(id, auth, updated, type) {
         updatePlayerData(pid = playerData()$pid, updates = updates, bankedTPE = bankedTPE())
         
         updated(updated() + 1)
+        
+        if(type == "redistribution"){
+          logRedist(pid = playerData()$pid)
+        } else if(type == "reroll"){
+          logReroll(pid = playerData()$pid)
+        }
         
         showToast(
           .options = constant$sslToastOptions,

@@ -35,3 +35,25 @@ logUpdate <- function(uid, pid, updates){
     )
   )
 }
+
+#' @export
+logRedist <- function(pid){
+  portalQuery(
+    paste(
+      "UPDATE playerdata
+      SET redistused = 1 
+      WHERE pid =", pid
+    )
+  )
+}
+
+#' @export
+logReroll <- function(pid){
+  portalQuery(
+    paste(
+      "UPDATE playerdata
+      SET rerollused = 1 
+      WHERE pid =", pid
+    )
+  )
+}
