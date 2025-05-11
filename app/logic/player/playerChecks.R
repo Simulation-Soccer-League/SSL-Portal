@@ -13,7 +13,7 @@ box::use(
     str_trim
     ],
   tibble[tibble],
-  tidyr[pivot_longer],
+  tidyr[pivot_longer, pivot_wider],
 )
 
 box::use(
@@ -43,43 +43,99 @@ eligibleRedist <- function(data){
 }
 
 #' @export
-updateSummary <- function(current, inputs){
-  updates <- 
-    dplyr$tibble(
-      attribute = 
-        current |> 
-        dplyr$select(acceleration:throwing) |> 
-        # select(!where(is.na)) |> 
-        colnames() |>
-        str_to_title(),
-      old = current |> 
-        dplyr$select(acceleration:throwing) |> 
-        # select(!where(is.na)) |> 
-        t() |> 
-        c(),
-      new = 
-        attribute |>
-        str_remove_all(pattern = " ") |> 
-        sapply(
-          X = _,
-          FUN = function(x) {
-            if(inputs[[x]] |> is.null()){
-              5
-            } else {
-              inputs[[x]]
-            }
-          },
-          simplify = TRUE
-        ) |> 
-        unlist()
-    ) |> 
-    dplyr$mutate(
-      old = dplyr$if_else(old |> is.na(), 5, old)
-    ) |> 
-    dplyr$filter(old != new) 
+updateSummary <- function(current, input, type = "update"){
+  summary <- tibble(tpe = current$tpe)
   
+  ## Adds player information, traits and positions
+  if(type %in% c("redistribution", "reroll")){
+    summary <- 
+      tibble(
+        first = str_trim(input$firstName), # Remember to add replace ' with \\\\' before SQL
+        last = str_trim(input$lastName),
+        birthplace = input$birthplace,
+        nationality = input$nationality,
+        height = input$height,
+        weight = input$weight,
+        hair_color = input$hairColor,
+        hair_length = input$hairLength,
+        skintone = input$skintone,
+        render = input$render,
+        `left foot` = 
+          dplyr$if_else(
+            input$footedness == "Right", 
+            max(current$`left foot`, 10), 
+            20
+          ),
+        `right foot` = dplyr$if_else(
+          input$footedness == "Right", 
+          20, 
+          max(current$`right foot`, 10)
+        ),
+      )
+    
+    if(input$playerType == "Outfield"){
+      summary$position <- input$primary[1]
+      
+      # Add pos_ variables for each position
+      positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
+      for (pos in positions) {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!paste0("pos_", str_to_lower(pos)) := 
+              dplyr$case_when(
+                pos %in% input$primary ~ 20,
+                pos %in% input$secondary ~ 15,
+                TRUE ~ 0
+              )
+          )
+      }
+      
+      summary$traits <- paste0(input$traits, collapse = constant$traitSep)
+    } else {
+      summary$position <- "GK"
+      
+      # Add pos_ variables for each position
+      positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
+      for (pos in positions) {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!paste0("pos_", str_to_lower(pos)) := 
+              dplyr$case_when(
+                pos == "GK" ~ 20,
+                TRUE ~ 0
+              )
+          )
+      }
+    }
+  }
   
-  return(updates)
+  # Add attributes variables and their value
+  for (att in (constant$attributes$attribute)) {
+    summary <- summary |> 
+      dplyr$mutate(
+        !!str_to_lower(att) := 
+          input[[att |> str_remove_all(" ")]]
+      )
+  }
+  
+  ## This takes all inputs and checks for differences against the current build
+  # summary <- 
+  summary |> 
+    dplyr$add_row(
+      current |> 
+        dplyr$select(colnames(summary))
+    ) |> 
+    dplyr$mutate(source = c("new", "old")) |> 
+    pivot_longer(
+      cols = !source,
+      values_transform = as.character
+    ) |> 
+    pivot_wider(
+      names_from = source,
+      values_from = value
+    ) |>  
+    dplyr$filter(old != new) |> 
+    dplyr$select(attribute = name, old, new)
 }
 
 #' @export
@@ -158,11 +214,11 @@ verifyBuild <- function(input, bankedTPE, session){
   }
   
   # Add attributes variables for each position
-  for (att in (constant$attributes$attribute |> str_remove_all(" "))) {
+  for (att in (constant$attributes$attribute)) {
     summary <- summary  |> 
       dplyr$mutate(
         !!str_to_lower(att) := 
-          input[[att]]
+          input[[att |> str_remove_all(" ")]]
       )
   }
   
@@ -232,7 +288,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
         dplyr$mutate(
           !!paste0("pos_", str_to_lower(pos)) := 
             dplyr$case_when(
-              input$primary == pos ~ 20,
+              pos %in% input$primary ~ 20,
               pos %in% input$secondary ~ 15,
               TRUE ~ 0
             )

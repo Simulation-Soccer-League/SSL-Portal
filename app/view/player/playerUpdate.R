@@ -9,7 +9,7 @@ box::use(
   shinyjs,
   shiny.router[change_page],
   sortable[add_rank_list, bucket_list],
-  stringr[str_remove_all, str_to_title],
+  stringr[str_remove_all, str_split, str_to_title, str_to_upper],
   tidyr[pivot_longer, replace_na],
   tippy[tippy],
 )
@@ -20,7 +20,12 @@ box::use(
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updatePlayerData],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/player/playerChecks[eligibleRedist, eligibleReroll, updateSummary],
+  app/logic/player/playerChecks[
+    checkDuplicatedNames, 
+    eligibleRedist, 
+    eligibleReroll, 
+    updateSummary
+  ],
   app/view/tracker/player,
 )
 
@@ -255,9 +260,10 @@ server <- function(id, auth, updated, type) {
           ),
           shiny$selectInput(
             ns("nationality"), 
-            tippy("*Select a nationality:", "Defines your player's international region affiliation, see the WSFC Tracker for details and current region sizes", theme = "ssl"),
+            tippy("Select a nationality:", "Cannot be changed with a reroll or redistribution.", theme = "ssl"),
             choices = constant$sslNations,
-            selected = dplyr$if_else(type == "redistribution", playerData()$nationality, "")
+            ## Cannot change nationality with a redistribution or reroll
+            selected = playerData()$nationality
           ) |> 
             shinyjs$disabled(),
           shiny$numericInput(
@@ -334,7 +340,39 @@ server <- function(id, auth, updated, type) {
       
       output$outfieldExtras <- shiny$renderUI({
         shiny$req(input$playerType)
+        
         if(input$playerType == "Outfield") {
+          positions <- constant$positions
+          
+          if(type == "redistribution"){
+            currentPositions <- playerData() |> 
+              dplyr$select(
+                dplyr$contains("pos_")
+              ) |> 
+              pivot_longer(
+                everything()
+              ) |> 
+              dplyr$mutate(
+                name = str_remove_all(name, "pos_") |> 
+                  str_to_upper()
+              )
+            
+            posPrim <- positions[names(positions) %in% (currentPositions |> 
+                                                          dplyr$filter(value == 20) |> 
+                                                          dplyr$select(name) |> unlist())
+            ]
+            
+            posSec <- positions[names(positions) %in% (currentPositions |> 
+                                                         dplyr$filter(value < 20 & value > 5) |> 
+                                                         dplyr$select(name) |> unlist())
+            ]
+            
+            posRem <- positions[!(positions %in% c(posPrim, posSec))]
+          } else {
+            posPrim <- posSec <- NULL
+            posRem <- constant$positions
+          }
+          
           shiny$tagList(
             shiny$tags$script(
               paste0(
@@ -367,17 +405,17 @@ server <- function(id, auth, updated, type) {
               orientation = "horizontal",
               add_rank_list(
                 text = "Select ONE primary position:",
-                labels = NULL,
+                labels = posPrim,
                 input_id = ns("primary")
               ),
               add_rank_list(
                 text = "Select TWO secondary positions:",
-                labels = NULL,
+                labels = posSec,
                 input_id = ns("secondary")
               ),
               add_rank_list(
                 text = "Drag from here",
-                labels = constant$positions,
+                labels = posRem,
                 input_id = ns("unusedPositions")
               )
             ),
@@ -387,12 +425,13 @@ server <- function(id, auth, updated, type) {
               choices = constant$traits |> 
                 unlist(use.names = FALSE),
               selected = 
-                shiny$if_else(
+                dplyr$if_else(
                   type == "redistribution", 
                   playerData()$traits |> 
-                    str_split(constant$traitSep, simplify = TRUE),
-                  ""
-                )
+                    str_split(constant$traitSep),
+                  list("")
+                ) |> 
+                unlist()
             ) |> 
               shiny$div(class = "multicol")
           )
@@ -407,7 +446,10 @@ server <- function(id, auth, updated, type) {
       #### REACTIVES ####
       playerData <- shiny$reactive({
         getActivePlayer(auth$uid) |> 
-          getPlayer() 
+          getPlayer()  |> 
+          dplyr$mutate(
+            nationality = constant$sslNations[nationality] 
+          )
       })
       
       # Based attributes on the input$playerType
@@ -502,33 +544,146 @@ server <- function(id, auth, updated, type) {
       
       ## Verify the update
       shiny$observe({
-        if(bankedTPE() < 0){
-          showToast(
-            .options = constant$sslToastOptions,
-            "error",
-            "You have spent too much TPE on your attributes! Reduce some of your attributes and try again."
+        currentTraits <- playerData()$traits |> 
+          str_split(constant$traitSep) |> 
+          unlist()
+        
+        positions <- constant$positions
+        currentPositions <- playerData() |> 
+          dplyr$select(dplyr$contains("pos_")) |> 
+          pivot_longer(everything()) |> 
+          dplyr$mutate(
+            name = str_remove_all(name, "pos_") |> 
+              str_to_upper()
           )
-        } else {
-          updates <- updateSummary(playerData(), input)
-          
-          if(updates |> nrow() == 0){
+        
+        posPrim <- positions[names(positions) %in% (currentPositions |> 
+                                                      dplyr$filter(value == 20) |> 
+                                                      dplyr$select(name) |> unlist())
+        ]
+        
+        posSec <- positions[names(positions) %in% (currentPositions |> 
+                                                     dplyr$filter(value < 20 & value > 5) |> 
+                                                     dplyr$select(name) |> unlist())
+        ]
+        
+        if(type %in% c("redistribution", "reroll")){
+          if(bankedTPE() < 0){
             showToast(
               .options = constant$sslToastOptions,
-              "warning",
-              "You have not changed your build yet, there is nothing to update."
+              "error",
+              "You have spent too much TPE on your attributes! Reduce some of your attributes and try again."
+            )
+          } else if((sapply(
+            c(input$lastName, input$nationality, input$footedness, 
+              input$hairColor, input$hairLength, input$skinColor), 
+            FUN = function(x) x == "", simplify = TRUE
+          ) |> any()) | 
+          (
+            input$playerType == "Outfield" & 
+            (input$traits |> length() != max(length(currentTraits), 2) | 
+             ## This covers both GK (1) or multiple primary positions (OUT)
+             input$primary |> length() != max(length(posPrim), 1) | 
+             ## The number of secondary positions is either 2 if going from GK to OUT
+             ## or the number of secondary positions they currently have
+             input$secondary |> length() != 
+             dplyr$if_else(playerData()$pos_gk == 20, 2, length(posSec)))
+          )){
+            showToast(
+              .options = constant$sslToastOptions,
+              "error", 
+              "You have missed some required field. Please check the marked fields."
+            )
+            
+            feedbackDanger("lastName", input$lastName == "", "Please enter a last name for your player. If you only want to use one name, please enter it here instead of as a first name.")
+            feedbackDanger("nationality", input$nationality == "", "Please enter the nationality of your player.")
+            feedbackDanger("footedness", input$footedness == "", "Please enter the footedness of your player.")
+            feedbackDanger("hairColor", input$hairColor == "", "Please enter the hair color for your player.")
+            feedbackDanger("hairLength", input$hairLength == "", "Please enter the hair length for your player.")
+            feedbackDanger("skinColor", input$skinColor == "", "Please enter the skin tone for your player.")
+            
+            if(input$traits |> length() != max(length(currentTraits), 2)){
+              showToast(
+                .options = constant$sslToastOptions,
+                "error", 
+                paste("Please select", max(length(currentTraits), 2), "traits.")
+              )
+            }
+            
+            if(input$primary |> length() != max(length(posPrim), 1)){
+              showToast(
+                .options = constant$sslToastOptions,
+                "error", 
+                paste("You can select", max(length(posPrim), 1), "primary position.")
+              )
+            }
+            
+            if(input$secondary |> length() != max(length(posSec), 2)){
+              showToast(
+                .options = constant$sslToastOptions,
+                "error", 
+                paste("You can select", max(length(posSec), 2), "secondary position.")
+              )
+            }
+          } else if (checkDuplicatedNames(input$first, input$last)){
+            showToast(
+              .options = constant$sslToastOptions,
+              "error", 
+              "Another player in the league's history have used this name. 
+            Please change it to something else."
             )
           } else {
-            shiny$showModal(
-              shiny$modalDialog(
-                title = "Verify your update",
-                reactable(updates),
-                easyClose = FALSE,
-                footer = shiny$tagList(
-                  shiny$modalButton("Cancel"),
-                  shiny$actionButton(ns("confirmUpdate"), "OK")
+            updates <- updateSummary(playerData(), input, type)
+            
+            if(updates |> nrow() == 0){
+              showToast(
+                .options = constant$sslToastOptions,
+                "warning",
+                "You have not changed your build yet, there is nothing to update."
+              )
+            } else {
+              shiny$showModal(
+                shiny$modalDialog(
+                  title = "Verify your update",
+                  reactable(updates),
+                  easyClose = FALSE,
+                  footer = shiny$tagList(
+                    shiny$modalButton("Cancel"),
+                    shiny$actionButton(ns("confirmUpdate"), "OK")
+                  )
                 )
               )
+            }
+          }
+        } else {
+          if(bankedTPE() < 0){
+            showToast(
+              .options = constant$sslToastOptions,
+              "error",
+              "You have spent too much TPE on your attributes! Reduce some of your attributes and try again."
             )
+          } else {
+            updates <- updateSummary(playerData(), input, type)
+            
+            if(updates |> nrow() == 0){
+              showToast(
+                .options = constant$sslToastOptions,
+                "warning",
+                "You have not changed your build yet, there is nothing to update."
+              )
+            } else {
+              shiny$showModal(
+                shiny$modalDialog(
+                  title = "Verify your update",
+                  reactable(updates),
+                  easyClose = FALSE,
+                  footer = shiny$tagList(
+                    shiny$modalButton("Cancel"),
+                    shiny$actionButton(ns("confirmUpdate"), "OK")
+                  )
+                )
+              )
+            }
           }
         }
       }) |> 
