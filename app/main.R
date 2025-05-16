@@ -66,9 +66,9 @@ server <- function(id) {
     
     ## Reactives
     resAuth <- shiny$reactiveValues(
-      uid = 6,
-      username = "Canadice",
-      usergroup = 4,
+      uid = NULL,
+      username = NULL,
+      usergroup = NULL,
       suspended = 0
     )
     
