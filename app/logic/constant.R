@@ -46,6 +46,29 @@ positionalCoord <-
 #'     ),
 #'     silent = TRUE
 #'   )
+#'   
+
+#' @export
+myToastOptions <- list(
+  positionClass = "toast-bottom-center",
+  progressBar = TRUE,
+  # The length the toast is shown
+  timeOut = 10000,
+  closeButton = TRUE,
+  newestOnTop = TRUE,
+  preventDuplicates = FALSE,
+  # How long it takes for toast to appear
+  showDuration = 500,
+  # How long it takes for toast to disappear
+  hideDuration = 1000,
+  # How long the toast is shown after hovering over it
+  extendedTimeOut = 2500,
+  showEasing = "linear",
+  hideEasing = "linear",
+  showMethod = "fadeIn",
+  hideMethod = "fadeOut"
+)
+
 
 #' @export
 jsonTraits <-

@@ -100,15 +100,39 @@ getTopEarners <- function() {
 }
 
 #' @export
-getPlayerNames <- function() {
-  portalQuery(
-    paste0(
-      "SELECT name, pid, team
+getPlayerNames <- function(active = FALSE){
+  if(active){
+    portalQuery(
+      paste0(
+        "SELECT name, pid, team
+      FROM playerdata
+      WHERE team > -3
+      ORDER BY created;"
+      )
+    )
+  } else {
+    portalQuery(
+      paste0(
+        "SELECT name, pid, team
       FROM playerdata
       WHERE team >= -3
-      ORDER BY team DESC, name;"
+      ORDER BY created;"
+      )
     )
-  )
+  }
+  
+}
+
+#' @export
+getActivePlayer <- function(uid){
+  portalQuery(
+    paste0(
+      "SELECT pid
+      FROM playerdata
+      WHERE status_p = 1 AND uid =", uid, ";"
+    )
+  ) |> 
+    unlist()
 }
 
 #' @export
@@ -187,6 +211,37 @@ getPlayers <- function(active) {
       across(where(is.numeric), ~ replace_na(.x, 5))
     ) |>
     suppressWarnings()
+}
+
+#' @export
+getChangedBuilds <- function(){
+  ## Gets date of the start of the week in Pacific
+  weekEnd <- 
+    lubridate$now() |> 
+    lubridate$with_tz("US/Pacific") |> 
+    lubridate$floor_date("week", week_start = "Monday") |> 
+    as.numeric() |> 
+    sum(c(-1))
+  
+  weekStart <- 
+    lubridate$now() |> 
+    lubridate$with_tz("US/Pacific") |> 
+    lubridate$floor_date("week", week_start = "Monday") |> 
+    as.numeric() |> 
+    sum(c(-604800))
+  
+  
+  portalQuery(
+    paste(
+      "SELECT t.name AS teamName, n.fmID AS nationalityID, wb.*, uh.attribute as Attribute, uh.old, uh.new
+        FROM playerdata pd
+        LEFT JOIN weeklybuilds wb ON pd.pid = wb.pid
+        JOIN updatehistory uh ON pd.pid = uh.pid
+        LEFT JOIN teams t ON pd.team = t.orgID AND pd.affiliate = t.affiliate
+        LEFT JOIN nationality n ON wb.nationality = n.abbreviation OR wb.nationality = n.name
+        WHERE uh.Time < ", weekEnd, " AND uh.Time > ", weekStart," AND uh.uid <> 1;"
+    )
+  )
 }
 
 #' @export
@@ -299,10 +354,10 @@ getPlayer <- function(pid) {
         -- Check if nationality is 3 letters and map it to the full name from portaldb.nationality, else show pd.nationality
         CASE
             WHEN LENGTH(pd.nationality) = 3 THEN n.name
-            ELSE pd.nationality
-        END AS nationality,
-        pd.height, pd.weight, pd.hair_color, pd.hair_length, pd.skintone,
-        pd.render, pd.`left foot`, pd.`right foot`, pd.position, pd.pos_st, pd.pos_lam,
+            ELSE pd.nationality 
+        END AS nationality, n.fmID AS nationalityID,
+        pd.height, pd.weight, pd.hair_color, pd.hair_length, pd.skintone, 
+        pd.render, pd.`left foot`, pd.`right foot`, pd.position, pd.pos_st, pd.pos_lam, 
         pd.pos_cam, pd.pos_ram, pd.pos_lm, pd.pos_cm, pd.pos_rm, pd.pos_lwb, pd.pos_cdm,
         pd.pos_rwb, pd.pos_ld, pd.pos_cd, pd.pos_rd, pd.pos_gk, pd.acceleration, pd.agility,
         pd.balance, pd.`jumping reach`, pd.`natural fitness`, pd.pace, pd.stamina, pd.strength,
@@ -334,7 +389,7 @@ getPlayer <- function(pid) {
           LEFT JOIN userstatuses us ON ua.status_u = us.status
           LEFT JOIN playerstatuses ps ON pd.status_p = ps.status
           LEFT JOIN teams t ON pd.team = t.orgID AND pd.affiliate = t.affiliate
-          LEFT JOIN portaldb.nationality n ON pd.nationality = n.abbreviation",
+          LEFT JOIN portaldb.nationality n ON pd.nationality = n.abbreviation OR pd.nationality = n.name",
       paste("WHERE pd.pid = ", pid, ";")
     )
   ) |>
@@ -600,4 +655,134 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
     ) |>
       suppressWarnings()
   }
+}
+
+#' @export
+getSeasonalTotal <- function(outfield = TRUE, season){
+  if(outfield){
+    indexQuery(
+      paste(
+        "SELECT
+        name,
+        club,
+        SUM(apps) AS apps,
+        SUM(`minutes played`) AS `minutes played`,
+        SUM(`distance run (km)`) AS `distance run (km)`,
+        AVG(`average rating`) AS `average rating`,
+        SUM(`player of the match`) AS `player of the match`,
+        SUM(goals) AS goals,
+        SUM(assists) AS assists,
+        SUM(xg) AS xg,
+        SUM(`shots on target`) AS `shots on target`,
+        SUM(shots) AS shots,
+        SUM(`penalties taken`) AS `penalties taken`,
+        SUM(`penalties scored`) AS `penalties scored`,
+        SUM(`successful passes`) AS `successful passes`,
+        SUM(`attempted passes`) AS `attempted passes`,
+        SUM(`pass%`) AS `pass%`,
+        SUM(`key passes`) AS `key passes`,
+        SUM(`successful crosses`) AS `successful crosses`,
+        SUM(`attempted crosses`) AS `attempted crosses`,
+        SUM(`cross%`) AS `cross%`,
+        SUM(`chances created`) AS `chances created`,
+        SUM(`successful headers`) AS `successful headers`,
+        SUM(`attempted headers`) AS `attempted headers`,
+        SUM(`header%`) AS `header%`,
+        SUM(`key headers`) AS `key headers`,
+        SUM(dribbles) AS dribbles,
+        SUM(`tackles won`) AS `tackles won`,
+        SUM(`attempted tackles`) AS `attempted tackles`,
+        SUM(`tackle%`) AS `tackle%`,
+        SUM(`key tackles`) AS `key tackles`,
+        SUM(interceptions) AS interceptions,
+        SUM(clearances) AS clearances,
+        SUM(`mistakes leading to goals`) AS `mistakes leading to goals`,
+        SUM(`yellow cards`) AS `yellow cards`,
+        SUM(`red cards`) AS `red cards`,
+        SUM(fouls) AS fouls,
+        SUM(`fouls against`) AS `fouls against`,
+        SUM(offsides) AS offsides,
+        SUM(xa) AS xa,
+        SUM(`xg overperformance`) AS `xg overperformance`,
+        SUM(`goals outside box`) AS `goals outside box`,
+        SUM(`fk shots`) AS `fk shots`,
+        SUM(blocks) AS blocks,
+        SUM(`open play key passes`) AS `open play key passes`,
+        SUM(`successful open play crosses`) AS `successful open play crosses`,
+        SUM(`attempted open play crosses`) AS `attempted open play crosses`,
+        SUM(`shots blocked`) AS `shots blocked`,
+        SUM(`progressive passes`) AS `progressive passes`,
+        SUM(`successful presses`) AS `successful presses`,
+        SUM(`attempted presses`) AS `attempted presses`
+      FROM
+          gamedataoutfield AS gd
+      JOIN
+          schedule AS s ON gd.gid = s.gid
+      WHERE
+          s.Season = ", season, "
+      GROUP BY
+          Name, Club
+      ORDER BY
+          Name, Club;"
+      )
+    ) 
+  } else {
+    indexQuery(
+      paste(
+        "SELECT
+        name,
+        club,
+        SUM(apps) AS apps,
+        SUM(`minutes played`) AS `minutes played`,
+        AVG(`average rating`) AS `average rating`,
+        SUM(`player of the match`) AS `player of the match`,
+        SUM(`clean sheets`) AS `clean sheets`,
+        SUM(conceded) AS conceded,
+        SUM(`saves parried`) AS `saves parried`,
+        SUM(`saves held`) AS `saves held`,
+        SUM(`saves tipped`) AS `saves tipped`,
+        SUM(`save%`) AS `save%`,
+        SUM(`penalties faced`) AS `penalties faced`,
+        SUM(`penalties saved`) AS `penalties saved`,
+        AVG(`xsave%`) AS `xsave%`,
+        SUM(`xg prevented`) AS `xg prevented`
+      FROM
+          gamedatakeeper AS gd
+      JOIN
+          schedule AS s ON gd.gid = s.gid
+      WHERE
+          s.Season = ", season, "
+      GROUP BY
+          Name, Club
+      ORDER BY
+          Name, Club;"
+      )
+    )
+  }
+}
+
+#' @export
+getNextGameID <- function(season){
+  indexQuery(
+    paste(
+      "SELECT team, MIN(gid) AS gid
+        FROM (
+            SELECT home AS team, MIN(s.gid) AS gid
+            FROM schedule s
+            LEFT JOIN gamedataoutfield o ON s.gid = o.gid
+            WHERE o.gid IS NULL AND s.season =", season, " AND s.Matchtype >= 0
+            GROUP BY home
+        
+            UNION ALL
+        
+            SELECT away AS team, MIN(s.gid) AS gid
+            FROM schedule s
+            LEFT JOIN gamedataoutfield o ON s.gid = o.gid
+            WHERE o.gid IS NULL AND s.season =", season, " AND s.Matchtype >= 0
+            GROUP BY away
+        ) AS combined
+        GROUP BY team
+        ORDER BY gid;"
+    )
+  )
 }

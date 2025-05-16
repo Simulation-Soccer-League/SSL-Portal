@@ -1,4 +1,5 @@
 # This file allows packrat (used by rsconnect during deployment) to pick up dependencies.
+library(dplyover)
 library(future)
 library(jsonlite)
 library(plotly)
@@ -14,3 +15,4 @@ library(tidyverse)
 library(tippy)
 library(treesitter)
 library(treesitter.r)
+library(zip)

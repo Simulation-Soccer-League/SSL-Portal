@@ -8,20 +8,23 @@ box::use(
 )
 
 box::use(
-  app / view / index / academyIndex,
-  app / view / index / careerRecords,
-  app / view / index / leagueIndex,
-  app / view / index / schedule,
-  app / view / index / standings,
-  app / view / navigationBar,
-  app / view / tracker / draftclass,
-  app / view / tracker / organization,
-  app / view / tracker / player,
-  app / view / tracker / playerSearch,
-  app / view / welcome,
+  app/view/navigationBar,
+  app/view/index/academyIndex,
+  app/view/index/careerRecords,
+  app/view/index/leagueIndex,
+  app/view/index/schedule,
+  app/view/index/standings,
+  app/view/jobs/filework/export,
+  app/view/jobs/filework/import,
+  # app/view/player/myPlayer,
+  app/view/tracker/draftclass,
+  app/view/tracker/organization,
+  app/view/tracker/player,
+  app/view/tracker/playerSearch,
+  app/view/welcome,
 )
 
-shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 60 * 60))
+shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 8*60*60))
 
 #' @export
 ui <- function(id) {
@@ -42,6 +45,9 @@ ui <- function(id) {
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/organization", organization$ui(ns("organization"))),
       route("search", playerSearch$ui(ns("search"))),
+      # route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
+      route("filework/export", export$ui(ns("export"))),
+      route("filework/import", import$ui(ns("import")))
     )
   )
 }
@@ -55,14 +61,17 @@ server <- function(id) {
     resAuth <- shiny$reactiveValues(
       uid = NULL,
       username = NULL,
-      usergroup = NULL
+      usergroup = NULL,
+      suspended = 0
     )
 
     # Adds all authentication list to a reactive object
     authOutput <- shiny$reactive({
       shiny$reactiveValuesToList(resAuth)
     })
-
+    
+    updated <- shiny$reactiveVal(0)
+    
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth)
 
     welcome$server("welcome", usergroup = authOutput()$usergroup)
@@ -73,13 +82,14 @@ server <- function(id) {
     loadedServer <-
       shiny$reactiveValues(
         create = FALSE, player = FALSE, index = FALSE,
-        academy = FALSE, uploadGame = FALSE,
+        myPlayer = FALSE, import = FALSE, standings = FALSE, 
+        schedule = FALSE, academy = FALSE, 
         bankOverview = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
         tradeProcess = FALSE, playerEdit = FALSE, submitPT = FALSE,
         bankDeposit = FALSE, bankProcess = FALSE,
-        standings = FALSE, schedule = FALSE, managerTeam = FALSE,
-        assignManager = FALSE, bodoverview = FALSE, exportBuild = FALSE,
+        managerTeam = FALSE,
+        assignManager = FALSE, bodoverview = FALSE, export = FALSE,
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
       )
@@ -112,8 +122,17 @@ server <- function(id) {
         draftclass$server("draftclass")
         loadedServer$draftclass <- TRUE
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
-        player$server("player")
-        loadedServer$player <- TRUE
+         player$server("player")
+         loadedServer$player <- TRUE
+      } else if (current == "myPlayer/" & !loadedServer$myPlayer) {
+        myPlayer$server("myPlayer", auth = authOutput(), updated = updated())
+        loadedServer$myPlayer <- TRUE
+      } else if (current == "filework/export" & !loadedServer$export) {
+        export$server("export", auth = authOutput(), updated = updated())
+        loadedServer$export <- TRUE
+      } else if (current == "filework/import" & !loadedServer$import) {
+        import$server("import", auth = authOutput(), updated = updated())
+        loadedServer$import <- TRUE
       }
     }) |>
       shiny$bindEvent(session$clientData$url_hash)

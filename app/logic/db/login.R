@@ -29,8 +29,8 @@ customCheckCredentials <- function(user, password, session = getDefaultReactiveD
   res <-
     mybbQuery(
       query =
-      paste(
-        "SELECT uid, username, password, salt, usergroup, additionalgroups
+        paste(
+          "SELECT uid, username, password, salt, usergroup, additionalgroups, suspendposting
         FROM mybb_users
         WHERE username = '", user, "'",
         sep = ""
@@ -72,36 +72,73 @@ customCheckCredentials <- function(user, password, session = getDefaultReactiveD
         result = TRUE,
         userInfo =
           list(
-            uid = res$uid,
-            username = res$username,
-            usergroup =
-            paste(res$usergroup, res$additionalgroups, sep = ",") |>
-            str_split(pattern = ",", simplify = TRUE) |>
-            as.numeric() |>
-            as.list()
+            uid = res$uid, 
+            username = res$username, 
+            usergroup = 
+              paste(res$usergroup, res$additionalgroups, sep = ",") |> 
+              str_split(pattern = ",", simplify = TRUE) |>
+              as.numeric() |> 
+              as.list(),
+            suspended = res$suspendposting == 1
           )
       )
     }
   } else {
-    list(
-      result = FALSE,
-      userInfo =
-        list(
-          uid = NULL,
-          username = NULL,
-          usergroup = NULL
-        )
-    )
+    list(result = FALSE,
+         userInfo = 
+           list(
+             uid = NULL, 
+             username = NULL, 
+             usergroup = NULL,
+             suspended = NULL
+           ))
   }
 }
 
 #' @export
 getRefreshToken <- function(token) {
   portalQuery(
-    paste("SELECT rt.*, mb.username, mb.usergroup, mb.additionalgroups
-              FROM refreshtokens rt
-              JOIN mybbdb.mybb_users mb ON rt.uid = mb.uid
+    paste("SELECT rt.*, mb.username, mb.usergroup, mb.additionalgroups, mb.suspendposting 
+              FROM refreshtokens rt 
+              JOIN mybbdb.mybb_users mb ON rt.uid = mb.uid 
               WHERE rt.token = '", token, "';", sep = "")
   ) |>
     suppressWarnings()
 }
+
+#' Checks if the user is awaiting activation, banned or suspended
+#' @export
+isNonActiveForumUser <- function(usergroup, suspended){
+  any(c(0,5, 7) %in% usergroup) | suspended
+}
+
+#' @export
+isBoD <- function(usergroup){
+  any(c(3, 4) %in% usergroup)
+}
+
+#' @export
+isBoDIntern <- function(usergroup){
+  15 %in% usergroup
+}
+
+#' @export
+isBankerAccountant <- function(usergroup){
+  12 %in% usergroup
+}
+
+#' @export
+isPT <- function(usergroup){
+  11 %in% usergroup
+}
+
+#' @export
+isManager <- function(usergroup){
+  8 %in% usergroup
+}
+
+#' @export
+isFileworker <- function(usergroup){
+  14 %in% usergroup
+}
+
