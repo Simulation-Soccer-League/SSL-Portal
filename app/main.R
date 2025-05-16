@@ -52,7 +52,7 @@ ui <- function(id) {
       route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
       route("myPlayer/redistribute", playerUpdate$ui(ns("redist"))),
       route("myPlayer/regress", playerUpdate$ui(ns("regress"))),
-      route("createPlayer", createPlayer$ui(ns("create")))
+      route("createPlayer", createPlayer$ui(ns("create"))),
       route("filework/export", export$ui(ns("export"))),
       route("filework/import", import$ui(ns("import")))
     )

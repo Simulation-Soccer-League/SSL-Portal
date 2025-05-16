@@ -50,7 +50,6 @@ getNavItems <- function(ns, suffix) {
         )
       )
     ),
-    verbatimTextOutput(ns("workers")),
     uiOutput(ns(paste0("yourPlayer", suffix))) |>
       withSpinnerCustom(height = 20)
   )
@@ -150,38 +149,6 @@ ui <- function(id) {
         ),
         div(
           class = "nav-container",
-          tagList(
-            flexRow(
-              tagList(
-                navMenu(
-                  label = "Trackers",
-                  items = list(
-                    # a("Players", href = route_link("tracker/player")),
-                    a("Search", href = route_link("search")),
-                    a("Organizations", href = route_link("tracker/organization")),
-                    a("Draft Class", href = route_link("tracker/draftclass"))
-                  )
-                ),
-                navMenu(
-                  label = "Index",
-                  items = list(
-                    a("Index", href = route_link("index/")),
-                    a("Records", href = route_link("index/records")),
-                    a("Standings", href = route_link("index/standings")),
-                    a("Schedule", href = route_link("index/schedule")),
-                    a("Academy", href = route_link("index/academy"))
-                  )
-                ),
-                uiOutput(ns("jobsNavigation")) |>
-                  withSpinnerCustom(height = 20),
-                navMenu(
-                  div(a("Intro", href = route_link("/")))
-                )
-              )
-            ),
-            uiOutput(ns("yourPlayer")) |>
-              withSpinnerCustom(height = 20)
-          ),
           getNavItems(ns, "Desktop")
         )
       )
@@ -258,8 +225,7 @@ server <- function(id, auth, resAuth, updated) {
           )
         )
       }
-    }) |> 
-      bindEvent(auth(), updated())
+    }
 
     output$yourPlayerDesktop <- renderUI({
       getPlayerUi(auth()$usergroup)
