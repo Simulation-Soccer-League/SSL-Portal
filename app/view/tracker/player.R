@@ -1,10 +1,9 @@
 box::use(
   bslib,
   dplyr,
-  forcats[fct_relevel],
   lubridate[as_date, as_datetime, floor_date, today],
   plotly,
-  reactable[colDef, colFormat, reactable, renderReactable, reactableOutput],
+  reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
   shiny,
   shiny.router[get_query_param],
@@ -118,10 +117,10 @@ server <- function(id, pid = NULL, updated) {
         pid
       }
     })
-    
+
     playerData <- shiny$reactive({
       shiny$req(query())
-      
+
       getPlayer(query())
     }) |> 
       shiny$bindCache(query(), updated()) |> 
@@ -129,7 +128,7 @@ server <- function(id, pid = NULL, updated) {
     
     historyTPE <- shiny$reactive({
       shiny$req(query())
-      
+
       getTpeHistory(query())
     }) |> 
       shiny$bindCache(query(), updated()) |> 
@@ -138,7 +137,7 @@ server <- function(id, pid = NULL, updated) {
     #### Output ####
     output$playerName <- shiny$renderUI({
       data <- playerData()
-      
+
       shiny$tagList(
         shiny$h2(paste(data$name, paste0("(", data$class, ")"), sep = " ")),
         shiny$h3(paste0("@", data$username))
@@ -148,19 +147,19 @@ server <- function(id, pid = NULL, updated) {
     
     output$clubLogo <- shiny$renderUI({
       data <- playerData()
-      
+
       shiny$img(
         src = sprintf("static/logo/%s.png", data$team),
         style = "height: 100px;",
         alt = data$team,
         title = data$team
       )
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$playerInfo <- shiny$renderUI({
       data <- playerData()
-      
+
       value <-
         data |>
         dplyr$select(
@@ -173,14 +172,13 @@ server <- function(id, pid = NULL, updated) {
           name = str_remove(name, pattern = "pos_") |>
             str_to_upper()
         )
-      
+
       shiny$tagList(
         bslib$layout_columns(
           col_widths = c(6, 6),
           shiny$tagList(
             shiny$h4(paste("TPE: ", data$tpe)),
             shiny$h4(paste("Banked TPE: ", data$tpebank)),
-            # shiny$h4(paste("Bank Balance: ", data$bank)),
             shiny$h4(paste("Player Status: "), data$playerStatus, class = data$playerStatus),
             shiny$h4(paste("User Status: "), data$userStatus, class = data$userStatus),
             shiny$h5(paste("Nationality:"), data$nationality),
@@ -216,8 +214,8 @@ server <- function(id, pid = NULL, updated) {
     
     output$matchStatistics <- renderReactable({
       data <- playerData()
-      
-      if (data$pos_gk == 20){
+
+      if (data$pos_gk == 20) {
         matches <-
           readAPI(
             url = "https://api.simulationsoccer.com/index/latestGames",
@@ -230,27 +228,27 @@ server <- function(id, pid = NULL, updated) {
             query = list(name = data$name)
           )
       }
-      
-      if (!(matches |> is_empty())){
+
+      if (!(matches |> is_empty())) {
         matches |>
           recordReactable()
       } else {
         NULL
       }
-    }) |> 
+    }) |>
       shiny$bindCache(query())
-    
+
     output$playerAttributes <- shiny$renderUI({
       data <- playerData()
-      
+
       attributeReactable(data, session, output)
     }) |> 
       shiny$bindCache(query(), updated())
     
     output$tpeProgression <- plotly$renderPlotly({
       tpe <- historyTPE()
-      
-      if(nrow(tpe) < 2){
+
+      if (nrow(tpe) < 2) {
         plotly$plot_ly(mode = "markers", type = "scatter") |>
           plotly$add_annotations(
             text = "The player has had no TPE<br>progression in the Portal",
@@ -263,89 +261,106 @@ server <- function(id, pid = NULL, updated) {
             bgcolor = "rgba(255, 255, 255, 0.5)"
           ) |>
           plotly$layout(
-            xaxis = list(showgrid = FALSE, zeroline = FALSE, showline = FALSE, showticklabels = FALSE),
-            yaxis = list(showgrid = FALSE, zeroline = FALSE, showline = FALSE, showticklabels = FALSE),
+            xaxis = list(
+              showgrid = FALSE,
+              zeroline = FALSE,
+              showline = FALSE,
+              showticklabels = FALSE
+            ),
+            yaxis = list(
+              showgrid = FALSE,
+              zeroline = FALSE,
+              showline = FALSE,
+              showticklabels = FALSE
+            ),
             margin = list(l = 0, r = 0, b = 0, t = 0),
-            plot_bgcolor = "#333333",   # background color
+            plot_bgcolor = "#333333", # background color
             paper_bgcolor = "#333333"
           ) |>
           plotly$config(
-            displayModeBar = TRUE,  # Enable display of mode bar (optional, true by default)
+            displayModeBar = TRUE, # Enable display of mode bar (optional, true by default)
             modeBarButtonsToRemove = list(
               "toImage", "zoom2d", "pan2d", "select2d",
               "lasso2d", "zoomIn2d", "zoomOut2d",
               "autoScale2d", "resetScale2d"
             ),
-            displaylogo = FALSE  # Remove Plotly logo
+            displaylogo = FALSE # Remove Plotly logo
           )
       } else {
         visData <-
           tpe |>
           dplyr$mutate(
             WeekStart =
-              floor_date(Time |>
-                           as_date(),
-                         "week",
-                         week_start = 1)
+            floor_date(
+              Time |>
+                as_date(),
+              "week",
+              week_start = 1
+            )
           ) |>
           dplyr$group_by(WeekStart) |>
           dplyr$summarize(total = sum(`TPE Change`, na.rm = TRUE)) |>
           complete(
             WeekStart =
-              seq(
-                min(WeekStart),
-                floor_date(today() |>
-                             as_date(tz = "US/Pacific"),
-                           "week",
-                           week_start = 1),
-                by = "week"
+            seq(
+              min(WeekStart),
+              floor_date(
+                today() |>
+                  as_date(tz = "US/Pacific"),
+                "week",
+                week_start = 1
               ),
+              by = "week"
+            ),
             fill = list(total = 0)
           ) |>
           dplyr$ungroup() |>
-          dplyr$mutate(cumulative = cumsum(total),
-                       week = seq_len(dplyr$n())) |>
+          dplyr$mutate(
+            cumulative = cumsum(total),
+            week = seq_len(dplyr$n())
+          ) |>
           suppressMessages()
-        
+
         plotly$plot_ly(visData, hoverinfo = "text") |>
-          plotly$add_trace(x = ~week, y = ~cumulative, type = "scatter", mode = "markers+lines",
-                           line = list(color = constant$sslGold),
-                           marker = list(size = 5, color = constant$sslGold),
-                           text = ~paste("Week:", week, "<br>TPE:", cumulative)
+          plotly$add_trace(
+            x = ~week, y = ~cumulative, type = "scatter", mode = "markers+lines",
+            line = list(color = constant$sslGold),
+            marker = list(size = 5, color = constant$sslGold),
+            text = ~ paste("Week:", week, "<br>TPE:", cumulative)
           ) |>
           plotly$layout(
             title = list(
               text = "TPE Progression",
-              font = list(color = "white")  # Set title text color to white
+              font = list(color = "white") # Set title text color to white
             ),
             xaxis = list(
               title = "Time",
-              tickfont = list(color = "white"),  # Set x-axis tick labels color to white
-              titlefont = list(color = "white"),  # Set x-axis title color to white
+              tickfont = list(color = "white"), # Set x-axis tick labels color to white
+              titlefont = list(color = "white"), # Set x-axis title color to white
               dtick = 1,
               showgrid = FALSE
             ),
             yaxis = list(
               title = "TPE",
               range = c(300, 2100),
-              tickfont = list(color = "white"),  # Set y-axis tick labels color to white
-              titlefont = list(color = "white"),  # Set y-axis title color to white
-              dtick = 200,  # Show tickmarks at intervals of 200
-              gridcolor = "rgba(255, 255, 255, 0.5)",  # Set gridline color to white with opacity
-              gridwidth = 1  # Set gridline width
+              tickfont = list(color = "white"), # Set y-axis tick labels color to white
+              titlefont = list(color = "white"), # Set y-axis title color to white
+              dtick = 200, # Show tickmarks at intervals of 200
+              gridcolor = "rgba(255, 255, 255, 0.5)", # Set gridline color to white with opacity
+              gridwidth = 1 # Set gridline width
             ),
-            plot_bgcolor = "#333333",   # background color
-            paper_bgcolor = "#333333",   # plot area background color
-            showlegend = FALSE  # Hide legend (optional)
+            plot_bgcolor = "#333333", # background color
+            paper_bgcolor = "#333333", # plot area background color
+            showlegend = FALSE # Hide legend (optional)
           ) |>
           plotly$config(
-            displayModeBar = TRUE,  # Enable display of mode bar (optional, true by default)
+            displayModeBar = TRUE, # Enable display of mode bar (optional, true by default)
             modeBarButtonsToRemove = list(
               "zoom2d", "pan2d", "select2d",
               "lasso2d", "zoomIn2d", "zoomOut2d",
               "autoScale2d", "resetScale2d"
             ),
-            displaylogo = FALSE  # Remove Plotly logo
+            displaylogo = FALSE # Remove Plotly logo
           )
       }
     }) |> 
@@ -354,8 +369,8 @@ server <- function(id, pid = NULL, updated) {
     output$tpe <- renderReactable({
       data <- playerData()
       tpe <- historyTPE()
-      
-      if(tpe |> is_empty()){
+
+      if (tpe |> is_empty()) {
         NULL
       } else {
         tpe |>
@@ -373,7 +388,7 @@ server <- function(id, pid = NULL, updated) {
     output$update <- renderReactable({
       data <- playerData()
       updates <- getUpdateHistory(data$pid)
-      if(updates |> is_empty()){
+      if (updates |> is_empty()) {
         NULL
       } else {
         updates |>
@@ -391,7 +406,7 @@ server <- function(id, pid = NULL, updated) {
     output$bank <- renderReactable({
       data <- playerData()
       bank <- getBankHistory(data$pid)
-      if(bank |> is_empty()){
+      if (bank |> is_empty()) {
         NULL
       } else {
         bank |>
@@ -400,7 +415,13 @@ server <- function(id, pid = NULL, updated) {
             columns =
               list(
                 Time = colDef(format = colFormat(datetime = TRUE)),
-                Transaction = colDef(format = colFormat(digits = 0, separators = TRUE, currency = "USD"))
+                Transaction = colDef(
+                  format = colFormat(
+                    digits = 0,
+                    separators = TRUE, 
+                    currency = "USD"
+                  )
+                )
               )
           )
       }

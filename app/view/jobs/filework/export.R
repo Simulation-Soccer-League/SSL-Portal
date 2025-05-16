@@ -1,17 +1,17 @@
 box::use(
   bslib,
-  dplyr[filter, mutate, select, case_when],
+  dplyr[case_when, filter, mutate, select],
   glue[glue],
   lubridate[today],
   purrr[imap],
-  reactable[renderReactable, reactableOutput, reactable],
+  reactable[reactable, reactableOutput, renderReactable],
   shiny,
   zip[zip],
 )
 
 box::use(
+  app/logic/db/get[getChangedBuilds, getPlayer, getPlayerNames],
   app/logic/db/login[isBoD, isFileworker],
-  app/logic/db/get[getPlayerNames, getChangedBuilds, getPlayer],
   app/logic/export[downloadPlayer],
   app/view/tracker/player,
 )
@@ -26,19 +26,19 @@ ui <- function(id) {
 server <- function(id, auth, updated) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
+
     #### OUTPUT UI ####
-    if (any(auth$usergroup |> is.null(), auth$suspended |> is.null())){
+    if (any(auth$usergroup |> is.null(), auth$suspended |> is.null())) {
       output$ui <- shiny$renderUI({
         "YOU DO NOT HAVE ACCESS TO THIS PAGE, PLEASE LOG IN!"
       })
-    } else if (isBoD(auth$usergroup) | isFileworker(auth$usergroup)){
+    } else if (isBoD(auth$usergroup) | isFileworker(auth$usergroup)) {
       output$ui <- shiny$renderUI({
         names <- getPlayerNames(active = TRUE)
-        
+
         namedVector <- names$pid
         names(namedVector) <- names$name
-        
+
         shiny$tagList(
           bslib$layout_column_wrap(
             width = 1/3,
@@ -58,8 +58,8 @@ server <- function(id, auth, updated) {
             shiny$div(
               shiny$h4("Select a player and download a single build:"),
               shiny$selectizeInput(
-                inputId = ns("selectedPlayer"), 
-                label = "Select a player to export", 
+                inputId = ns("selectedPlayer"),
+                label = "Select a player to export",
                 choices = namedVector
               )
             ),
@@ -76,58 +76,58 @@ server <- function(id, auth, updated) {
         "YOU DO NOT HAVE ACCESS TO THIS PAGE"
       })
     }
-    
+
     #### OUTPUT SERVER ####
-    
+
     ## REACTIVES
     builds <- shiny$reactive({
       getChangedBuilds()
     })
-    
+
     build <- shiny$reactive({
       getPlayer(input$selectedPlayer)
-    }) |> 
+    }) |>
       shiny$bindCache(input$selectedPlayer)
-    
-    
+
+
     ## OUTPUT
     output$changes <- renderReactable({
       data <- builds()
-      
-      data |> 
+
+      data |>
         select(
           Name = name,
           Team = teamName,
-          Attribute, 
+          Attribute,
           Previous = old,
           New = new
-        ) |> 
+        ) |>
         reactable(
           groupBy = c("Team", "Name")
         )
     })
-    
+
     output$downloadData <- shiny$downloadHandler(
       filename = function(name) {
         paste(today(), "Builds.zip", sep = "")
       },
-      content = function(file){
+      content = function(file) {
         data <- builds()
-        
+
         temp_directory <- file.path(tempdir(), as.integer(Sys.time()))
         dir.create(temp_directory)
-        
-        data <- 
-          data |> 
-          select(!c(Attribute, old, new)) |> 
-          unique() |> 
+
+        data <-
+          data |>
+          select(!c(Attribute, old, new)) |>
+          unique() |>
           mutate(
             fileName = paste(teamName, name, sep = "_")
           )
-        
+
         data$fileName |>
-          imap(function(x,y){
-            if(!is.null(x)){
+          imap(function(x, y) {
+            if (!is.null(x)) {
               file_name <- glue("{x}_Build.json")
               writeLines(
                 downloadPlayer(data |> filter(fileName == x)),
@@ -135,7 +135,7 @@ server <- function(id, auth, updated) {
               )
             }
           })
-        
+
         zip(
           zipfile = file,
           files = dir(temp_directory),
@@ -144,14 +144,14 @@ server <- function(id, auth, updated) {
       },
       contentType = "application/zip"
     )
-    
+
     output$singleDownloadData <- shiny$downloadHandler(
       filename = function(name) {
         paste(build()$name, " Build.json", sep = "")
       },
-      content = function(file){
+      content = function(file) {
         data <- build()
-        
+
         writeLines(
           downloadPlayer(data),
           file
@@ -159,6 +159,5 @@ server <- function(id, auth, updated) {
       },
       contentType = "json"
     )
-    
   })
 }

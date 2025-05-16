@@ -5,7 +5,7 @@ box::use(
 )
 
 box::use(
-  app/logic/db/api,
+  app / logic / db / api,
 )
 
 #' @export
@@ -32,8 +32,10 @@ positionalCoord <-
   tibble$tibble(
     x = c(375, 130, 375, 620, 130, 375, 620, 130, 375, 620, 130, 375, 620, 375),
     y = c(775, 625, 625, 625, 455, 455, 455, 310, 310, 310, 150, 150, 150, 50),
-    position = c("ST", "LAM", "CAM", "RAM", "LM", "CM", "RM", "LWB", "DM",
-                 "RWB", "LD", "CD", "RD", "GK")
+    position = c(
+      "ST", "LAM", "CAM", "RAM", "LM", "CM", "RM", "LWB", "DM",
+      "RWB", "LD", "CD", "RD", "GK"
+    )
   )
 
 #' #' @export
@@ -45,6 +47,29 @@ positionalCoord <-
 #'     ),
 #'     silent = TRUE
 #'   )
+#'   
+
+#' @export
+myToastOptions <- list(
+  positionClass = "toast-bottom-center",
+  progressBar = TRUE,
+  # The length the toast is shown
+  timeOut = 10000,
+  closeButton = TRUE,
+  newestOnTop = TRUE,
+  preventDuplicates = FALSE,
+  # How long it takes for toast to appear
+  showDuration = 500,
+  # How long it takes for toast to disappear
+  hideDuration = 1000,
+  # How long the toast is shown after hovering over it
+  extendedTimeOut = 2500,
+  showEasing = "linear",
+  hideEasing = "linear",
+  showMethod = "fadeIn",
+  hideMethod = "fadeOut"
+)
+
 
 #' @export
 jsonTraits <-
@@ -154,6 +179,7 @@ traits <- list(
   )
 )
 
+# nolint start: line_length_linter
 #' @export
 roleAttributes <- list(
   "Attacking Midfielder - Attack" = list("Acceleration" = 0, "AerialReach" = 0, "Aggression" = 0, "Agility" = 1, "Anticipation" = 2, "Balance" = 0, "Bravery" = 0, "CommandOfArea" = 0, "Communication" = 0, "Composure" = 1, "Concentration" = 0, "Corners" = 0, "Crossing" = 0, "Decisions" = 2, "Determination" = 0, "Dribbling" = 2, "Eccentricity" = 0, "Finishing" = 1, "FirstTouch" = 2, "Flair" = 2, "FreeKick" = 0, "Handling" = 0, "Heading" = 0, "JumpingReach" = 0, "Kicking" = 0, "Leadership" = 0, "LongShots" = 2, "LongThrows" = 0, "Marking" = 0, "NaturalFitness" = 0, "OffTheBall" = 2, "OneOnOnes" = 0, "Pace" = 0, "Passing" = 2, "PenaltyTaking" = 0, "Positioning" = 0, "TendencyToPunch" = 0, "Reflexes" = 0, "TendencyToRush" = 0, "Stamina" = 0, "Strength" = 0, "Tackling" = 0, "Teamwork" = 0, "Technique" = 2, "Throwing" = 0, "Vision" = 1, "WorkRate" = 0),
@@ -304,6 +330,7 @@ roleAttributes <- list(
   "Wing Back - Defend" = list("Acceleration" = 2, "AerialReach" = 0, "Aggression" = 0, "Agility" = 1, "Anticipation" = 2, "Balance" = 0, "Bravery" = 0, "CommandOfArea" = 0, "Communication" = 0, "Composure" = 0, "Concentration" = 1, "Corners" = 0, "Crossing" = 1, "Decisions" = 1, "Determination" = 0, "Dribbling" = 1, "Eccentricity" = 0, "Finishing" = 0, "FirstTouch" = 1, "Flair" = 0, "FreeKick" = 0, "Handling" = 0, "Heading" = 0, "JumpingReach" = 0, "Kicking" = 0, "Leadership" = 0, "LongShots" = 0, "LongThrows" = 0, "Marking" = 2, "NaturalFitness" = 0, "OffTheBall" = 1, "OneOnOnes" = 0, "Pace" = 1, "Passing" = 1, "PenaltyTaking" = 0, "Positioning" = 2, "TendencyToPunch" = 0, "Reflexes" = 0, "TendencyToRush" = 0, "Stamina" = 2, "Strength" = 0, "Tackling" = 2, "Teamwork" = 2, "Technique" = 1, "Throwing" = 0, "Vision" = 0, "WorkRate" = 2),
   "Wing Back - Support" = list("Acceleration" = 2, "AerialReach" = 0, "Aggression" = 0, "Agility" = 1, "Anticipation" = 1, "Balance" = 0, "Bravery" = 0, "CommandOfArea" = 0, "Communication" = 0, "Composure" = 0, "Concentration" = 1, "Corners" = 0, "Crossing" = 2, "Decisions" = 1, "Determination" = 0, "Dribbling" = 2, "Eccentricity" = 0, "Finishing" = 0, "FirstTouch" = 1, "Flair" = 0, "FreeKick" = 0, "Handling" = 0, "Heading" = 0, "JumpingReach" = 0, "Kicking" = 0, "Leadership" = 0, "LongShots" = 0, "LongThrows" = 0, "Marking" = 2, "NaturalFitness" = 0, "OffTheBall" = 2, "OneOnOnes" = 0, "Pace" = 1, "Passing" = 1, "PenaltyTaking" = 0, "Positioning" = 1, "TendencyToPunch" = 0, "Reflexes" = 0, "TendencyToRush" = 0, "Stamina" = 2, "Strength" = 0, "Tackling" = 2, "Teamwork" = 2, "Technique" = 1, "Throwing" = 0, "Vision" = 0, "WorkRate" = 2)
 )
+# nolint end
 
 #' @export
 hairColor <- c(
@@ -480,6 +507,7 @@ sslNations <-
     "Oman" = "OMN",
     "Pakistan" = "PAK",
     "Palau" = "PLW",
+    "Palestine" = "PLS",
     "Panama" = "PAN",
     "Papua New Guinea" = "PNG",
     "Paraguay" = "PRY",

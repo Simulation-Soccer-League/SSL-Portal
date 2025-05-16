@@ -1,6 +1,5 @@
 box::use(
   cachem,
-  future[multisession, plan],
   shiny,
   shiny.router[route, router_server, router_ui],
   shinyFeedback[useShinyFeedback],
@@ -16,6 +15,7 @@ box::use(
   app/view/index/schedule,
   app/view/index/standings,
   app/view/jobs/filework/export,
+  app/view/jobs/filework/import,
   app/view/player/createPlayer,
   app/view/player/myPlayer,
   app/view/player/playerUpdate,
@@ -52,8 +52,9 @@ ui <- function(id) {
       route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
       route("myPlayer/redistribute", playerUpdate$ui(ns("redist"))),
       route("myPlayer/regress", playerUpdate$ui(ns("regress"))),
-      route("filework/export", export$ui(ns("export"))),
       route("createPlayer", createPlayer$ui(ns("create")))
+      route("filework/export", export$ui(ns("export"))),
+      route("filework/import", import$ui(ns("import")))
     )
   )
 }
@@ -61,9 +62,8 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
-    
     router_server("/")
-    
+
     ## Reactives
     resAuth <- shiny$reactiveValues(
       uid = NULL,
@@ -71,7 +71,7 @@ server <- function(id) {
       usergroup = NULL,
       suspended = 0
     )
-    
+
     # Adds all authentication list to a reactive object
     authOutput <- shiny$reactive({
       shiny$reactiveValuesToList(resAuth)
@@ -82,31 +82,32 @@ server <- function(id) {
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated)
     
     welcome$server("welcome", usergroup = authOutput()$usergroup)
-    
+
     playerSearch$server("search")
-    
+
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
         create = FALSE, player = FALSE, index = FALSE, playerUpdate = FALSE,
         playerReroll = FALSE, playerRedist = FALSE, playerRegress = FALSE,
-        myPlayer = FALSE,
-        academy = FALSE, uploadGame = FALSE,
+        myPlayer = FALSE, import = FALSE, standings = FALSE, 
+        schedule = FALSE, academy = FALSE, 
         bankOverview = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
         tradeProcess = FALSE, playerEdit = FALSE, submitPT = FALSE,
         bankDeposit = FALSE, bankProcess = FALSE,
-        standings = FALSE, schedule = FALSE, managerTeam = FALSE,
+        managerTeam = FALSE,
         assignManager = FALSE, bodoverview = FALSE, export = FALSE,
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
       )
-    
+
     ## Observer that checks the current page and loads the server for the page ONCE
     shiny$observe({
       current <- str_remove(session$clientData$url_hash,
-                            pattern = "#!/")
-      
+        pattern = "#!/"
+      )
+
       if (current == "index/records" & !loadedServer$records) {
         careerRecords$server("records")
         loadedServer$records <- TRUE
@@ -137,6 +138,9 @@ server <- function(id) {
       } else if (current == "filework/export" & !loadedServer$export) {
         export$server("export", auth = authOutput(), updated = updated)
         loadedServer$export <- TRUE
+      } else if (current == "filework/import" & !loadedServer$import) {
+        import$server("import", auth = authOutput(), updated = updated())
+        loadedServer$import <- TRUE
       } else if (current == "myPlayer/update" & !loadedServer$playerUpdate) {
         playerUpdate$server("update", auth = authOutput(), updated = updated, type = "update")
         loadedServer$playerUpdate <- TRUE
@@ -155,6 +159,5 @@ server <- function(id) {
       } 
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
-    
   })
 }
