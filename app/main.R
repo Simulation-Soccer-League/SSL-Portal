@@ -1,6 +1,5 @@
 box::use(
   cachem,
-  future[multisession, plan],
   shiny,
   shiny.router[route, router_server, router_ui],
   shinyFeedback[useShinyFeedback],
@@ -56,9 +55,8 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
-    
     router_server("/")
-    
+
     ## Reactives
     resAuth <- shiny$reactiveValues(
       uid = NULL,
@@ -66,7 +64,7 @@ server <- function(id) {
       usergroup = NULL,
       suspended = 0
     )
-    
+
     # Adds all authentication list to a reactive object
     authOutput <- shiny$reactive({
       shiny$reactiveValuesToList(resAuth)
@@ -75,11 +73,11 @@ server <- function(id) {
     updated <- shiny$reactiveVal(0)
     
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth)
-    
+
     welcome$server("welcome", usergroup = authOutput()$usergroup)
-    
+
     playerSearch$server("search")
-    
+
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
@@ -95,12 +93,13 @@ server <- function(id) {
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
       )
-    
+
     ## Observer that checks the current page and loads the server for the page ONCE
     shiny$observe({
       current <- str_remove(session$clientData$url_hash,
-                            pattern = "#!/")
-      
+        pattern = "#!/"
+      )
+
       if (current == "index/records" & !loadedServer$records) {
         careerRecords$server("records")
         loadedServer$records <- TRUE
@@ -137,6 +136,5 @@ server <- function(id) {
       }
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
-    
   })
 }
