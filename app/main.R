@@ -16,7 +16,9 @@ box::use(
   app/view/index/standings,
   app/view/jobs/filework/export,
   app/view/jobs/filework/import,
-  # app/view/player/myPlayer,
+  app/view/player/createPlayer,
+  app/view/player/myPlayer,
+  app/view/player/playerUpdate,
   app/view/tracker/draftclass,
   app/view/tracker/organization,
   app/view/tracker/player,
@@ -45,7 +47,12 @@ ui <- function(id) {
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/organization", organization$ui(ns("organization"))),
       route("search", playerSearch$ui(ns("search"))),
-      # route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
+      route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
+      route("myPlayer/update", playerUpdate$ui(ns("update"))),
+      route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
+      route("myPlayer/redistribute", playerUpdate$ui(ns("redist"))),
+      route("myPlayer/regress", playerUpdate$ui(ns("regress"))),
+      route("createPlayer", createPlayer$ui(ns("create")))
       route("filework/export", export$ui(ns("export"))),
       route("filework/import", import$ui(ns("import")))
     )
@@ -72,8 +79,8 @@ server <- function(id) {
     
     updated <- shiny$reactiveVal(0)
     
-    navigationBar$server("nav", auth = authOutput, resAuth = resAuth)
-
+    navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated)
+    
     welcome$server("welcome", usergroup = authOutput()$usergroup)
 
     playerSearch$server("search")
@@ -81,7 +88,8 @@ server <- function(id) {
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
-        create = FALSE, player = FALSE, index = FALSE,
+        create = FALSE, player = FALSE, index = FALSE, playerUpdate = FALSE,
+        playerReroll = FALSE, playerRedist = FALSE, playerRegress = FALSE,
         myPlayer = FALSE, import = FALSE, standings = FALSE, 
         schedule = FALSE, academy = FALSE, 
         bankOverview = FALSE, welcome = FALSE, records = FALSE,
@@ -122,18 +130,33 @@ server <- function(id) {
         draftclass$server("draftclass")
         loadedServer$draftclass <- TRUE
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
-         player$server("player")
-         loadedServer$player <- TRUE
+        player$server("player", updated = updated)
+        loadedServer$player <- TRUE
       } else if (current == "myPlayer/" & !loadedServer$myPlayer) {
-        myPlayer$server("myPlayer", auth = authOutput(), updated = updated())
+        myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
         loadedServer$myPlayer <- TRUE
       } else if (current == "filework/export" & !loadedServer$export) {
-        export$server("export", auth = authOutput(), updated = updated())
+        export$server("export", auth = authOutput(), updated = updated)
         loadedServer$export <- TRUE
       } else if (current == "filework/import" & !loadedServer$import) {
         import$server("import", auth = authOutput(), updated = updated())
         loadedServer$import <- TRUE
-      }
+      } else if (current == "myPlayer/update" & !loadedServer$playerUpdate) {
+        playerUpdate$server("update", auth = authOutput(), updated = updated, type = "update")
+        loadedServer$playerUpdate <- TRUE
+      } else if (current == "myPlayer/reroll" & !loadedServer$playerReroll) {
+        playerUpdate$server("reroll", auth = authOutput(), updated = updated, type = "reroll")
+        loadedServer$playerReroll <- TRUE
+      } else if (current == "myPlayer/redistribute" & !loadedServer$playerRedist) {
+        playerUpdate$server("redist", auth = authOutput(), updated = updated, type = "redistribution")
+        loadedServer$playerRedist <- TRUE
+      } else if (current == "myPlayer/regress" & !loadedServer$playerRegress) {
+        playerUpdate$server("regress", auth = authOutput(), updated = updated, type = "regression")
+        loadedServer$playerRegress <- TRUE
+      } else if (current == "createPlayer" & !loadedServer$create) {
+        createPlayer$server("create", auth = authOutput(), updated = updated)
+        loadedServer$create <- TRUE
+      } 
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
   })

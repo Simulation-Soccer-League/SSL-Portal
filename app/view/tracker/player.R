@@ -7,16 +7,16 @@ box::use(
   rlang[is_empty],
   shiny,
   shiny.router[get_query_param],
-  stringr[str_remove, str_split, str_to_upper],
+  stringr[str_detect, str_remove, str_split, str_to_upper],
   tidyr[complete, pivot_longer],
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / api[readAPI],
-  app / logic / db / get[getBankHistory, getPlayer, getTpeHistory, getUpdateHistory],
-  app / logic / ui / reactableHelper[attributeReactable, recordReactable],
-  app / logic / ui / spinner[withSpinnerCustom],
+  app/logic/constant,
+  app/logic/db/api[readAPI],
+  app/logic/db/get[getPlayer, getTpeHistory, getBankHistory, getUpdateHistory],
+  app/logic/ui/reactableHelper[attributeReactable, recordReactable],
+  app/logic/ui/spinner[withSpinnerCustom],
 )
 
 #' @export
@@ -100,17 +100,21 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id) {
+server <- function(id, pid = NULL, updated) {
   shiny$moduleServer(id, function(input, output, session) {
     #### Data ####
     query <- shiny$reactive({
-      pid <- get_query_param("pid")
-
-      if (is.null(pid)) {
-        NULL
+      if(pid |> is.null()){
+        pid <- get_query_param("pid")
+        
+        if (is.null(pid)) {
+          NULL
+        } else {
+          pid |>
+            as.numeric()
+        }
       } else {
-        pid |>
-          as.numeric()
+        pid
       }
     })
 
@@ -118,17 +122,17 @@ server <- function(id) {
       shiny$req(query())
 
       getPlayer(query())
-    }) |>
-      shiny$bindCache(query()) |>
-      shiny$bindEvent(query())
-
+    }) |> 
+      shiny$bindCache(query(), updated()) |> 
+      shiny$bindEvent(query(), updated())
+    
     historyTPE <- shiny$reactive({
       shiny$req(query())
 
       getTpeHistory(query())
-    }) |>
-      shiny$bindCache(query()) |>
-      shiny$bindEvent(query())
+    }) |> 
+      shiny$bindCache(query(), updated()) |> 
+      shiny$bindEvent(query(), updated())
 
     #### Output ####
     output$playerName <- shiny$renderUI({
@@ -138,9 +142,9 @@ server <- function(id) {
         shiny$h2(paste(data$name, paste0("(", data$class, ")"), sep = " ")),
         shiny$h3(paste0("@", data$username))
       )
-    }) |>
-      shiny$bindCache(query())
-
+    }) |> 
+      shiny$bindCache(query(), updated())
+    
     output$clubLogo <- shiny$renderUI({
       data <- playerData()
 
@@ -205,9 +209,9 @@ server <- function(id) {
           )
         )
       )
-    }) |>
-      shiny$bindCache(query())
-
+    }) |> 
+      shiny$bindCache(query(), updated())
+    
     output$matchStatistics <- renderReactable({
       data <- playerData()
 
@@ -238,9 +242,9 @@ server <- function(id) {
       data <- playerData()
 
       attributeReactable(data, session, output)
-    }) |>
-      shiny$bindCache(query())
-
+    }) |> 
+      shiny$bindCache(query(), updated())
+    
     output$tpeProgression <- plotly$renderPlotly({
       tpe <- historyTPE()
 
@@ -359,9 +363,9 @@ server <- function(id) {
             displaylogo = FALSE # Remove Plotly logo
           )
       }
-    }) |>
-      shiny$bindCache(query())
-
+    }) |> 
+      shiny$bindCache(query(), updated())
+    
     output$tpe <- renderReactable({
       data <- playerData()
       tpe <- historyTPE()
@@ -378,9 +382,9 @@ server <- function(id) {
               )
           )
       }
-    }) |>
-      shiny$bindCache(query())
-
+    }) |> 
+      shiny$bindCache(query(), updated())
+    
     output$update <- renderReactable({
       data <- playerData()
       updates <- getUpdateHistory(data$pid)
@@ -396,9 +400,9 @@ server <- function(id) {
               )
           )
       }
-    }) |>
-      shiny$bindCache(query())
-
+    }) |> 
+      shiny$bindCache(query(), updated())
+    
     output$bank <- renderReactable({
       data <- playerData()
       bank <- getBankHistory(data$pid)
@@ -421,7 +425,7 @@ server <- function(id) {
               )
           )
       }
-    }) |>
-      shiny$bindCache(query())
+    }) |> 
+      shiny$bindCache(query(), updated())
   })
 }

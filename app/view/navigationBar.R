@@ -1,22 +1,24 @@
 box::use(
   lubridate[now],
-  shiny.router[route_link],
-  shiny[
-    a, actionButton, actionLink, bindEvent,
-    div, icon, modalButton, modalDialog,
-    moduleServer, NS, observe,
-    passwordInput, removeModal, renderUI,
-    showModal, tagList, tags, textInput,
-    uiOutput, verbatimTextOutput
-  ],
+  methods[is],
+  shiny[moduleServer, NS, tagList, tags, 
+        icon, div, uiOutput, renderUI, 
+        observe, bindEvent, a, actionButton, 
+        p, showModal, removeModal, modalDialog, 
+        modalButton, textInput, passwordInput, 
+        verbatimTextOutput, renderText, reactive,
+        actionLink],
+  shiny.router[change_page, route_link],
   shinyFeedback[feedbackWarning],
   stringr[str_split],
 )
 
+
 box::use(
-  app / logic / db / login[customCheckCredentials, getRefreshToken, setRefreshToken],
-  app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexRow, navMenu, navMenuItem],
+  app/logic/ui/tags[flexCol, flexRow, navMenu, navMenuItem],
+  app/logic/db/login[customCheckCredentials, getRefreshToken, setRefreshToken],
+  app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/player/playerChecks[checkApprovingPlayer, hasActivePlayer],
 )
 
 getNavItems <- function(ns, suffix) {
@@ -148,6 +150,38 @@ ui <- function(id) {
         ),
         div(
           class = "nav-container",
+          tagList(
+            flexRow(
+              tagList(
+                navMenu(
+                  label = "Trackers",
+                  items = list(
+                    # a("Players", href = route_link("tracker/player")),
+                    a("Search", href = route_link("search")),
+                    a("Organizations", href = route_link("tracker/organization")),
+                    a("Draft Class", href = route_link("tracker/draftclass"))
+                  )
+                ),
+                navMenu(
+                  label = "Index",
+                  items = list(
+                    a("Index", href = route_link("index/")),
+                    a("Records", href = route_link("index/records")),
+                    a("Standings", href = route_link("index/standings")),
+                    a("Schedule", href = route_link("index/schedule")),
+                    a("Academy", href = route_link("index/academy"))
+                  )
+                ),
+                uiOutput(ns("jobsNavigation")) |>
+                  withSpinnerCustom(height = 20),
+                navMenu(
+                  div(a("Intro", href = route_link("/")))
+                )
+              )
+            ),
+            uiOutput(ns("yourPlayer")) |>
+              withSpinnerCustom(height = 20)
+          ),
           getNavItems(ns, "Desktop")
         )
       )
@@ -156,7 +190,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, auth, resAuth) {
+server <- function(id, auth, resAuth, updated) {
   moduleServer(id, function(input, output, session) {
     ### Output
     getJobsUi <- function(userGroup) {
@@ -196,24 +230,36 @@ server <- function(id, auth, resAuth) {
           actionLink("Login", icon = icon("user"), inputId = session$ns("login"))
         )
       } else {
-        flexRow(
-          tagList(
+        if(checkApprovingPlayer(auth()$uid)){
+          playerMenu <- "Awating Approval"
+        } else if(!hasActivePlayer(auth()$uid)){
+          playerMenu <- 
+            navMenu(
+              actionLink("Create a Player", icon = icon("square-plus"), inputId = session$ns("create"))
+            )
+        } else {
+          playerMenu <- 
             navMenu(
               label = "Player",
               items = list(
-                a("My Player", href = route_link("myPlayer")),
+                a("My Player", href = route_link("myPlayer/")),
                 a("Bank/Store", href = route_link("bank"))
               ),
               showItems = TRUE
-            ),
+            )
+        }
+        
+        flexRow(
+          tagList(
+            playerMenu,
             navMenu(
               actionLink("Logout", icon = icon("door-open"), inputId = session$ns("logout"))
             )
           )
         )
       }
-    }
-
+    }) |> 
+      bindEvent(auth(), updated())
 
     output$yourPlayerDesktop <- renderUI({
       getPlayerUi(auth()$usergroup)
@@ -238,7 +284,7 @@ server <- function(id, auth, resAuth) {
             str_split(pattern = ",", simplify = TRUE) |>
             as.numeric() |>
             as.list()
-          resAuth$suspended <- refreshtoken$suspended
+          resAuth$suspended <- refreshtoken$suspendposting == 1
           setRefreshToken(uid = refreshtoken$uid, token = refreshtoken$token)
         }
       }
@@ -285,5 +331,11 @@ server <- function(id, auth, resAuth) {
       }
     }) |>
       bindEvent(input$loggingIn)
+    
+    ## Changing page to create
+    observe({
+      change_page("createPlayer")
+    }) |> 
+      bindEvent(input$create)
   })
 }

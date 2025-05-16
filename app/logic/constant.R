@@ -1,5 +1,6 @@
 box::use(
   # magick,
+  dplyr[mutate],
   tibble,
 )
 
@@ -24,7 +25,7 @@ keyColor <- "#276BB0"
 #' @export
 importantColor <- "#60c689"
 #' @export
-traitSep <- " \\\\ "
+traitSep <- " // "
 
 #' @export
 positionalCoord <-
@@ -575,10 +576,35 @@ sslNations <-
 tpeCost <- api$readAPI(url = "https://api.simulationsoccer.com/admin/tpeTable")
 
 #' @export
-attributes <- api$readAPI(url = "https://api.simulationsoccer.com/admin/attributes")
+attributes <- api$readAPI(url = "https://api.simulationsoccer.com/admin/attributes") |> 
+  mutate(
+    group = factor(group, levels = c("Physical", "Mental", "Technical", "Goalkeeper"))
+  )
 
 #' @export
 currentSeason <- api$readAPI(url = "https://api.simulationsoccer.com/admin/getCurrentSeason")
 
 #' @export
 statisticsLegend <- api$readAPI(url = "https://api.simulationsoccer.com/admin/statistics")
+
+#' @export
+sslToastOptions <- 
+  list(
+    positionClass = "toast-bottom-center",
+    progressBar = TRUE,
+    # The length the toast is shown
+    timeOut = 7500,
+    closeButton = TRUE,
+    newestOnTop = TRUE,
+    preventDuplicates = FALSE,
+    # How long it takes for toast to appear
+    showDuration = 500,
+    # How long it takes for toast to disappear
+    hideDuration = 1000,
+    # How long the toast is shown after hovering over it
+    extendedTimeOut = 2500,
+    showEasing = "linear",
+    hideEasing = "linear",
+    showMethod = "fadeIn",
+    hideMethod = "fadeOut"
+  )
