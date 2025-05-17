@@ -57,3 +57,29 @@ logReroll <- function(pid){
     )
   )
 }
+
+#' @export
+logTPE <- function(uid, pid, tpe){
+  portalQuery(
+    # print(
+    paste(
+      "INSERT INTO tpehistory ( uid, pid, time, source, tpe )
+                VALUES
+                    ",
+      paste(
+        "(",
+        paste(
+          uid,
+          pid,
+          paste0("'", now() |> with_tz("US/Pacific") |> as.numeric(), "'"),
+          paste0("'", tpe$source, "'"),
+          tpe$tpe,
+          sep = ","
+        ),
+        ")",
+        collapse = ","
+      ),
+      ";"
+    )
+  )
+}

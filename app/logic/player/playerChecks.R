@@ -1,5 +1,6 @@
 box::use(
   dplyr,
+  lubridate[as_date, floor_date, force_tz, now, with_tz],
   purrr[is_empty],
   reactable[reactable],
   rlang[`!!`, `:=`],
@@ -361,6 +362,46 @@ checkApprovingPlayer <- function(uid){
   portalQuery(
     paste(
       "SELECT * from playerdata WHERE uid = ", uid, "AND status_p = -1;"
+    )
+  ) |> 
+    nrow() > 0
+}
+
+#' @export
+completedAC <- function(pid){
+  weekStart <- 
+    now() |> 
+    with_tz("US/Pacific") |> 
+    floor_date("week", week_start = "Monday") |> 
+    as.numeric()
+  
+  portalQuery(
+    paste(
+      "SELECT * 
+      FROM tpehistory
+      WHERE pid = ", pid, 
+      "AND source LIKE '%Activity Check' 
+      AND time > ", weekStart
+    )
+  ) |> 
+    nrow() > 0
+}
+
+#' @export
+completedTC <- function(pid){
+  start <- 
+    constant$currentSeason$startDate |> 
+    as_date() |> 
+    force_tz("US/Pacific") |> 
+    as.numeric()
+    
+  portalQuery(
+    paste(
+      "SELECT * 
+      FROM tpehistory
+      WHERE pid = ", pid, 
+      "AND source LIKE '%Training Camp' 
+      AND time > ", start
     )
   ) |> 
     nrow() > 0

@@ -21,9 +21,11 @@ yellow <- "#F5D17E"
 #' @export
 green <- "#66B38C"
 #' @export
+blue <- sslBlueD
+#' @export
 keyColor <- "#276BB0"
 #' @export
-importantColor <- "#60c689"
+importantColor <- green
 #' @export
 traitSep <- " // "
 

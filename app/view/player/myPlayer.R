@@ -3,15 +3,26 @@ box::use(
   dplyr,
   rlang[`!!!`],
   shiny,
+  shinyFeedback[showToast],
+  shinyjs[disable],
   shiny.router[change_page],
+  stringr[str_extract_all],
   tippy[tippy],
 )
 
 box::use(
   app/logic/constant,
-  app/logic/db/login[isNonActiveForumUser],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/player/playerChecks[eligibleRedist, eligibleReroll, hasActivePlayer],
+  app/logic/db/logFunctions[logTPE],
+  app/logic/db/login[isNonActiveForumUser],
+  app/logic/db/updateFunctions[updateTPE],
+  app/logic/player/playerChecks[
+    completedAC,
+    completedTC, 
+    eligibleRedist, 
+    eligibleReroll, 
+    hasActivePlayer
+  ],
   app/view/tracker/player,
 )
 
@@ -43,6 +54,46 @@ server <- function(id, auth, updated) {
       #### OUTPUT UI ####
       output$ui <- shiny$renderUI({
         buttonList <- list(
+          if (completedAC(playerData()$pid)){
+            shiny$actionButton(
+              ns("AC"),
+              label = 
+                tippy(
+                  "Activity Check", 
+                  "You have already completed this week's Activity Check.", 
+                  theme = "ssl", 
+                  arrow = TRUE
+                ),
+              disabled = TRUE
+            )
+          } else {
+            shiny$actionButton(
+              ns("AC"),
+              label = 
+                tippy(
+                  "Activity Check", 
+                  "Click here to claim your weekly Activity Check TPE", 
+                  theme = "ssl", 
+                  arrow = TRUE
+                ),
+              style = paste0("background: ", constant$blue)
+            )
+          },
+          if (completedTC(playerData()$pid)){
+            NULL
+          } else {
+            shiny$actionButton(
+              ns("TC"),
+              label = 
+                tippy(
+                  "Training Camp", 
+                  "Click here to claim your seasonal Training Camp TPE", 
+                  theme = "ssl", 
+                  arrow = TRUE
+                ),
+              style = paste0("background: ", constant$blue)
+            )
+          }, 
           if (bankedTPE() < 0) {
             shiny$actionButton(
               ns("Update"), 
@@ -77,6 +128,7 @@ server <- function(id, auth, updated) {
               label = "Redistribute"
             )
           } else {
+            NULL
           },
           if (eligibleReroll(playerData())){
             shiny$actionButton(
@@ -84,12 +136,13 @@ server <- function(id, auth, updated) {
               label = "Reroll"
             )
           } else {
+            NULL
           }
         )
         
         shiny$tagList(
           bslib$layout_column_wrap(
-            width = 1 / length(buttonList),
+            width = 1 / min(4, length(buttonList)),
             !!!unname(buttonList)
           ),
           shiny$br(),
@@ -132,6 +185,63 @@ server <- function(id, auth, updated) {
         change_page("myPlayer/regress")
       }) |> 
         shiny$bindEvent(input$Regress)
+      
+      shiny$observe({
+        tpe <- 
+          dplyr$tibble(
+            source = "Activity Check",
+            tpe = 6
+          )
+        
+        logTPE(uid = auth$uid, pid = playerData()$pid, tpe = tpe)
+        
+        disable(ns("AC"))
+        
+        updateTPE(pid = playerData()$pid, tpe = tpe)
+        
+        updated(updated() + 1)
+        
+        showToast(
+          .options = constant$sslToastOptions,
+          "success",
+          "You have successfully claimed your Activity Check for the week!"
+        )
+      }) |> 
+        shiny$bindEvent(input$AC)
+      
+      shiny$observe({
+        class <- playerData()$class |> 
+          str_extract_all(pattern = "[0-9]+") |> 
+          as.numeric()
+        
+        age <- constant$currentSeason$season - class
+        
+        tpe <- 
+          dplyr$tibble(
+            source = paste0("S", constant$currentSeason$season, " Training Camp"),
+            tpe = dplyr$case_when(
+              age <= 1 ~ 24,
+              age <= 4 ~ 18,
+              age <= 7 ~ 12,
+              TRUE     ~  6
+            )
+          )
+        
+        logTPE(uid = auth$uid, pid = playerData()$pid, tpe = tpe)
+        
+        disable(ns("TC"))
+        
+        updateTPE(pid = playerData()$pid, tpe = tpe)
+        
+        updated(updated() + 1)
+        
+        showToast(
+          .options = constant$sslToastOptions,
+          "success",
+          "You have successfully claimed your Activity Check for the week!"
+        )
+      }) |> 
+        shiny$bindEvent(input$TC)
     }
   })
 }

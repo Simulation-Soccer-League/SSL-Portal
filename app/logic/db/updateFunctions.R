@@ -27,3 +27,14 @@ updatePlayerData <- function(pid, updates, bankedTPE = NULL){
     )
   )
 }
+
+#' @export
+updateTPE <- function(pid, tpe){
+  portalQuery(
+    paste(
+      "UPDATE playerdata SET tpe = tpe + ", tpe$tpe, 
+      ", tpebank = tpebank + ", tpe$tpe,
+      "WHERE pid =", pid
+    )
+  )
+}
