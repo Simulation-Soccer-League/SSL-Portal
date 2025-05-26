@@ -5,6 +5,7 @@
   --ssl-blue-l: color-mix(in srgb, var(--ssl-blue) 95%, white);
   --ssl-blue-d: color-mix(in srgb, var(--ssl-blue) 95%, black);
   --ssl-gold: #bd9523;
+  --ssl-accent-d: #1c1c1c;
   --lighter-text: hsl(var(--color), 100%);
   --darker-text: hsl(var(--color), 0%);
   --key: #276bb0;
@@ -961,5 +962,45 @@ $navbar-items-width: 112px;
 
   @media (max-width: 767px) {
     width: 100%;
+  }
+}
+
+.numeric-stepper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .numeric-stepper-button {
+    background-color: var(--ssl-accent-d);
+    padding: 8px;
+    border: 1px solid #cccccc;
+  }
+
+  .numeric-stepper-button:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+
+  .numeric-stepper-button:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  .numeric-stepper-button:hover {
+    background-color: var(--ssl-blue-l);
+  }
+
+  .numeric-stepper-button:active {
+    background-color: var(--ssl-blue-d);
+  }
+
+  .numeric-stepper-value {
+    background-color: var(--ssl-accent-d);
+    padding: 8px 0;
+    width: 32px;
+    border-top: 1px solid #cccccc;
+    border-bottom: 1px solid #cccccc;
+    font-weight: 700;
+    text-align: center;
   }
 }

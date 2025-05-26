@@ -154,3 +154,26 @@ navMenuItem <- function(cont, label = "", subItems = list()) {
     cont
   }
 }
+
+#' @export
+numericStepper <- function(value, min = 5, max = 20, step = 1, onChange = "") {
+  tag("div", varArgs = list(
+    class = "numeric-stepper",
+    div(
+      class = "numeric-stepper-button",
+      role = "button",
+      onclick = paste0("this.nextElementSibling.textContent = Math.max(", min, ", parseInt(this.nextElementSibling.textContent, 10) - ", step, ");", onChange),
+      icon("minus")
+    ),
+    div(
+      class = "numeric-stepper-value",
+      value
+    ),
+    div(
+      class = "numeric-stepper-button",
+      role = "button",
+      onclick = paste0("this.previousElementSibling.textContent = Math.min(", max, ", parseInt(this.previousElementSibling.textContent, 10) + ", step, ");", onChange),
+      icon("plus")
+    )
+  ))
+}
