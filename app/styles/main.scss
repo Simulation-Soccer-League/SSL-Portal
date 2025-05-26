@@ -969,11 +969,12 @@ $navbar-items-width: 112px;
   display: flex;
   flex-direction: row;
   align-items: center;
+  color: #e1e1e1;
 
   .numeric-stepper-button {
     background-color: var(--ssl-accent-d);
-    padding: 8px;
-    border: 1px solid #cccccc;
+    padding: 4px;
+    border: 1px solid #6c6c6c;
   }
 
   .numeric-stepper-button:first-child {
@@ -996,10 +997,11 @@ $navbar-items-width: 112px;
 
   .numeric-stepper-value {
     background-color: var(--ssl-accent-d);
-    padding: 8px 0;
+    color: var(--ssl-gold);
+    padding: 4px 0;
     width: 32px;
-    border-top: 1px solid #cccccc;
-    border-bottom: 1px solid #cccccc;
+    border-top: 1px solid #6c6c6c;
+    border-bottom: 1px solid #6c6c6c;
     font-weight: 700;
     text-align: center;
   }
