@@ -162,7 +162,14 @@ numericStepper <- function(value, min = 5, max = 20, step = 1, onChange = "") {
     div(
       class = "numeric-stepper-button",
       role = "button",
-      onclick = paste0("this.nextElementSibling.textContent = Math.max(", min, ", parseInt(this.nextElementSibling.textContent, 10) - ", step, ");", onChange),
+      onclick = paste0("
+        this.nextElementSibling.textContent = Math.max(",
+        min,
+        ", parseInt(this.nextElementSibling.textContent, 10) - ",
+        step,
+        ");",
+        onChange
+      ),
       icon("minus")
     ),
     div(
@@ -172,7 +179,14 @@ numericStepper <- function(value, min = 5, max = 20, step = 1, onChange = "") {
     div(
       class = "numeric-stepper-button",
       role = "button",
-      onclick = paste0("this.previousElementSibling.textContent = Math.min(", max, ", parseInt(this.previousElementSibling.textContent, 10) + ", step, ");", onChange),
+      onclick = paste0("
+        this.previousElementSibling.textContent = Math.min(",
+        max,
+        ", parseInt(this.previousElementSibling.textContent, 10) + ",
+        step,
+        ");",
+        onChange
+      ),
       icon("plus")
     )
   ))
