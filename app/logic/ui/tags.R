@@ -164,9 +164,9 @@ numericStepper <- function(inputId, value, min = 5, max = 20, step = 1, onChange
       style = if (disabled) "visibility: hidden;" else "",
       role = "button",
       onclick = paste0("
-        input = document.querySelector('input[id=", inputId, "]');
-        currentValue = parseInt(input.value, 10);
-        newValue = Math.max(", min, ", currentValue - ", step, ");",
+        input = document.querySelector('input[id=", inputId, "]');",
+        "currentValue = parseInt(input.value, 10);",
+        "newValue = Math.max(", min, ", currentValue - ", step, ");",
         "this.nextElementSibling.textContent = newValue;",
         "input.value = newValue; input.dispatchEvent(new Event('change'));",
         onChange
@@ -183,8 +183,8 @@ numericStepper <- function(inputId, value, min = 5, max = 20, step = 1, onChange
       role = "button",
       onclick = paste0("
         input = document.querySelector('input[id=", inputId, "]');",
-        "currentValue = parseInt(input.value, 10);
-        newValue = Math.min(", max, ", currentValue + ", step, ");",
+        "currentValue = parseInt(input.value, 10);",
+        "newValue = Math.min(", max, ", currentValue + ", step, ");",
         "this.previousElementSibling.textContent = newValue;",
         "input.value = newValue; input.dispatchEvent(new Event('change'));",
         onChange

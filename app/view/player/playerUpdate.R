@@ -186,20 +186,12 @@ server <- function(id, auth, updated, type) {
                           numericStepper(
                             inputId = ns(currentAtt |> str_remove_all(" ")),
                             value = value,
+                            min = dplyr$if_else(type == "update", value, 5),
+                            max = dplyr$if_else(type == "regression", value, 20),
                           )
                         )
                       ),
-                      shiny$div(
-                        class = "attribute-editor-footer",
-                        shiny$tagList(
-                          shiny$span(
-                            "Total: 70"
-                          ),
-                          shiny$span(
-                            "Next: 18"
-                          )
-                        )
-                      )
+                      shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" ")))),
                     )
                   }
                 }
@@ -217,17 +209,24 @@ server <- function(id, auth, updated, type) {
               if(attribute %in% c("Natural Fitness", "Stamina")){
                 
               } else {
-                paste0(
-                  "Next: ", 
-                  constant$tpeCost |> 
-                    dplyr$filter(value == curValue + 1) |> 
-                    dplyr$select(sinCost) |> unlist() |> 
-                    replace_na(0),
-                  " Total Cost: ",
-                  constant$tpeCost |> 
-                    dplyr$filter(value == curValue) |> 
-                    dplyr$select(cumCost) |> unlist() |> 
-                    replace_na(0)
+                shiny$div(
+                  class = "attribute-editor-footer",
+                  shiny$tagList(
+                    shiny$span(
+                      "Total: ",
+                      constant$tpeCost |> 
+                        dplyr$filter(value == curValue) |> 
+                        dplyr$select(cumCost) |> unlist() |> 
+                        replace_na(0)
+                    ),
+                    shiny$span(
+                      "Next: ",
+                      constant$tpeCost |> 
+                        dplyr$filter(value == curValue + 1) |> 
+                        dplyr$select(sinCost) |> unlist() |> 
+                        replace_na(0)
+                    )
+                  )
                 )
               }
             })
@@ -769,44 +768,6 @@ server <- function(id, auth, updated, type) {
           input$confirmUpdate,
           ignoreInit = TRUE
         )
-      
-      ## Fixes inputs outside of allowed ranges
-      lapply(
-        X = processedData()$Attribute |> str_remove_all(" "),
-        FUN = function(att){
-          shiny$observe({
-            currentVal <- input[[att]]
-            
-            shiny$req(currentVal)
-            
-            value <- 
-              processedData() |> 
-              dplyr$filter((Attribute |> str_remove_all(" ")) == att) |> 
-              dplyr$select(Value) |> 
-              unlist()
-            
-            # Determine the dynamic min and max values.
-            minVal <- dplyr$if_else(type == "update", value, 5)
-            maxVal <- dplyr$if_else(type == "regression", value, 20)
-            
-            # Constrain the input value within dynamic boundaries.
-            adjustedVal <- min(max(currentVal, minVal), maxVal)
-            
-            # Update the numeric input only if the current value is out of bounds.
-            if (currentVal != adjustedVal) {
-              shiny$updateNumericInput(
-                session,
-                inputId = att,
-                value = adjustedVal
-              )
-            }
-          }) |> 
-            shiny$bindEvent(
-              input[[att]],
-              ignoreInit = TRUE
-            )
-        }
-      )
       
       lapply(
         X = c("weight", "height"),
