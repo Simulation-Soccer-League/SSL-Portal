@@ -153,22 +153,22 @@ server <- function(id, auth, updated, type) {
                     unlist()
                   
                   if(currentAtt %in% c("Natural Fitness", "Stamina")){
-                    shiny$tagList(
-                      shiny$numericInput(
-                        inputId = ns(currentAtt |> str_remove_all(" ")),
-                        label = 
-                          tippy(
-                            currentAtt,
-                            constant$attributes |> 
-                              dplyr$filter(attribute == currentAtt) |> 
-                              dplyr$select(explanation),
-                            theme = "ssl"
+                    shiny$div(
+                      class = "player-attribute-editor",
+                      shiny$div(
+                        class = "attribute-editor-header",
+                        shiny$tagList(
+                          shiny$div(
+                            shiny$tagList(
+                              shiny$span(style = "font-weight: 700;", currentAtt),
+                            )
                           ),
-                        value = 20,
-                        max = 20,
-                        min = 20
-                      ) |> 
-                        shinyjs$disabled()
+                          numericStepper(
+                            value = 20,
+                            disabled = TRUE
+                          )
+                        )
+                      )
                     )
                   } else {
                     shiny$div(
