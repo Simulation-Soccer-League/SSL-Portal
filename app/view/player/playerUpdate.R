@@ -26,7 +26,7 @@ box::use(
     eligibleReroll, 
     updateSummary
   ],
-  app/logic/ui/tags[numericStepper],
+  app/logic/ui/tags[flexCol, flexRow, numericStepper],
   app/view/tracker/player,
 )
 
@@ -143,58 +143,61 @@ server <- function(id, auth, updated, type) {
                   dplyr$mutate(Value = 5)
               }
 
-              lapply(
-                temp$Attribute,
-                FUN = function(currentAtt){
-                  value <- 
-                    temp |> 
-                    dplyr$filter(Attribute == currentAtt) |> 
-                    dplyr$select(Value) |> 
-                    unlist()
-                  
-                  if(currentAtt %in% c("Natural Fitness", "Stamina")){
-                    shiny$div(
-                      class = "player-attribute-editor",
+              flexCol(
+                style = "gap: 12px;",
+                lapply(
+                  temp$Attribute,
+                  FUN = function(currentAtt){
+                    value <- 
+                      temp |> 
+                      dplyr$filter(Attribute == currentAtt) |> 
+                      dplyr$select(Value) |> 
+                      unlist()
+                    
+                    if(currentAtt %in% c("Natural Fitness", "Stamina")){
                       shiny$div(
-                        class = "attribute-editor-header",
-                        shiny$tagList(
-                          shiny$div(
-                            shiny$tagList(
-                              shiny$span(style = "font-weight: 700;", currentAtt),
+                        class = "player-attribute-editor",
+                        shiny$div(
+                          class = "attribute-editor-header",
+                          shiny$tagList(
+                            shiny$div(
+                              shiny$tagList(
+                                shiny$span(style = "font-weight: 700;", currentAtt),
+                              )
+                            ),
+                            numericStepper(
+                              inputId = ns(currentAtt |> str_remove_all(" ")),
+                              value = 20,
+                              disabled = TRUE
                             )
-                          ),
-                          numericStepper(
-                            inputId = ns(currentAtt |> str_remove_all(" ")),
-                            value = 20,
-                            disabled = TRUE
                           )
                         )
                       )
-                    )
-                  } else {
-                    shiny$div(
-                      class = "player-attribute-editor",
+                    } else {
                       shiny$div(
-                        class = "attribute-editor-header",
-                        shiny$tagList(
-                          shiny$div(
-                            shiny$tagList(
-                              shiny$icon("circle-exclamation", style = "color: var(--important);"),
-                              shiny$span(style = "font-weight: 700;", currentAtt),
+                        class = "player-attribute-editor",
+                        shiny$div(
+                          class = "attribute-editor-header",
+                          shiny$tagList(
+                            shiny$div(
+                              shiny$tagList(
+                                shiny$icon("circle-exclamation", style = "color: var(--important);"),
+                                shiny$span(style = "font-weight: 700;", currentAtt),
+                              )
+                            ),
+                            numericStepper(
+                              inputId = ns(currentAtt |> str_remove_all(" ")),
+                              value = value,
+                              min = dplyr$if_else(type == "update", value, 5),
+                              max = dplyr$if_else(type == "regression", value, 20),
                             )
-                          ),
-                          numericStepper(
-                            inputId = ns(currentAtt |> str_remove_all(" ")),
-                            value = value,
-                            min = dplyr$if_else(type == "update", value, 5),
-                            max = dplyr$if_else(type == "regression", value, 20),
                           )
-                        )
-                      ),
-                      shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" ")))),
-                    )
+                        ),
+                        shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" ")))),
+                      )
+                    }
                   }
-                }
+                )
               )
             })
           }
@@ -237,15 +240,20 @@ server <- function(id, auth, updated, type) {
           map(
             .x = groups,
             .f = function(chosengroup){
-              shiny$uiOutput(ns(chosengroup))
+              flexCol(
+                style = "height: fit-content; border: 1px solid white; border-radius: 4px; padding: 12px;",
+                shiny$tagList(
+                  shiny$span(paste0(chosengroup, " Attributes")),
+                  shiny$uiOutput(ns(chosengroup))
+                )
+              )
             }
           )
         
-        bslib$layout_column_wrap(
-          width = 1 / length(uiList),
-          !!!unname(uiList)
+        flexRow(
+          style = "gap: 24px; margin-bottom: 100px;",
+          uiList
         )
-        
       })
       
       output$playerInfo <- shiny$renderUI({

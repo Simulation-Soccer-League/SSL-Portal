@@ -1011,8 +1011,7 @@ $navbar-items-width: 112px;
 
 .player-attribute-editor {
   background-color: var(--ssl-accent-d);
-  max-width: 280px;
-  min-width: 220px;
+  width: 280px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1025,7 +1024,7 @@ $navbar-items-width: 112px;
 
 .attribute-editor-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 }
 
