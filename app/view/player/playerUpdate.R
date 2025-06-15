@@ -164,6 +164,7 @@ server <- function(id, auth, updated, type) {
                             )
                           ),
                           numericStepper(
+                            inputId = ns(currentAtt |> str_remove_all(" ")),
                             value = 20,
                             disabled = TRUE
                           )
@@ -183,6 +184,7 @@ server <- function(id, auth, updated, type) {
                             )
                           ),
                           numericStepper(
+                            inputId = ns(currentAtt |> str_remove_all(" ")),
                             value = value,
                           )
                         )
@@ -215,19 +217,17 @@ server <- function(id, auth, updated, type) {
               if(attribute %in% c("Natural Fitness", "Stamina")){
                 
               } else {
-                shiny$p(
-                  paste0(
-                    "Next: ", 
-                    constant$tpeCost |> 
-                      dplyr$filter(value == curValue + 1) |> 
-                      dplyr$select(sinCost) |> unlist() |> 
-                      replace_na(0),
-                    " Total Cost: ",
-                    constant$tpeCost |> 
-                      dplyr$filter(value == curValue) |> 
-                      dplyr$select(cumCost) |> unlist() |> 
-                      replace_na(0)
-                  )
+                paste0(
+                  "Next: ", 
+                  constant$tpeCost |> 
+                    dplyr$filter(value == curValue + 1) |> 
+                    dplyr$select(sinCost) |> unlist() |> 
+                    replace_na(0),
+                  " Total Cost: ",
+                  constant$tpeCost |> 
+                    dplyr$filter(value == curValue) |> 
+                    dplyr$select(cumCost) |> unlist() |> 
+                    replace_na(0)
                 )
               }
             })
