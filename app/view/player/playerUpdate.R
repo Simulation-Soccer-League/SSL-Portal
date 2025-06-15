@@ -171,51 +171,33 @@ server <- function(id, auth, updated, type) {
                         shinyjs$disabled()
                     )
                   } else {
-                    # TODO: Create classes for all styling
-                    shiny$tagList(
+                    shiny$div(
+                      class = "player-attribute-editor",
                       shiny$div(
-                        style = "background-color: var(--ssl-accent-d); max-width: 280px; min-width: 220px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #6c6c6c; padding: 12px; border-radius: 4px; color: #e1e1e1;",
-                        shiny$div(
-                          style = "display: flex; align-items: flex-start; justify-content: space-between;",
-                          shiny$tagList(
-                            shiny$div(
-                              shiny$tagList(
-                                shiny$icon("circle-exclamation", style = "color: var(--important);"),
-                                shiny$span(style = "font-weight: 700;", currentAtt),
-                              )
-                            ),
-                            numericStepper(
-                              value = value,
+                        class = "attribute-editor-header",
+                        shiny$tagList(
+                          shiny$div(
+                            shiny$tagList(
+                              shiny$icon("circle-exclamation", style = "color: var(--important);"),
+                              shiny$span(style = "font-weight: 700;", currentAtt),
                             )
-                          )
-                        ),
-                        shiny$div(
-                          style = "display: flex; align-items: center; justify-content: space-between; padding-right: 12px;",
-                          shiny$tagList(
-                            shiny$span(
-                              "Total: 70"
-                            ),
-                            shiny$span(
-                              "Next: 18"
-                            )
+                          ),
+                          numericStepper(
+                            value = value,
                           )
                         )
                       ),
-                      # shiny$numericInput(
-                      #   inputId = ns(currentAtt |> str_remove_all(" ")),
-                      #   label = 
-                      #     tippy(
-                      #       currentAtt,
-                      #       constant$attributes |> 
-                      #         dplyr$filter(attribute == currentAtt) |> 
-                      #         dplyr$select(explanation),
-                      #       theme = "ssl"
-                      #     ),
-                      #   value = dplyr$if_else(type == "reroll", 5, value),
-                      #   min = dplyr$if_else(type == "update", value, 5),
-                      #   max = dplyr$if_else(type == "regression", value, 20)
-                      # ),
-                      # shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" "))))
+                      shiny$div(
+                        class = "attribute-editor-footer",
+                        shiny$tagList(
+                          shiny$span(
+                            "Total: 70"
+                          ),
+                          shiny$span(
+                            "Next: 18"
+                          )
+                        )
+                      )
                     )
                   }
                 }

@@ -1006,3 +1006,30 @@ $navbar-items-width: 112px;
     text-align: center;
   }
 }
+
+.player-attribute-editor {
+  background-color: var(--ssl-accent-d);
+  max-width: 280px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #6c6c6c;
+  padding: 12px;
+  border-radius: 4px;
+  color: #e1e1e1;
+}
+
+
+.attribute-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.attribute-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 12px;
+}

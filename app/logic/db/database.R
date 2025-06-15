@@ -5,17 +5,17 @@ box::use(
   RMySQL,
 )
 
-dbHost <- Sys.getenv("HOST")
-dbPort <- Sys.getenv("PORT") |> as.integer()
-dbUser <- Sys.getenv("DBUSER")
-dbPassword <- Sys.getenv("DBPASSWORD")
+dbHost <- "127.0.0.1"
+dbPort <- 3306
+dbUser <- "root"
+dbPassword <- "password"
 
 sqlQuery <- function(query, db) {
   tryCatch({
     con <-
       DBI$dbConnect(
         RMySQL$MySQL(),
-        dbname = Sys.getenv(db),
+        dbname = db,
         host = dbHost,
         port = dbPort,
         user = dbUser,
@@ -43,23 +43,23 @@ sqlQuery <- function(query, db) {
 #' Function for queries to mybb
 #' @export
 mybbQuery <- function(query) {
-  sqlQuery(query, "mybb")
+  sqlQuery(query, "mybbdb")
 }
 
 #' Function for queries to portal
 #' @export
 portalQuery <- function(query) {
-  sqlQuery(query, "portal")
+  sqlQuery(query, "portaldb")
 }
 
 #' Function for queries to index
 #' @export
 indexQuery <- function(query) {
-  sqlQuery(query, "index")
+  sqlQuery(query, "indexdb")
 }
 
 #' Function for queries to budget
 #' @export
 budgetQuery <- function(query) {
-  sqlQuery(query, "budget")
+  sqlQuery(query, "budgetdb")
 }
