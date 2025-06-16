@@ -181,7 +181,11 @@ server <- function(id, auth, updated, type) {
                           shiny$tagList(
                             shiny$div(
                               shiny$tagList(
-                                shiny$icon("circle-exclamation", style = "color: var(--important);"),
+                                if (constant$roleAttributes[[input$selectedRole]][[currentAtt]] == 1) {
+                                  shiny$icon("circle-exclamation", style = "color: var(--important);")
+                                } else if (constant$roleAttributes[[input$selectedRole]][[currentAtt]] == 2) {
+                                  shiny$icon("circle-exclamation", style = "color: var(--key);")
+                                },
                                 shiny$span(style = "font-weight: 700;", currentAtt),
                               )
                             ),
@@ -947,39 +951,6 @@ server <- function(id, auth, updated, type) {
           ignoreInit = TRUE,
           ignoreNULL = FALSE
         )
-      
-      ## Highlights different attributes based on selected role
-      shiny$observe({
-        lapply(
-          X = constant$attributes$attribute |> str_remove_all(" "),
-          FUN = function(att){
-            if(constant$roleAttributes[[input$selectedRole]][[att]] == 1){
-              feedback(
-                session = session,
-                show = TRUE,
-                inputId = att,
-                color = constant$importantColor,
-                icon = shiny$icon("exclamation-sign", lib = "glyphicon")
-              )
-            } else if(constant$roleAttributes[[input$selectedRole]][[att]] == 2){
-              feedback(
-                session = session,
-                show = TRUE,
-                inputId = att,
-                color = constant$keyColor,
-                icon = shiny$icon("exclamation-sign", lib = "glyphicon")
-              )
-            } else {
-              hideFeedback(
-                session = session,
-                inputId = att
-              )
-            }
-          }
-        )
-      }) |> 
-        shiny$bindEvent(input$selectedRole)
-      
     }
   })
 }
