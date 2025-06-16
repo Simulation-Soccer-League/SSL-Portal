@@ -156,7 +156,15 @@ navMenuItem <- function(cont, label = "", subItems = list()) {
 }
 
 #' @export
-numericStepper <- function(inputId, value, min = 5, max = 20, step = 1, onChange = "", disabled = FALSE) {
+numericStepper <- function(
+  inputId,
+  value,
+  min = 5,
+  max = 20,
+  step = 1,
+  onChange = "",
+  disabled = FALSE
+) {
   tag("div", varArgs = list(
     class = "numeric-stepper",
     div(
@@ -170,7 +178,8 @@ numericStepper <- function(inputId, value, min = 5, max = 20, step = 1, onChange
         "this.nextElementSibling.textContent = newValue;",
         "input.value = newValue; input.dispatchEvent(new Event('change'));",
         "if (newValue <= ", min, ") { this.children[0].style.opacity = 0.2; }",
-        "else if (newValue < ", max, ") { document.querySelector('#", paste0(inputId, "-plus"), "').style.opacity = 1; }",
+        "else if (newValue < ", max, ") { document.querySelector('#",
+        paste0(inputId, "-plus"), "').style.opacity = 1; }",
         onChange
       ),
       icon(
@@ -194,7 +203,8 @@ numericStepper <- function(inputId, value, min = 5, max = 20, step = 1, onChange
         "this.previousElementSibling.textContent = newValue;",
         "input.value = newValue; input.dispatchEvent(new Event('change'));",
         "if (newValue >= ", max, ") { this.children[0].style.opacity = 0.2; }",
-        "else if (newValue > ", min, ") { document.querySelector('#", paste0(inputId, "-minus"), "').style.opacity = 1; }",
+        "else if (newValue > ", min, ") { document.querySelector('#",
+        paste0(inputId, "-minus"), "').style.opacity = 1; }",
         onChange
       ),
       icon(
@@ -213,4 +223,5 @@ numericStepper <- function(inputId, value, min = 5, max = 20, step = 1, onChange
       )
     )
   )
-)}
+)
+}
