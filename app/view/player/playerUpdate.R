@@ -228,10 +228,10 @@ server <- function(id, auth, updated, type) {
                     ),
                     shiny$span(
                       "Next: ",
-                      constant$tpeCost |> 
-                        dplyr$filter(value == curValue + 1) |> 
-                        dplyr$select(sinCost) |> unlist() |> 
-                        replace_na(0)
+                        next_cost <- constant$tpeCost |> 
+                          dplyr$filter(value == curValue + 1) |> 
+                          dplyr$select(sinCost) |> unlist(),
+                        if (length(next_cost) == 0 || is.na(next_cost)) "--"
                     )
                   )
                 )
