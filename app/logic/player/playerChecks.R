@@ -152,9 +152,14 @@ checkDuplicatedNames <- function(first, last){
   last <- str_trim(last)
   
   portalQuery(
-    paste(
-      "SELECT * FROM playerdata WHERE first = '", first, "' AND last = '", last, "';", sep = ""
-    )
+    query = "
+      SELECT *
+      FROM playerdata
+      WHERE first = ?first
+        AND last  = ?last;
+    ",
+    first = first,
+    last  = last
   ) |> 
     nrow() > 0
 }
@@ -259,22 +264,18 @@ submitBuild <- function(input, bankedTPE, userinfo){
     tibble(
       uid = userinfo$uid,
       status_p = -1,
-      first = str_trim(input$firstName) |> 
-        str_replace_all("'", "\\\\'"), # Remember to add replace ' with \\\\' before SQL
-      last = str_trim(input$lastName) |> 
-        str_replace_all("'", "\\\\'"),
+      first = str_trim(input$firstName),
+      last = str_trim(input$lastName),
       tpe = 350,
       tpebank = bankedTPE(),
-      birthplace = input$birthplace |> 
-        str_replace_all("'", "\\\\'"),
+      birthplace = input$birthplace,
       nationality = input$nationality,
       height = input$height,
       weight = input$weight,
       hair_color = input$hairColor,
       hair_length = input$hairLength,
       skintone = input$skintone,
-      render = input$render |> 
-        str_replace_all("'", "\\\\'"),
+      render = input$render,
       `left foot` = dplyr$if_else(input$footedness == "Right", 10, 20),
       `right foot` = dplyr$if_else(input$footedness == "Right", 20, 10),
     )
@@ -338,71 +339,83 @@ submitBuild <- function(input, bankedTPE, userinfo){
     )
   
   # Insert to database
-  portalQuery(
-    paste(
-      "INSERT INTO playerdata (", paste("`", colnames(summary), "`", sep = "", collapse = ", "), ")
-      VALUES",
-      paste(
-        "(",
-        paste(
-          summary[1, ],
-          collapse = ","
-        ),
-        ")",
-        collapse = ","
-      ),
-      ";"
-    )
+  # grab field names and the first row of data
+  fields <- colnames(summary)
+  values <- as.list(summary[1, , drop = FALSE])
+  names(values) <- fields
+  
+  # quote the column identifiers for SQL
+  cols_sql <- paste0("`", fields, "`", collapse = ", ")
+  # build a matching list of ?placeholders
+  placeholders <- paste0("?", fields, collapse = ", ")
+  
+  # one tidy SQL string
+  sql <- sprintf(
+    "INSERT INTO playerdata (%s) VALUES (%s);",
+    cols_sql,
+    placeholders
+  )
+  
+  # call portalQuery with query + named params
+  do.call(
+    portalQuery,
+    c(list(query = sql, type = "set"), values)
   )
   
 }
 
 #' @export
-checkApprovingPlayer <- function(uid){
+checkApprovingPlayer <- function(uid) {
   portalQuery(
-    paste(
-      "SELECT * from playerdata WHERE uid = ", uid, "AND status_p = -1;"
-    )
-  ) |> 
+    query = "
+      SELECT *
+      FROM playerdata
+      WHERE uid      = ?uid
+        AND status_p = -1;
+    ",
+    uid = uid
+  ) |>
     nrow() > 0
 }
 
 #' @export
-completedAC <- function(pid){
-  weekStart <- 
-    now() |> 
-    with_tz("US/Pacific") |> 
-    floor_date("week", week_start = "Monday") |> 
+completedAC <- function(pid) {
+  weekStart <- now() |>
+    with_tz("US/Pacific") |>
+    floor_date("week", week_start = "Monday") |>
     as.numeric()
   
   portalQuery(
-    paste(
-      "SELECT * 
+    query = "
+      SELECT *
       FROM tpehistory
-      WHERE pid = ", pid, 
-      "AND source LIKE '%Activity Check' 
-      AND time > ", weekStart
-    )
-  ) |> 
+      WHERE pid    = ?pid
+        AND source LIKE '%Activity Check'
+        AND time   > ?weekStart;
+    ",
+    pid       = pid,
+    weekStart = weekStart
+  ) |>
     nrow() > 0
 }
 
 #' @export
-completedTC <- function(pid){
-  start <- 
-    constant$currentSeason$startDate |> 
-    as_date() |> 
-    force_tz("US/Pacific") |> 
+completedTC <- function(pid) {
+  start <- constant$currentSeason$startDate |>
+    as_date() |>
+    force_tz("US/Pacific") |>
     as.numeric()
-    
+  
   portalQuery(
-    paste(
-      "SELECT * 
+    query = "
+      SELECT *
       FROM tpehistory
-      WHERE pid = ", pid, 
-      "AND source LIKE '%Training Camp' 
-      AND time > ", start
-    )
+      WHERE pid    = ?pid
+        AND source LIKE '%Training Camp'
+        AND time   > ?start;
+    ",
+    pid   = pid,
+    start = start
   ) |> 
     nrow() > 0
 }

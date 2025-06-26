@@ -10,31 +10,62 @@ box::use(
 
 
 #' @export
-updatePlayerData <- function(pid, updates, bankedTPE = NULL){
-  portalQuery(
-    paste(
-      "UPDATE playerdata
-               SET",
-      paste(
-        paste("`", str_to_lower(updates$attribute), "`", sep = ""),
-        "=",
-        updates$new,
-        collapse = ", "
-      ), 
-      dplyr$if_else(bankedTPE |> is.null(), "", paste(", tpebank = ", bankedTPE)),
-      "WHERE pid =", pid,
-      ";"
-    )
+updatePlayerData <- function(con, pid, updates, bankedTPE = NULL) {
+  # con        : DBI connection (needed to quote identifiers)
+  # pid        : player id
+  # updates    : data.frame/tibble with columns 'attribute' and 'new'
+  # bankedTPE  : optional single numeric
+  
+  # 1) update each attribute in its own parameterized call
+  pwalk(
+    list(
+      col       = updates$attribute,
+      new_value = updates$new
+    ),
+    function(col, new_value) {
+      # quote the column name exactly once
+      col_q <- DBI$dbQuoteIdentifier(con, str_to_lower(col))
+      
+      portalQuery(
+        query = paste0(
+          "UPDATE playerdata\n",
+          "SET ", col_q, " = ?new_value\n",
+          "WHERE pid = ?pid;"
+        ),
+        new_value = new_value,
+        pid       = pid,
+        type = "set"
+      )
+    }
   )
+  
+  # 2) optionally bump tpebank in one more call
+  if (!is.null(bankedTPE)) {
+    portalQuery(
+      query = "
+        UPDATE playerdata
+        SET tpebank = tpebank + ?bankedTPE
+        WHERE pid = ?pid;
+      ",
+      bankedTPE = bankedTPE,
+      pid       = pid,
+      type = "set"
+    )
+  }
 }
 
 #' @export
 updateTPE <- function(pid, tpe){
   portalQuery(
-    paste(
-      "UPDATE playerdata SET tpe = tpe + ", tpe$tpe, 
-      ", tpebank = tpebank + ", tpe$tpe,
-      "WHERE pid =", pid
-    )
+    query = "
+      UPDATE playerdata
+      SET
+        tpe      = tpe + ?tpe,
+        tpebank  = tpebank + ?tpe
+      WHERE pid = ?pid;
+    ",
+    tpe = tpe$tpe,
+    pid = pid,
+    type = "set"
   )
 }

@@ -204,40 +204,21 @@ parseFMdata <- function(path){
     suppressWarnings()
 }
 
+
+bulkInsert <- function(table, df) {
+  # Build a "(?, ?, …)" placeholder for each row
+  ph <- paste0("(", paste(rep("?", ncol(df)), collapse = ", "), ")")
+  sql <- sprintf("INSERT INTO %s VALUES %s;", table, ph)
+  
+  # Send one parameterized insert per row
+  apply(df, 1, function(row) {
+    portalQuery(c(list(query = sql), as.list(row)), type = "set")
+  })
+  invisible(TRUE)
+}
+
 #' @export
-importGameData <- function(data){
-  keeper <- data$k |>
-    mutate(
-      across(
-        name:club,
-        ~ paste0('"', .x, '"')
-      )
-    )
-  
-  outfield <- data$o |>
-    mutate(
-      across(
-        name:position,
-        ~ paste0('"', .x, '"')
-      )
-    )
-  
-  outfieldPaste <- do.call(function(...) paste(..., sep = ", "), args = outfield)
-  keeperPaste <- do.call(function(...) paste(..., sep = ", "), args = keeper)
-  
-  indexQuery(
-    paste(
-      "INSERT INTO gamedataoutfield VALUES ",
-      paste0("(", outfieldPaste, ")", collapse = ", "),
-      ";"
-    )
-  )
-  
-  indexQuery(
-    paste(
-      "INSERT INTO gamedatakeeper VALUES ",
-      paste0("(", keeperPaste, ")", collapse = ", "),
-      ";"
-    )
-  )
+importGameData <- function(data) {
+  bulkInsert("gamedataoutfield", data$o)
+  bulkInsert("gamedatakeeper",   data$k)
 }

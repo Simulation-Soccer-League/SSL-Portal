@@ -16,27 +16,42 @@ box::use(
 setRefreshToken <- function(uid, token, session = getDefaultReactiveDomain()) {
   expires <- (now() + hours(72)) |> as.numeric()
 
-  portalQuery({
-    paste("INSERT INTO refreshtokens (uid, expires_at, token)
-              VALUES (", uid, ",", expires, ", ", paste0("'", token, "'"), ")
-              ON DUPLICATE KEY UPDATE token=", paste0("'", token, "'"), ", expires_at=", expires)
-  })
+  portalQuery(
+    query = "
+      INSERT INTO refreshtokens (
+        uid,
+        expires_at,
+        token
+      ) VALUES (
+        ?uid,
+        ?expires,
+        ?token
+      )
+      ON DUPLICATE KEY UPDATE
+        token      = ?token,
+        expires_at = ?expires;
+    ",
+    uid     = uid,
+    expires = expires,
+    token   = token,
+    type = "set"
+  )
+  
 }
-
 
 #' @export
 customCheckCredentials <- function(user, password, session = getDefaultReactiveDomain()) {
   res <-
     mybbQuery(
       query =
-        paste(
-          "SELECT uid, username, password, salt, usergroup, additionalgroups, suspendposting
+        "SELECT uid, username, password, salt, usergroup, additionalgroups, suspendposting
         FROM mybb_users
-        WHERE username = '", user, "'",
-        sep = ""
-      )
+        WHERE username = ?user;",
+      user = user
     ) |>
     suppressWarnings()
+  
+  print(res)
 
   if (nrow(res) == 1) {
     saltedPASS <-
@@ -98,10 +113,11 @@ customCheckCredentials <- function(user, password, session = getDefaultReactiveD
 #' @export
 getRefreshToken <- function(token) {
   portalQuery(
-    paste("SELECT rt.*, mb.username, mb.usergroup, mb.additionalgroups, mb.suspendposting 
-              FROM refreshtokens rt 
-              JOIN mybbdb.mybb_users mb ON rt.uid = mb.uid 
-              WHERE rt.token = '", token, "';", sep = "")
+    query = 
+      "SELECT * 
+      FROM currentRefreshTokensView
+      WHERE token = ?token;",
+    token = token
   ) |>
     suppressWarnings()
 }

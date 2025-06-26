@@ -27,7 +27,7 @@ keyColor <- "#276BB0"
 #' @export
 importantColor <- green
 #' @export
-traitSep <- " // "
+traitSep <- ", "
 
 #' @export
 positionalCoord <-

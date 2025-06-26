@@ -1,6 +1,7 @@
 box::use(
   dplyr,
   lubridate[now, with_tz],
+  purrr[pwalk],
   stringr[str_to_upper, str_remove_all, str_to_title],
 )
 
@@ -11,75 +12,104 @@ box::use(
 
 #' @export
 
-logUpdate <- function(uid, pid, updates){
-  portalQuery(
-    paste(
-      "INSERT INTO updatehistory ( uid, pid, time, attribute, old, new )
-                VALUES
-                    ",
-      paste(
-        "(",
-        paste(
-          uid,
-          pid,
-          paste0("'", now() |> with_tz("US/Pacific") |> as.numeric(), "'"),
-          paste0("'", updates$attribute |> str_to_upper(), "'"),
-          updates$old,
-          updates$new,
-          sep = ","
-        ),
-        ")",
-        collapse = ","
-      ),
-      ";"
-    )
+logUpdate <- function(uid, pid, updates) {
+  # compute a single timestamp in US/Pacific once
+  ts <- 
+    now() |> 
+    with_tz("US/Pacific") |>  
+    as.numeric()
+  
+  # uppercase the attribute column
+  updates <- 
+    updates |>  
+    mutate(attribute = str_to_upper(attribute))
+  
+  # for each row, fire a parameterized insert
+  pwalk(
+    updates,
+    function(attribute, old, new) {
+      portalQuery(
+        query = "
+          INSERT INTO updatehistory (
+            uid,
+            pid,
+            time,
+            attribute,
+            old,
+            new
+          ) VALUES (
+            ?uid,
+            ?pid,
+            ?time,
+            ?attribute,
+            ?old,
+            ?new
+          );
+        ",
+        uid       = uid,
+        pid       = pid,
+        time      = ts,
+        attribute = attribute,
+        old       = old,
+        new       = new,
+        type = "set"
+      )
+    },
+    .l = list(attribute = updates$attribute,
+              old       = updates$old,
+              new       = updates$new)
   )
 }
 
 #' @export
 logRedist <- function(pid){
   portalQuery(
-    paste(
-      "UPDATE playerdata
-      SET redistused = 1 
-      WHERE pid =", pid
-    )
+    "UPDATE playerdata
+    SET redistused = 1 
+    WHERE pid = ?pid;", 
+    pid = pid,
+    type = "set"
   )
 }
 
 #' @export
 logReroll <- function(pid){
   portalQuery(
-    paste(
-      "UPDATE playerdata
-      SET rerollused = 1 
-      WHERE pid =", pid
-    )
+    "UPDATE playerdata
+    SET rerollused = 1 
+    WHERE pid = ?pid;", 
+    pid = pid,
+    type = "set"
   )
 }
 
 #' @export
-logTPE <- function(uid, pid, tpe){
-  portalQuery(
-    # print(
-    paste(
-      "INSERT INTO tpehistory ( uid, pid, time, source, tpe )
-                VALUES
-                    ",
-      paste(
-        "(",
-        paste(
-          uid,
-          pid,
-          paste0("'", now() |> with_tz("US/Pacific") |> as.numeric(), "'"),
-          paste0("'", tpe$source, "'"),
-          tpe$tpe,
-          sep = ","
-        ),
-        ")",
-        collapse = ","
-      ),
-      ";"
-    )
+logTPE <- function(uid, pid, tpe) {
+  # one timestamp
+  ts <- 
+    now() |>
+    with_tz("US/Pacific") |> 
+    as.numeric()
+  
+  # fire one parameterized INSERT per row
+  pwalk(
+    list(source = tpe$source, tpe_val = tpe$tpe),
+    function(source, tpe_val) {
+      portalQuery(
+        query = "
+          INSERT INTO tpehistory (
+            uid, pid, time, source, tpe
+          ) VALUES (
+            ?uid, ?pid, ?time, ?source, ?tpe
+          );
+        ",
+        uid    = uid,
+        pid    = pid,
+        time   = ts,
+        source = source,
+        tpe    = tpe_val,
+        type = "set"
+      )
+    }
   )
 }
