@@ -26,6 +26,7 @@ box::use(
     eligibleReroll, 
     updateSummary
   ],
+  app/logic/ui/tags[flexCol, flexRow, numericStepper],
   app/view/tracker/player,
 )
 
@@ -142,53 +143,65 @@ server <- function(id, auth, updated, type) {
                   dplyr$mutate(Value = 5)
               }
 
-              lapply(
-                temp$Attribute,
-                FUN = function(currentAtt){
-                  value <- 
-                    temp |> 
-                    dplyr$filter(Attribute == currentAtt) |> 
-                    dplyr$select(Value) |> 
-                    unlist()
-                  
-                  if(currentAtt %in% c("Natural Fitness", "Stamina")){
-                    shiny$tagList(
-                      shiny$numericInput(
-                        inputId = ns(currentAtt |> str_remove_all(" ")),
-                        label = 
-                          tippy(
-                            currentAtt,
-                            constant$attributes |> 
-                              dplyr$filter(attribute == currentAtt) |> 
-                              dplyr$select(explanation),
-                            theme = "ssl"
-                          ),
-                        value = 20,
-                        max = 20,
-                        min = 20
-                      ) |> 
-                        shinyjs$disabled()
-                    )
-                  } else {
-                    shiny$tagList(
-                      shiny$numericInput(
-                        inputId = ns(currentAtt |> str_remove_all(" ")),
-                        label = 
-                          tippy(
-                            currentAtt,
-                            constant$attributes |> 
-                              dplyr$filter(attribute == currentAtt) |> 
-                              dplyr$select(explanation),
-                            theme = "ssl"
-                          ),
-                        value = dplyr$if_else(type == "reroll", 5, value),
-                        min = dplyr$if_else(type == "update", value, 5),
-                        max = dplyr$if_else(type == "regression", value, 20)
-                      ),
-                      shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" "))))
-                    )
+              flexCol(
+                style = "gap: 12px;",
+                lapply(
+                  temp$Attribute,
+                  FUN = function(currentAtt){
+                    value <- 
+                      temp |> 
+                      dplyr$filter(Attribute == currentAtt) |> 
+                      dplyr$select(Value) |> 
+                      unlist()
+                    
+                    if(currentAtt %in% c("Natural Fitness", "Stamina")){
+                      shiny$div(
+                        class = "player-attribute-editor",
+                        shiny$div(
+                          class = "attribute-editor-header",
+                          shiny$tagList(
+                            shiny$div(
+                              shiny$tagList(
+                                shiny$span(style = "font-weight: 700;", currentAtt),
+                              )
+                            ),
+                            numericStepper(
+                              inputId = ns(currentAtt |> str_remove_all(" ")),
+                              value = 20,
+                              disabled = TRUE
+                            )
+                          )
+                        )
+                      )
+                    } else {
+                      shiny$div(
+                        class = "player-attribute-editor",
+                        shiny$div(
+                          class = "attribute-editor-header",
+                          shiny$tagList(
+                            shiny$div(
+                              shiny$tagList(
+                                if (constant$roleAttributes[[input$selectedRole]][[currentAtt]] == 1) {
+                                  shiny$icon("circle-exclamation", style = "color: var(--important);")
+                                } else if (constant$roleAttributes[[input$selectedRole]][[currentAtt]] == 2) {
+                                  shiny$icon("circle-exclamation", style = "color: var(--key);")
+                                },
+                                shiny$span(style = "font-weight: 700;", currentAtt),
+                              )
+                            ),
+                            numericStepper(
+                              inputId = ns(currentAtt |> str_remove_all(" ")),
+                              value = value,
+                              min = dplyr$if_else(type == "update", value, 5),
+                              max = dplyr$if_else(type == "regression", value, 20),
+                            )
+                          )
+                        ),
+                        shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" ")))),
+                      )
+                    }
                   }
-                }
+                )
               )
             })
           }
@@ -203,18 +216,23 @@ server <- function(id, auth, updated, type) {
               if(attribute %in% c("Natural Fitness", "Stamina")){
                 
               } else {
-                shiny$p(
-                  paste0(
-                    "Next: ", 
-                    constant$tpeCost |> 
-                      dplyr$filter(value == curValue + 1) |> 
-                      dplyr$select(sinCost) |> unlist() |> 
-                      replace_na(0),
-                    " Total Cost: ",
-                    constant$tpeCost |> 
-                      dplyr$filter(value == curValue) |> 
-                      dplyr$select(cumCost) |> unlist() |> 
-                      replace_na(0)
+                shiny$div(
+                  class = "attribute-editor-footer",
+                  shiny$tagList(
+                    shiny$span(
+                      "Total: ",
+                      constant$tpeCost |> 
+                        dplyr$filter(value == curValue) |> 
+                        dplyr$select(cumCost) |> unlist() |> 
+                        replace_na(0)
+                    ),
+                    shiny$span(
+                      "Next: ",
+                        next_cost <- constant$tpeCost |> 
+                          dplyr$filter(value == curValue + 1) |> 
+                          dplyr$select(sinCost) |> unlist(),
+                        if (length(next_cost) == 0 || is.na(next_cost)) "--"
+                    )
                   )
                 )
               }
@@ -226,15 +244,20 @@ server <- function(id, auth, updated, type) {
           map(
             .x = groups,
             .f = function(chosengroup){
-              shiny$uiOutput(ns(chosengroup))
+              flexCol(
+                style = "height: fit-content; border: 1px solid white; border-radius: 4px; padding: 12px;",
+                shiny$tagList(
+                  shiny$span(paste0(chosengroup, " Attributes")),
+                  shiny$uiOutput(ns(chosengroup))
+                )
+              )
             }
           )
         
-        bslib$layout_column_wrap(
-          width = 1 / length(uiList),
-          !!!unname(uiList)
+        flexRow(
+          style = "gap: 24px; margin-bottom: 100px;",
+          uiList
         )
-        
       })
       
       output$playerInfo <- shiny$renderUI({
@@ -758,44 +781,6 @@ server <- function(id, auth, updated, type) {
           ignoreInit = TRUE
         )
       
-      ## Fixes inputs outside of allowed ranges
-      lapply(
-        X = processedData()$Attribute |> str_remove_all(" "),
-        FUN = function(att){
-          shiny$observe({
-            currentVal <- input[[att]]
-            
-            shiny$req(currentVal)
-            
-            value <- 
-              processedData() |> 
-              dplyr$filter((Attribute |> str_remove_all(" ")) == att) |> 
-              dplyr$select(Value) |> 
-              unlist()
-            
-            # Determine the dynamic min and max values.
-            minVal <- dplyr$if_else(type == "update", value, 5)
-            maxVal <- dplyr$if_else(type == "regression", value, 20)
-            
-            # Constrain the input value within dynamic boundaries.
-            adjustedVal <- min(max(currentVal, minVal), maxVal)
-            
-            # Update the numeric input only if the current value is out of bounds.
-            if (currentVal != adjustedVal) {
-              shiny$updateNumericInput(
-                session,
-                inputId = att,
-                value = adjustedVal
-              )
-            }
-          }) |> 
-            shiny$bindEvent(
-              input[[att]],
-              ignoreInit = TRUE
-            )
-        }
-      )
-      
       lapply(
         X = c("weight", "height"),
         FUN = function(att){
@@ -966,39 +951,6 @@ server <- function(id, auth, updated, type) {
           ignoreInit = TRUE,
           ignoreNULL = FALSE
         )
-      
-      ## Highlights different attributes based on selected role
-      shiny$observe({
-        lapply(
-          X = constant$attributes$attribute |> str_remove_all(" "),
-          FUN = function(att){
-            if(constant$roleAttributes[[input$selectedRole]][[att]] == 1){
-              feedback(
-                session = session,
-                show = TRUE,
-                inputId = att,
-                color = constant$importantColor,
-                icon = shiny$icon("exclamation-sign", lib = "glyphicon")
-              )
-            } else if(constant$roleAttributes[[input$selectedRole]][[att]] == 2){
-              feedback(
-                session = session,
-                show = TRUE,
-                inputId = att,
-                color = constant$keyColor,
-                icon = shiny$icon("exclamation-sign", lib = "glyphicon")
-              )
-            } else {
-              hideFeedback(
-                session = session,
-                inputId = att
-              )
-            }
-          }
-        )
-      }) |> 
-        shiny$bindEvent(input$selectedRole)
-      
     }
   })
 }

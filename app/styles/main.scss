@@ -5,6 +5,7 @@
   --ssl-blue-l: color-mix(in srgb, var(--ssl-blue) 95%, white);
   --ssl-blue-d: color-mix(in srgb, var(--ssl-blue) 95%, black);
   --ssl-gold: #bd9523;
+  --ssl-accent-d: #1c1c1c;
   --lighter-text: hsl(var(--color), 100%);
   --darker-text: hsl(var(--color), 0%);
   --key: #276bb0;
@@ -32,6 +33,10 @@ h5 {
   font-weight: 800;
   font-style: normal;
   color: white;
+}
+
+#router-page-wrapper {
+  padding: 0 12px;
 }
 
 .key-attribute {
@@ -958,4 +963,73 @@ $navbar-items-width: 112px;
   @media (max-width: 767px) {
     width: 100%;
   }
+}
+
+.numeric-stepper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: #e1e1e1;
+
+  .numeric-stepper-button {
+    background-color: var(--ssl-accent-d);
+    padding: 4px;
+    border-top: 1px solid #6c6c6c;
+    border-bottom: 1px solid #6c6c6c;
+
+    &.minus-button {
+      border-left: 1px solid #6c6c6c;
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+
+    &.plus-button {
+      border-right: 1px solid #6c6c6c;
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+  }
+
+  .numeric-stepper-button:hover {
+    background-color: var(--ssl-blue-l);
+  }
+
+  .numeric-stepper-button:active {
+    background-color: var(--ssl-blue-d);
+  }
+
+  .numeric-stepper-value {
+    background-color: var(--ssl-accent-d);
+    color: var(--ssl-gold);
+    padding: 4px 0;
+    width: 32px;
+    border: 1px solid #6c6c6c;
+    font-weight: 700;
+    text-align: center;
+  }
+}
+
+.player-attribute-editor {
+  background-color: var(--ssl-accent-d);
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #6c6c6c;
+  padding: 12px;
+  border-radius: 4px;
+  color: #e1e1e1;
+}
+
+.attribute-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.attribute-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 12px;
 }

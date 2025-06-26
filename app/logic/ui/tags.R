@@ -1,5 +1,5 @@
 box::use(
-  shiny[div, icon, span, tag, tagList],
+  shiny[div, icon, numericInput, span, tag, tagList],
 )
 
 
@@ -153,4 +153,75 @@ navMenuItem <- function(cont, label = "", subItems = list()) {
   } else {
     cont
   }
+}
+
+#' @export
+numericStepper <- function(
+  inputId,
+  value,
+  min = 5,
+  max = 20,
+  step = 1,
+  onChange = "",
+  disabled = FALSE
+) {
+  tag("div", varArgs = list(
+    class = "numeric-stepper",
+    div(
+      class = "numeric-stepper-button minus-button",
+      style = if (disabled) "visibility: hidden;" else "",
+      role = "button",
+      onclick = paste0(
+        "input = document.querySelector('input[id=", inputId, "]');",
+        "currentValue = parseInt(input.value, 10);",
+        "newValue = Math.max(", min, ", currentValue - ", step, ");",
+        "this.nextElementSibling.textContent = newValue;",
+        "input.value = newValue; input.dispatchEvent(new Event('change'));",
+        "if (newValue <= ", min, ") { this.children[0].style.opacity = 0.2; }",
+        "else if (newValue < ", max, ") { document.querySelector('#",
+        paste0(inputId, "-plus"), "').style.opacity = 1; }",
+        onChange
+      ),
+      icon(
+        "minus",
+        id = paste0(inputId, "-minus"),
+        style = if (value <= min) "opacity: 0.2;" else ""
+      )
+    ),
+    div(
+      class = "numeric-stepper-value",
+      value
+    ),
+    div(
+      class = "numeric-stepper-button plus-button",
+      style = if (disabled) "visibility: hidden;" else "",
+      role = "button",
+      onclick = paste0(
+        "input = document.querySelector('input[id=", inputId, "]');",
+        "currentValue = parseInt(input.value, 10);",
+        "newValue = Math.min(", max, ", currentValue + ", step, ");",
+        "this.previousElementSibling.textContent = newValue;",
+        "input.value = newValue; input.dispatchEvent(new Event('change'));",
+        "if (newValue >= ", max, ") { this.children[0].style.opacity = 0.2; }",
+        "else if (newValue > ", min, ") { document.querySelector('#",
+        paste0(inputId, "-minus"), "').style.opacity = 1; }",
+        onChange
+      ),
+      icon(
+        "plus",
+        id = paste0(inputId, "-plus"),
+        style = if (value >= max) "opacity: 0.2;" else ""
+      )
+    ),
+    # Hidden input to bind the value to an input ID
+    div(
+      style = "display: none;",
+      numericInput(
+        inputId,
+        label = NULL,
+        value = value,
+      )
+    )
+  )
+)
 }
