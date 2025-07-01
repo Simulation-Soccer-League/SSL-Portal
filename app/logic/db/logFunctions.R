@@ -11,7 +11,7 @@ box::use(
 )
 
 #' @export
-
+#' MOVED TO updatePlayerData()
 logUpdate <- function(uid, pid, updates) {
   # compute a single timestamp in US/Pacific once
   ts <- 
@@ -22,43 +22,45 @@ logUpdate <- function(uid, pid, updates) {
   # uppercase the attribute column
   updates <- 
     updates |>  
-    mutate(attribute = str_to_upper(attribute))
+    dplyr$mutate(attribute = str_to_upper(attribute))
   
   # for each row, fire a parameterized insert
   pwalk(
-    updates,
-    function(attribute, old, new) {
-      portalQuery(
-        query = "
-          INSERT INTO updatehistory (
-            uid,
-            pid,
-            time,
-            attribute,
-            old,
-            new
-          ) VALUES (
-            ?uid,
-            ?pid,
-            ?time,
-            ?attribute,
-            ?old,
-            ?new
-          );
-        ",
-        uid       = uid,
-        pid       = pid,
-        time      = ts,
-        attribute = attribute,
-        old       = old,
-        new       = new,
-        type = "set"
-      )
-    },
+    .f = 
+      function(attribute, old, new) {
+        portalQuery(
+          query = "
+            INSERT INTO updatehistory (
+              uid,
+              pid,
+              time,
+              attribute,
+              old,
+              new
+            ) VALUES (
+              ?uid,
+              ?pid,
+              ?time,
+              ?attribute,
+              ?old,
+              ?new
+            );
+          ",
+          uid       = uid,
+          pid       = pid,
+          time      = ts,
+          attribute = attribute,
+          old       = old,
+          new       = new,
+          type = "set"
+        )
+      },
     .l = list(attribute = updates$attribute,
               old       = updates$old,
               new       = updates$new)
   )
+  
+  
 }
 
 #' @export
@@ -84,6 +86,7 @@ logReroll <- function(pid){
 }
 
 #' @export
+#' HAS BEEN MOVED TO updateTPE()
 logTPE <- function(uid, pid, tpe) {
   # one timestamp
   ts <- 
@@ -93,23 +96,24 @@ logTPE <- function(uid, pid, tpe) {
   
   # fire one parameterized INSERT per row
   pwalk(
-    list(source = tpe$source, tpe_val = tpe$tpe),
-    function(source, tpe_val) {
-      portalQuery(
-        query = "
-          INSERT INTO tpehistory (
-            uid, pid, time, source, tpe
-          ) VALUES (
-            ?uid, ?pid, ?time, ?source, ?tpe
-          );
-        ",
-        uid    = uid,
-        pid    = pid,
-        time   = ts,
-        source = source,
-        tpe    = tpe_val,
-        type = "set"
-      )
-    }
+    .l = list(source = tpe$source, tpe_val = tpe$tpe),
+    .f = 
+      function(source, tpe_val) {
+        portalQuery(
+          query = "
+            INSERT INTO tpehistory (
+              uid, pid, time, source, tpe
+            ) VALUES (
+              ?uid, ?pid, ?time, ?source, ?tpe
+            );
+          ",
+          uid    = uid,
+          pid    = pid,
+          time   = ts,
+          source = source,
+          tpe    = tpe_val,
+          type = "set"
+        )
+      }
   )
 }

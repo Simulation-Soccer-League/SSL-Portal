@@ -241,6 +241,8 @@ server <- function(id, auth, resAuth, updated) {
     # Checks saved cookie for automatic login
     observe({
       refreshtoken <- getRefreshToken(input$cookies$token)
+      print(refreshtoken)
+      
       if (refreshtoken |> nrow() > 0) {
         if ((now() |> as.numeric()) < refreshtoken$expires_at) {
           resAuth$uid <- refreshtoken$uid
@@ -292,6 +294,8 @@ server <- function(id, auth, resAuth, updated) {
         resAuth$username <- res$userInfo$username
         resAuth$usergroup <- res$userInfo$usergroup
         resAuth$suspended <- res$userInfo$suspended
+        
+        updated(updated() + 1)
       } else {
         feedbackWarning("password", show = TRUE, text = "Password is incorrect.")
       }
@@ -303,5 +307,19 @@ server <- function(id, auth, resAuth, updated) {
       change_page("createPlayer")
     }) |> 
       bindEvent(input$create)
+    
+    ## Logging out
+    observe({
+      resAuth$uid <- NULL
+      resAuth$username <- NULL
+      resAuth$usergroup <- NULL
+      resAuth$suspended <- 0
+      
+      updated(updated() + 1)
+      
+      msg <- list(name = "token")
+      session$sendCustomMessage("cookie-remove", msg)
+    }) |> 
+      bindEvent(input$logout)
   })
 }

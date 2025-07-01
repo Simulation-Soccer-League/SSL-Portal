@@ -28,7 +28,8 @@ getQuery <- function(query, ..., schema){
     
     safeQuery <- DBI$sqlInterpolate(con, query, ...)
     
-    req <- DBI$dbGetQuery(con, safeQuery)
+    req <- DBI$dbGetQuery(con, safeQuery) |> 
+      suppressWarnings()
     
     return(req)
   }, error = function(e) {
@@ -61,7 +62,8 @@ setQuery <- function(query, ..., schema){
     
     safeQuery <- DBI$sqlInterpolate(con, query, ...)
     
-    req <- DBI$dbExecute(con, safeQuery)
+    req <- DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
     
     return(req)
   }, error = function(e) {

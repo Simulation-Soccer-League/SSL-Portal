@@ -16,7 +16,7 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/logFunctions[logUpdate, logRedist, logReroll],
+  app/logic/db/logFunctions[logRedist, logReroll],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updatePlayerData],
   app/logic/db/get[getActivePlayer, getPlayer],
@@ -753,28 +753,41 @@ server <- function(id, auth, updated, type) {
       shiny$observe({
         shiny$removeModal()
         
-        updates <- updateSummary(playerData(), input)
-        
-        logUpdate(uid = auth$uid, pid = playerData()$pid, updates = updates)
-        
-        updatePlayerData(pid = playerData()$pid, updates = updates, bankedTPE = bankedTPE())
-        
-        updated(updated() + 1)
-        
-        if(type == "redistribution"){
-          logRedist(pid = playerData()$pid)
-        } else if(type == "reroll"){
-          logReroll(pid = playerData()$pid)
-        }
-        
-        showToast(
-          .options = constant$sslToastOptions,
-          "success",
-          "You have successfully updated your player!"
-        )
-        
-        change_page("myPlayer/")
-        
+        tryCatch({
+          updates <- updateSummary(playerData(), input)
+          
+          updatePlayerData(
+            uid = auth$uid, 
+            pid = playerData()$pid, 
+            updates = updates,
+            bankedTPE = bankedTPE()
+          )
+          
+          updated(updated() + 1)
+          
+          if(type == "redistribution"){
+            logRedist(pid = playerData()$pid)
+          } else if(type == "reroll"){
+            logReroll(pid = playerData()$pid)
+          }
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "success",
+            "You have successfully updated your player!"
+          )
+          
+          change_page("myPlayer/")
+        }, error = function(e){
+          message("Error executing query: ", e)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            paste("Something is wrong, please notify the BoD with the following error message: \n",
+                  e$message)
+          )
+        })
       }) |> 
         shiny$bindEvent(
           input$confirmUpdate,

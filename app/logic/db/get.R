@@ -102,7 +102,6 @@ getTopEarners <- function() {
   )
 }
 
-
 #' @export
 getPlayerNames <- function(active = FALSE){
   if(active){

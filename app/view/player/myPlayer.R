@@ -1,10 +1,11 @@
 box::use(
   bslib,
   dplyr,
+  purrr[is_empty],
   rlang[`!!!`],
   shiny,
   shinyFeedback[showToast],
-  shinyjs[disable],
+  shinyjs[disable, enable],
   shiny.router[change_page],
   stringr[str_extract_all],
   tippy[tippy],
@@ -13,7 +14,6 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/db/logFunctions[logTPE],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updateTPE],
   app/logic/player/playerChecks[
@@ -140,6 +140,10 @@ server <- function(id, auth, updated) {
           }
         )
         
+        ## Removes empty buttons in the list
+        buttonList <- 
+          buttonList[!sapply(X = buttonList, FUN = is_empty)]
+        
         shiny$tagList(
           bslib$layout_column_wrap(
             width = 1 / min(4, length(buttonList)),
@@ -187,59 +191,85 @@ server <- function(id, auth, updated) {
         shiny$bindEvent(input$Regress)
       
       shiny$observe({
-        tpe <- 
-          dplyr$tibble(
-            source = "Activity Check",
-            tpe = 6
+        
+        tryCatch({
+          disable(ns("AC"))
+          
+          tpe <- 
+            dplyr$tibble(
+              source = "Activity Check",
+              tpe = 6
+            )
+          
+          updateTPE(uid = auth$uid, pid = playerData()$pid, tpe = tpe)
+          
+          updated(updated() + 1)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "success",
+            "You have successfully claimed your Activity Check for the week!"
           )
+        }, error = function(e){
+          message("Error executing query: ", e)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            paste("Something is wrong, please notify the BoD with the following error message: \n",
+                  e$message)
+          )
+          
+          enable(ns("AC"))
+        })
         
-        logTPE(uid = auth$uid, pid = playerData()$pid, tpe = tpe)
-        
-        disable(ns("AC"))
-        
-        updateTPE(pid = playerData()$pid, tpe = tpe)
-        
-        updated(updated() + 1)
-        
-        showToast(
-          .options = constant$sslToastOptions,
-          "success",
-          "You have successfully claimed your Activity Check for the week!"
-        )
       }) |> 
         shiny$bindEvent(input$AC)
       
       shiny$observe({
-        class <- playerData()$class |> 
-          str_extract_all(pattern = "[0-9]+") |> 
-          as.numeric()
         
-        age <- constant$currentSeason$season - class
-        
-        tpe <- 
-          dplyr$tibble(
-            source = paste0("S", constant$currentSeason$season, " Training Camp"),
-            tpe = dplyr$case_when(
-              age <= 1 ~ 24,
-              age <= 4 ~ 18,
-              age <= 7 ~ 12,
-              TRUE     ~  6
+        tryCatch({
+          disable(ns("TC"))
+          
+          class <- playerData()$class |> 
+            str_extract_all(pattern = "[0-9]+") |> 
+            as.numeric()
+          
+          age <- constant$currentSeason$season - class
+          
+          tpe <- 
+            dplyr$tibble(
+              source = paste0("S", constant$currentSeason$season, " Training Camp"),
+              tpe = dplyr$case_when(
+                age <= 1 ~ 24,
+                age <= 4 ~ 18,
+                age <= 7 ~ 12,
+                TRUE     ~  6
+              )
             )
+          
+          updateTPE(uid = auth$uid, pid = playerData()$pid, tpe = tpe)
+          
+          updated(updated() + 1)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "success",
+            "You have successfully claimed your Training Camp for the season!"
           )
+        }, error = function(e){
+          message("Error executing query: ", e)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            paste("Something is wrong, please notify the BoD with the following error message: \n",
+                  e$message)
+          )
+          
+          enable(ns("TC"))
+        })
         
-        logTPE(uid = auth$uid, pid = playerData()$pid, tpe = tpe)
-        
-        disable(ns("TC"))
-        
-        updateTPE(pid = playerData()$pid, tpe = tpe)
-        
-        updated(updated() + 1)
-        
-        showToast(
-          .options = constant$sslToastOptions,
-          "success",
-          "You have successfully claimed your Activity Check for the week!"
-        )
       }) |> 
         shiny$bindEvent(input$TC)
     }
