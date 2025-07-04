@@ -66,17 +66,12 @@ ui <- function(id) {
         "dist/js.cookie.min.js"
       )
     ),
-    ## js function for storing cookies
-    tags$script(
-      src = paste0(
-        "https://cdn.jsdelivr.net/npm/js-cookie@rc/",
-        "dist/js.cookie.min.js"
-      )
-    ),
     tags$script("// script.js
                     function getCookies(){
                       var res = Cookies.get();
-                      Shiny.setInputValue('cookies', res);
+                      console.log(res.token);
+
+                      Shiny.setInputValue('app-nav-token', res.token, {priority:'event'});
                     }
 
                   // script.js
@@ -93,11 +88,6 @@ ui <- function(id) {
                   $(document).on('shiny:connected', function(ev){
                     getCookies();
                   });"),
-    tags$script("Shiny.addCustomMessageHandler('cookie-remove', function(msg){
-                      Cookies.remove(msg.name);
-                      getCookies();
-                    })
-                  "),
     tags$head(
       tags$link(
         rel = "icon",
@@ -240,8 +230,7 @@ server <- function(id, auth, resAuth, updated) {
     ### Observers
     # Checks saved cookie for automatic login
     observe({
-      refreshtoken <- getRefreshToken(input$cookies$token)
-      print(refreshtoken)
+      refreshtoken <- getRefreshToken(input$token)
       
       if (refreshtoken |> nrow() > 0) {
         if ((now() |> as.numeric()) < refreshtoken$expires_at) {
@@ -257,7 +246,7 @@ server <- function(id, auth, resAuth, updated) {
         }
       }
     }) |>
-      bindEvent(input$cookies$token, ignoreNULL = TRUE, once = TRUE)
+      bindEvent(input$token, ignoreNULL = TRUE, once = TRUE)
 
     observe({
       showModal(

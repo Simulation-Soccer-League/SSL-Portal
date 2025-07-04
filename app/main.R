@@ -77,6 +77,7 @@ server <- function(id) {
       shiny$reactiveValuesToList(resAuth)
     })
     
+    ## Defines a reactive value that tracks if portal updates are made that require re-loading assets
     updated <- shiny$reactiveVal(0)
     
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated)
@@ -107,6 +108,8 @@ server <- function(id) {
       current <- str_remove(session$clientData$url_hash,
         pattern = "#!/"
       )
+      
+      print(input$token)
 
       if (current == "index/records" & !loadedServer$records) {
         careerRecords$server("records")
