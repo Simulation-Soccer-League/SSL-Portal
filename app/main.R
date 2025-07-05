@@ -9,6 +9,7 @@ box::use(
 
 box::use(
   app/view/navigationBar,
+  app/view/bank/myBank,
   app/view/index/academyIndex,
   app/view/index/careerRecords,
   app/view/index/leagueIndex,
@@ -47,6 +48,7 @@ ui <- function(id) {
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/organization", organization$ui(ns("organization"))),
       route("search", playerSearch$ui(ns("search"))),
+      route("myBank", myBank$ui(ns("myBank"))),
       route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
       route("myPlayer/update", playerUpdate$ui(ns("update"))),
       route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
@@ -93,7 +95,7 @@ server <- function(id) {
         playerReroll = FALSE, playerRedist = FALSE, playerRegress = FALSE,
         myPlayer = FALSE, import = FALSE, standings = FALSE, 
         schedule = FALSE, academy = FALSE, 
-        bankOverview = FALSE, welcome = FALSE, records = FALSE,
+        myBank = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
         tradeProcess = FALSE, playerEdit = FALSE, submitPT = FALSE,
         bankDeposit = FALSE, bankProcess = FALSE,
@@ -102,6 +104,9 @@ server <- function(id) {
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
       )
+    
+    ## TODO: MIGHT NEED TO CHANGE SO THAT ANY PAGE TIED TO A LOGIN UPDATES WHEN SOMEONE LOGS IN/OUT
+    ## CANNOT LOAD EVERY TIME THE PAGE LOADS AS THAT WOULD GENERATE MULTIPLE OBSERVERS
 
     ## Observer that checks the current page and loads the server for the page ONCE
     shiny$observe({
@@ -109,56 +114,91 @@ server <- function(id) {
         pattern = "#!/"
       )
       
-      print(input$token)
-
       if (current == "index/records" & !loadedServer$records) {
+        
         careerRecords$server("records")
         loadedServer$records <- TRUE
+        
       } else if (current == "index/" & !loadedServer$index) {
+        
         leagueIndex$server("league")
         loadedServer$index <- TRUE
+        
       } else if (current == "index/standings" & !loadedServer$standings) {
+        
         standings$server("standings")
         loadedServer$standings <- TRUE
+        
       } else if (current == "index/schedule" & !loadedServer$schedule) {
+        
         schedule$server("schedule")
         loadedServer$schedule <- TRUE
+        
       } else if (current == "index/academy" & !loadedServer$academy) {
+       
         academyIndex$server("academy")
         loadedServer$academy <- TRUE
+        
       } else if (current == "tracker/organization" & !loadedServer$organization) {
+        
         organization$server("organization")
         loadedServer$organization <- TRUE
+        
       } else if (current == "tracker/draftclass" & !loadedServer$draftclass) {
+        
         draftclass$server("draftclass")
         loadedServer$draftclass <- TRUE
+        
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
+        
         player$server("player", updated = updated)
         loadedServer$player <- TRUE
+      
       } else if (current == "myPlayer/" & !loadedServer$myPlayer) {
+        
         myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
         loadedServer$myPlayer <- TRUE
+        
+      } else if (current == "myBank" & !loadedServer$myBank) {
+        
+        myBank$server("myBank", auth = authOutput(), updated = updated)
+        loadedServer$myBank <- TRUE
+        
       } else if (current == "filework/export" & !loadedServer$export) {
+        
         export$server("export", auth = authOutput(), updated = updated)
         loadedServer$export <- TRUE
+        
       } else if (current == "filework/import" & !loadedServer$import) {
+        
         import$server("import", auth = authOutput(), updated = updated())
         loadedServer$import <- TRUE
+        
       } else if (current == "myPlayer/update" & !loadedServer$playerUpdate) {
+        
         playerUpdate$server("update", auth = authOutput(), updated = updated, type = "update")
         loadedServer$playerUpdate <- TRUE
+        
       } else if (current == "myPlayer/reroll" & !loadedServer$playerReroll) {
+        
         playerUpdate$server("reroll", auth = authOutput(), updated = updated, type = "reroll")
         loadedServer$playerReroll <- TRUE
+        
       } else if (current == "myPlayer/redistribute" & !loadedServer$playerRedist) {
+        
         playerUpdate$server("redist", auth = authOutput(), updated = updated, type = "redistribution")
         loadedServer$playerRedist <- TRUE
+        
       } else if (current == "myPlayer/regress" & !loadedServer$playerRegress) {
+        
         playerUpdate$server("regress", auth = authOutput(), updated = updated, type = "regression")
         loadedServer$playerRegress <- TRUE
+        
       } else if (current == "createPlayer" & !loadedServer$create) {
+        
         createPlayer$server("create", auth = authOutput(), updated = updated)
         loadedServer$create <- TRUE
+        
       } 
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
