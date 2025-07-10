@@ -304,6 +304,8 @@ server <- function(id, auth, resAuth, updated) {
       resAuth$usergroup <- NULL
       resAuth$suspended <- 0
       
+      change_page("")
+      
       updated(updated() + 1)
       
       msg <- list(name = "token")
