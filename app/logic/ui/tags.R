@@ -1,5 +1,5 @@
 box::use(
-  shiny[div, icon, numericInput, span, tag, tagList],
+  shiny[div, icon, numericInput, span, tag, tags, tagList],
 )
 
 

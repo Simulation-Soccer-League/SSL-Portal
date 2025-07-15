@@ -200,7 +200,7 @@ server <- function(id, auth, resAuth, updated) {
               label = "Player",
               items = list(
                 a("My Player", href = route_link("myPlayer/")),
-                a("Bank/Store", href = route_link("bank"))
+                a("Bank/Store", href = route_link("myBank"))
               ),
               showItems = TRUE
             )
@@ -303,6 +303,8 @@ server <- function(id, auth, resAuth, updated) {
       resAuth$username <- NULL
       resAuth$usergroup <- NULL
       resAuth$suspended <- 0
+      
+      change_page("")
       
       updated(updated() + 1)
       
