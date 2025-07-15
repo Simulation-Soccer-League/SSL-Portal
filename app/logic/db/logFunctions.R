@@ -117,3 +117,58 @@ logTPE <- function(uid, pid, tpe) {
       }
   )
 }
+
+#' @export
+logBankTransaction <- function(uid, pid, source, transaction, status = 1){
+  ts <- 
+    now() |>
+    with_tz("US/Pacific") |> 
+    as.numeric()
+  
+  # Begin the transaction
+  portalQuery(
+    query = "START TRANSACTION;",
+    type = "set"
+  )
+  
+  # Try executing all inserts; if an error occurs, rollback the transaction.
+  tryCatch({
+    n <- length(pid)  # Assume all vectors have equal length
+    
+    for(i in seq_len(n)){
+      res <- portalQuery(
+        query = 
+          "INSERT INTO banktransactions (time, pid, `source`, `transaction`, `status`, uid) 
+         VALUES (?time, ?pid, ?source, ?transaction, ?status, ?uid);",
+        time        = ts,
+        pid         = pid[i],
+        source      = source[i],
+        transaction = transaction[i],
+        status      = status,
+        uid         = uid,
+        type        = "set"
+      )
+      
+      # Optionally check if the insert failed (depends on how portalQuery returns errors)
+      # If portalQuery returns NULL or a specific error code, you could trigger an error:
+      if (is.null(res)) {
+        stop("Insert failed for row ", i)
+      }
+    }
+    
+    # All rows inserted successfully; commit the transaction
+    portalQuery(
+      query = "COMMIT;",
+      type = "set"
+    )
+    
+  }, error = function(e) {
+    # An error occurred; rollback the transaction
+    portalQuery(
+      query = "ROLLBACK;",
+      type = "set"
+    )
+    message("Transaction failed, rolling back: ", e$message)
+  })
+  
+}

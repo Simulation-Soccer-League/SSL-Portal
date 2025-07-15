@@ -258,5 +258,7 @@ server <- function(id, cost, playerData) {
         ignoreInit = TRUE,
         ignoreNULL = FALSE
       )
+    
+    return(input)
   })
 }

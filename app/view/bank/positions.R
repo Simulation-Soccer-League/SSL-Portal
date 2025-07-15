@@ -50,7 +50,7 @@ ui <- function(id) {
 
 
 #' @export
-server <- function(id, cost, playerData, session) {
+server <- function(id, cost, playerData, parentSession) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -221,22 +221,20 @@ server <- function(id, cost, playerData, session) {
         )
         
         shiny$updateActionButton(
-          session = session,
+          session = parentSession,
           inputId = "verifyPurchase", 
           label = "You cannot only remove positions!"
         )
-        
-        disable(id = "verifyPurchase")
       } else {
         shiny$updateActionButton(
-          session = session,
+          session = parentSession,
           inputId = "verifyPurchase", 
           label = "Verify purchase"
         )
-        
-        enable(id = "verifyPurchase")
       }
     }) |> 
       shiny$bindEvent(input$pos, ignoreInit = TRUE)
+    
+    return(input)
   })
 }

@@ -46,7 +46,10 @@ server <- function(id, cost, playerData) {
         inputId = "individualTraining",
         max = 18 - playerData()$purchasedTPE
       )
-    })
+    }) |> 
+      shiny$bindEvent(
+        playerData()
+      )
     
     
     shiny$observe({
@@ -55,5 +58,7 @@ server <- function(id, cost, playerData) {
       shiny$bindEvent(
         input$individualTraining
       )
+    
+    return(input)
   })
 }
