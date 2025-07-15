@@ -2,11 +2,12 @@ box::use(
   dplyr,
   lubridate[now, with_tz],
   purrr[pwalk],
-  stringr[str_to_upper, str_remove_all, str_to_title],
+  stringr[
+    str_to_upper, 
+  ],
 )
 
 box::use(
-  app/logic/constant,
   app/logic/db/database[portalQuery],
 )
 
@@ -64,7 +65,7 @@ logUpdate <- function(uid, pid, updates) {
 }
 
 #' @export
-logRedist <- function(pid){
+logRedist <- function(pid) {
   portalQuery(
     "UPDATE playerdata
     SET redistused = 1 
@@ -75,7 +76,7 @@ logRedist <- function(pid){
 }
 
 #' @export
-logReroll <- function(pid){
+logReroll <- function(pid) {
   portalQuery(
     "UPDATE playerdata
     SET rerollused = 1 
@@ -96,9 +97,9 @@ logTPE <- function(uid, pid, tpe) {
   
   # fire one parameterized INSERT per row
   pwalk(
-    .l = list(source = tpe$source, tpe_val = tpe$tpe),
+    .l = list(source = tpe$source, tpeVal = tpe$tpe),
     .f = 
-      function(source, tpe_val) {
+      function(source, tpeVal) {
         portalQuery(
           query = "
             INSERT INTO tpehistory (
@@ -111,7 +112,7 @@ logTPE <- function(uid, pid, tpe) {
           pid    = pid,
           time   = ts,
           source = source,
-          tpe    = tpe_val,
+          tpe    = tpeVal,
           type = "set"
         )
       }
@@ -119,7 +120,7 @@ logTPE <- function(uid, pid, tpe) {
 }
 
 #' @export
-logBankTransaction <- function(uid, pid, source, transaction, status = 1){
+logBankTransaction <- function(uid, pid, source, transaction, status = 1) {
   ts <- 
     now() |>
     with_tz("US/Pacific") |> 
@@ -135,7 +136,7 @@ logBankTransaction <- function(uid, pid, source, transaction, status = 1){
   tryCatch({
     n <- length(pid)  # Assume all vectors have equal length
     
-    for(i in seq_len(n)){
+    for (i in seq_len(n)) {
       res <- portalQuery(
         query = 
           "INSERT INTO banktransactions (time, pid, `source`, `transaction`, `status`, uid) 

@@ -2,16 +2,20 @@ box::use(
   bslib,
   dplyr,
   lubridate[
-    as_datetime, 
     now,
   ],
-  reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
-  rlang[is_empty],
+  reactable[
+    reactable, 
+  ],
   scales[dollar],
   shiny,
   shinyFeedback[showToast],
   shinyjs[disable, enable],
-  stringr[str_detect, str_remove, str_split, str_to_lower, str_to_upper],
+  stringr[
+    str_remove, 
+    str_to_lower, 
+    str_to_upper,
+  ],
   tidyr[pivot_longer],
 )
 
@@ -30,11 +34,10 @@ box::use(
   ],
   app/logic/player/playerHistory,
   app/logic/player/playerInfo,
-  app/logic/ui/spinner[withSpinnerCustom],
+  app/view/bank/footedness,
   app/view/bank/positions,
   app/view/bank/training,
   app/view/bank/traits,
-  app/view/bank/footedness,
 )
 
 #' @export
@@ -84,7 +87,7 @@ server <- function(id, auth, updated) {
             )
           ),
           bslib$layout_column_wrap(
-            width = 1/2,
+            width = 1 / 2,
             shiny$uiOutput(ns("cost")),
             shiny$actionButton(
               ns("verifyPurchase"),
@@ -129,16 +132,24 @@ server <- function(id, auth, updated) {
       
       output$cost <- shiny$renderUI({
         shiny$tagList(
-          paste0("Your bank balance: ", playerData()$bankBalance |> dollar()) |> 
+          paste0(
+            "Your bank balance: ", 
+            playerData()$bankBalance |> 
+              dollar()
+          ) |> 
             shiny$p(),
-          paste0("Total cost: ", totalCost() |> dollar()) |> 
+          paste0(
+            "Total cost: ", 
+            totalCost() |> 
+              dollar()
+          ) |> 
             shiny$p(),
         )
       })
       
       #### OBSERVERS ####
       shiny$observe({
-        if (totalCost() > playerData()$bankBalance | totalCost() <= 0){
+        if (totalCost() > playerData()$bankBalance | totalCost() <= 0) {
           shiny$updateActionButton(
             inputId = "verifyPurchase", 
             label = "You have exceeded your bank balance!"
@@ -158,7 +169,7 @@ server <- function(id, auth, updated) {
       shiny$observe({
         disable("verifyPurchase")
         
-        if (totalCost() <= 0 ){
+        if (totalCost() <= 0) {
           showToast(
             .options = constant$myToastOptions,
             "error",
@@ -214,7 +225,7 @@ server <- function(id, auth, updated) {
             ) |> 
             dplyr$filter(new != old)
           
-          if(purchaseSummary |> nrow() == 0){
+          if (purchaseSummary |> nrow() == 0) {
             showToast(
               .options = constant$sslToastOptions,
               "warning",
@@ -252,7 +263,7 @@ server <- function(id, auth, updated) {
             uid = auth$uid
           )
         
-        if ( (now() |> as.numeric()) - recentPurchase$time < 60){
+        if ((now() |> as.numeric()) - recentPurchase$time < 60) {
           showToast(
             .options = constant$sslToastOptions,
             "warning",
@@ -292,7 +303,7 @@ server <- function(id, auth, updated) {
                     currentPos$xp[currentPos$position %in% inputPos$unusedPositions],
                     "0"
                   ),
-                new = 
+                new =
                   c(
                     paste0(inputTrait$traits, collapse = constant$traitSep),
                     inputFoot$left |> as.character(), 
@@ -305,7 +316,7 @@ server <- function(id, auth, updated) {
               ) |> 
               dplyr$filter(new != old & attribute != "tpe")
             
-            if (purchaseSummary |> nrow() > 0){
+            if (purchaseSummary |> nrow() > 0) {
               updatePlayerData(
                 uid = auth$uid,
                 pid = playerData()$pid,
@@ -313,7 +324,7 @@ server <- function(id, auth, updated) {
               )  
             }
             
-            if (inputTrain$individualTraining > 0){
+            if (inputTrain$individualTraining > 0) {
               
               ## Logs and updates the tpe
               updateTPE(
@@ -351,14 +362,17 @@ server <- function(id, auth, updated) {
               "success",
               "You have successfully made a purchase!"
             )
-          }, error = function(e){
+          }, error = function(e) {
             message("Error executing query: ", e)
             
             showToast(
               .options = constant$sslToastOptions,
               "error",
-              paste("Something is wrong, please notify the BoD with the following error message: \n",
-                    e$message)
+              paste(
+                "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+                e$message
+              )
             )
           })
         }
