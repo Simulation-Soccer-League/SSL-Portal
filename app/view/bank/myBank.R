@@ -95,7 +95,8 @@ server <- function(id, auth, updated) {
               class = "primary-button"
             )
           ) |> 
-            shiny$div(class = "frozen-bottom")
+            shiny$div(class = "frozen-bottom"),
+          shiny$div(style = "min-height:100px;")
         )
         
       })
