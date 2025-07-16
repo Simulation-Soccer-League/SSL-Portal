@@ -26,7 +26,13 @@ getQuery <- function(query, ..., schema){
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
     DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")
     
-    safeQuery <- DBI$sqlInterpolate(con, query, ...)
+    safeQuery <- glue$glue_sql(
+      query,
+      .con = con,
+      .envir = list(...)
+    )
+    
+    # safeQuery <- DBI$sqlInterpolate(con, query, ...)
     
     req <- DBI$dbGetQuery(con, safeQuery) |> 
       suppressWarnings()
@@ -60,7 +66,13 @@ setQuery <- function(query, ..., schema){
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
     DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")
     
-    safeQuery <- DBI$sqlInterpolate(con, query, ...)
+    safeQuery <- glue$glue_sql(
+      query,
+      .con = con,
+      .envir = list(...)
+    )
+    
+    # safeQuery <- DBI$sqlInterpolate(con, query, ...)
     
     req <- DBI$dbExecute(con, safeQuery) |> 
       suppressWarnings()

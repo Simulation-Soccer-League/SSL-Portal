@@ -10,6 +10,7 @@ box::use(
 box::use(
   app/view/navigationBar,
   app/view/bank/myBank,
+  app/view/bank/bankDeposit,
   app/view/index/academyIndex,
   app/view/index/careerRecords,
   app/view/index/leagueIndex,
@@ -49,6 +50,7 @@ ui <- function(id) {
       route("tracker/organization", organization$ui(ns("organization"))),
       route("search", playerSearch$ui(ns("search"))),
       route("myBank", myBank$ui(ns("myBank"))),
+      route("bank/deposit", bankDeposit$ui(ns("bankDeposit"))),
       route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
       route("myPlayer/update", playerUpdate$ui(ns("update"))),
       route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
@@ -198,6 +200,11 @@ server <- function(id) {
         
         createPlayer$server("create", auth = authOutput(), updated = updated)
         loadedServer$create <- TRUE
+        
+      } else if (current == "bank/deposit" & !loadedServer$bankDeposit) {
+        
+        bankDeposit$server("bankDeposit", auth = authOutput(), updated = updated)
+        loadedServer$bankDeposit <- TRUE
         
       } 
     }) |>

@@ -16,7 +16,17 @@ box::use(
 
 box::use(
   app/logic/ui/tags[flexCol, flexRow, navMenu, navMenuItem],
-  app/logic/db/login[customCheckCredentials, getRefreshToken, setRefreshToken],
+  app/logic/db/login[
+    customCheckCredentials, 
+    getRefreshToken, 
+    setRefreshToken,
+    isBankerAccountant,
+    isBoD,
+    isBoDIntern,
+    isFileworker,
+    isManager,
+    isPT,
+  ],
   app/logic/ui/spinner[withSpinnerCustom],
   app/logic/player/playerChecks[checkApprovingPlayer, hasActivePlayer],
 )
@@ -151,15 +161,35 @@ server <- function(id, auth, resAuth, updated) {
   moduleServer(id, function(input, output, session) {
     ### Output
     getJobsUi <- function(userGroup) {
-      if (any(c(3, 4, 8, 11, 12, 14, 15) %in% userGroup)) {
+      if (any(
+        isFileworker(userGroup), 
+        isBoD(userGroup), 
+        isBoDIntern(userGroup),
+        isBankerAccountant(userGroup),
+        isManager(userGroup),
+        isPT(userGroup)
+      )) {
         items <- list(
-          if (any(c(4, 3, 14) %in% userGroup)) {
+          if (any(isFileworker(userGroup), isBoD(userGroup), isBoDIntern(userGroup))) {
             navMenuItem(
               label = "File Work",
               subItems = list(
                 a("Build Exports", href = route_link("filework/export")),
                 a("Index Imports", href = route_link("filework/import")),
                 a("Edit Schedule", href = route_link("filework/schedule"))
+              )
+            )
+          },
+          if (any(isBankerAccountant(userGroup), isPT(userGroup), isBoD(userGroup),
+                  isBoDIntern(userGroup), isManager(userGroup))) {
+            navMenuItem(
+              label = "Bank",
+              subItems = list(
+                a("Bank Deposits", href = route_link("bank/deposit")),
+                if (any(isBankerAccountant(userGroup), isBoD(userGroup),
+                        isBoDIntern(userGroup))) {
+                  a("Process Transactions", href = route_link("bank/process"))
+                }
               )
             )
           }

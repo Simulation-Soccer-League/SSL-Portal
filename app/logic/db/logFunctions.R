@@ -39,12 +39,12 @@ logUpdate <- function(uid, pid, updates) {
               old,
               new
             ) VALUES (
-              ?uid,
-              ?pid,
-              ?time,
-              ?attribute,
-              ?old,
-              ?new
+              {uid},
+              {pid},
+              {time},
+              {attribute},
+              {old},
+              {new}
             );
           ",
           uid       = uid,
@@ -69,7 +69,7 @@ logRedist <- function(pid) {
   portalQuery(
     "UPDATE playerdata
     SET redistused = 1 
-    WHERE pid = ?pid;", 
+    WHERE pid = {pid};", 
     pid = pid,
     type = "set"
   )
@@ -80,7 +80,7 @@ logReroll <- function(pid) {
   portalQuery(
     "UPDATE playerdata
     SET rerollused = 1 
-    WHERE pid = ?pid;", 
+    WHERE pid = {pid};", 
     pid = pid,
     type = "set"
   )
@@ -105,7 +105,7 @@ logTPE <- function(uid, pid, tpe) {
             INSERT INTO tpehistory (
               uid, pid, time, source, tpe
             ) VALUES (
-              ?uid, ?pid, ?time, ?source, ?tpe
+              {uid}, {pid}, {time}, {source}, {tpe}
             );
           ",
           uid    = uid,
@@ -140,7 +140,7 @@ logBankTransaction <- function(uid, pid, source, transaction, status = 1) {
       res <- portalQuery(
         query = 
           "INSERT INTO banktransactions (time, pid, `source`, `transaction`, `status`, uid) 
-         VALUES (?time, ?pid, ?source, ?transaction, ?status, ?uid);",
+         VALUES ({time}, {pid}, {source}, {transaction}, {status}, {uid});",
         time        = ts,
         pid         = pid[i],
         source      = source[i],

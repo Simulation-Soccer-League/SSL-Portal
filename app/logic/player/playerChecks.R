@@ -155,8 +155,8 @@ checkDuplicatedNames <- function(first, last){
     query = "
       SELECT *
       FROM playerdata
-      WHERE first = ?first
-        AND last  = ?last;
+      WHERE first = {first}
+        AND last  = {last};
     ",
     first = first,
     last  = last
@@ -347,7 +347,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
   # quote the column identifiers for SQL
   cols_sql <- paste0("`", fields, "`", collapse = ", ")
   # build a matching list of ?placeholders
-  placeholders <- paste0("?", fields, collapse = ", ")
+  placeholders <- paste0(paste0("{", fields, "}"), collapse = ", ")
   
   # one tidy SQL string
   sql <- sprintf(
@@ -370,7 +370,7 @@ checkApprovingPlayer <- function(uid) {
     query = "
       SELECT *
       FROM playerdata
-      WHERE uid      = ?uid
+      WHERE uid      = {uid}
         AND status_p = -1;
     ",
     uid = uid
@@ -389,9 +389,9 @@ completedAC <- function(pid) {
     query = "
       SELECT *
       FROM tpehistory
-      WHERE pid    = ?pid
+      WHERE pid    = {pid}
         AND source LIKE '%Activity Check'
-        AND time   > ?weekStart;
+        AND time   > {weekStart};
     ",
     pid       = pid,
     weekStart = weekStart
@@ -410,9 +410,9 @@ completedTC <- function(pid) {
     query = "
       SELECT *
       FROM tpehistory
-      WHERE pid    = ?pid
+      WHERE pid    = {pid}
         AND source LIKE '%Training Camp'
-        AND time   > ?start;
+        AND time   > {start};
     ",
     pid   = pid,
     start = start

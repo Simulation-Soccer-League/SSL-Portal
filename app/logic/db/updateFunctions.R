@@ -50,12 +50,12 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
                   old,
                   new
                 ) VALUES (
-                  ?uid,
-                  ?pid,
-                  ?time,
-                  ?attribute,
-                  ?old,
-                  ?new
+                  {uid},
+                  {pid},
+                  {time},
+                  {attribute},
+                  {old},
+                  {new}
                 );",
               uid       = uid,
               pid       = pid,
@@ -86,8 +86,8 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
             portalQuery(
               query = paste0(
                 "UPDATE playerdata\n",
-                "SET ", col_q, " = ?new_value\n",
-                "WHERE pid = ?pid;"
+                "SET ", col_q, " = {new_value}\n",
+                "WHERE pid = {pid};"
               ),
               new_value = new_value,
               pid       = pid,
@@ -101,8 +101,8 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
         portalQuery(
           query =
             "UPDATE playerdata
-            SET tpebank = ?bankedTPE
-            WHERE pid = ?pid;",
+            SET tpebank = {bankedTPE}
+            WHERE pid = {pid};",
           bankedTPE = bankedTPE,
           pid       = pid,
           type = "set"
@@ -151,7 +151,7 @@ updateTPE <- function(uid, pid, tpe){
                 "INSERT INTO tpehistory (
                     uid, pid, time, source, tpe
                   ) VALUES (
-                    ?uid, ?pid, ?time, ?source, ?tpe
+                    {uid}, {pid}, {time}, {source}, {tpe}
                   );",
               uid    = uid,
               pid    = pid,
@@ -167,9 +167,9 @@ updateTPE <- function(uid, pid, tpe){
         query = 
           "UPDATE playerdata
             SET
-              tpe      = tpe + ?tpe,
-              tpebank  = tpebank + ?tpe
-            WHERE pid = ?pid;",
+              tpe      = tpe + {tpe},
+              tpebank  = tpebank + {tpe}
+            WHERE pid = {pid};",
         tpe = tpe$tpe,
         pid = pid,
         type = "set"
