@@ -46,7 +46,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id) {
+server <- function(id, updated) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
@@ -56,8 +56,14 @@ server <- function(id) {
         season <- input$selectedSeason
         league <- input$selectedLeague
 
-        getSchedule(season = season, league = league)
-      })
+        getSchedule(season = season, league = league) |> 
+          dplyr$select(!gid)
+      }) |> 
+        shiny$bindEvent(
+          input$selectedSeason,
+          input$selectedLeague,
+          updated()
+        )
 
 
       #### UI OUTPUT ####

@@ -49,7 +49,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id) {
+server <- function(id, updated) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
@@ -60,7 +60,12 @@ server <- function(id) {
         league <- input$selectedLeague
 
         getStandings(season = season, league = league)
-      })
+      }) |> 
+        shiny$bindEvent(
+          input$selectedSeason,
+          input$selectedLeague,
+          updated()
+        )
 
 
       #### UI OUTPUT ####
