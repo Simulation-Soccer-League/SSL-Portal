@@ -329,11 +329,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
     summary |> 
     dplyr$mutate(
       dplyr$across(
-        dplyr$where(is.character),
-        ~ paste("'", .x, "'", sep = "")
-      ),
-      dplyr$across(
-        dplyr$everything(),
+        .cols = !render,
         ~ dplyr$if_else(.x == "", NA, .x)
       )
     )

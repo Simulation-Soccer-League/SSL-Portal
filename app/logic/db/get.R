@@ -209,7 +209,7 @@ getDraftClass <- function(class = NULL) {
       allplayersview
     WHERE
       class = {class} AND 
-      status_p  > 0
+      status_p  >= 0
     ORDER BY tpe DESC",
     class = paste0("S", class)
   ) |>

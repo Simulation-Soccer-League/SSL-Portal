@@ -26,7 +26,7 @@ ui <- function(id) {
           label = "Select a class",
           choices =
             c(
-              1:(constant$currentSeason$season + 1) |>
+              seq_len(constant$currentSeason$season + 1) |>
                 sort(decreasing = TRUE)
             )
         ),
