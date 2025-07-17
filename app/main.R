@@ -19,6 +19,7 @@ box::use(
   app/view/jobs/bank/bankProcess,
   app/view/jobs/filework/export,
   app/view/jobs/filework/import,
+  app/view/jobs/filework/scheduleEdit,
   app/view/player/createPlayer,
   app/view/player/myPlayer,
   app/view/player/playerUpdate,
@@ -60,7 +61,8 @@ ui <- function(id) {
       route("myPlayer/regress", playerUpdate$ui(ns("regress"))),
       route("createPlayer", createPlayer$ui(ns("create"))),
       route("filework/export", export$ui(ns("export"))),
-      route("filework/import", import$ui(ns("import")))
+      route("filework/import", import$ui(ns("import"))),
+      route("filework/scheduleEdit", scheduleEdit$ui(ns("scheduleEdit")))
     )
   )
 }
@@ -102,7 +104,7 @@ server <- function(id) {
         myBank = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
         tradeProcess = FALSE, playerEdit = FALSE, submitPT = FALSE,
-        bankDeposit = FALSE, bankProcess = FALSE,
+        bankDeposit = FALSE, bankProcess = FALSE, scheduleEdit = FALSE,
         managerTeam = FALSE,
         assignManager = FALSE, bodoverview = FALSE, export = FALSE,
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
@@ -212,6 +214,11 @@ server <- function(id) {
         
         bankProcess$server("bankProcess", auth = authOutput(), updated = updated)
         loadedServer$bankProcess <- TRUE
+        
+      } else if (current == "filework/scheduleEdit" & !loadedServer$scheduleEdit) {
+        
+        scheduleEdit$server("scheduleEdit", auth = authOutput(), updated = updated)
+        loadedServer$scheduleEdit <- TRUE
         
       } 
     }) |>

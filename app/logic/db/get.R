@@ -289,7 +289,8 @@ getSchedule <- function(league, season) {
       HomeScore,
       AwayScore,
       ExtraTime,
-      Penalties
+      Penalties,
+      gid
     FROM schedule
     WHERE
       ( {season} = 'ALL'       OR season    = {season} )

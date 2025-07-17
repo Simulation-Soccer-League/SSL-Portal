@@ -56,7 +56,8 @@ server <- function(id) {
         season <- input$selectedSeason
         league <- input$selectedLeague
 
-        getSchedule(season = season, league = league)
+        getSchedule(season = season, league = league) |> 
+          dplyr$select(!gid)
       })
 
 

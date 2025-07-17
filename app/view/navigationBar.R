@@ -176,7 +176,7 @@ server <- function(id, auth, resAuth, updated) {
               subItems = list(
                 a("Build Exports", href = route_link("filework/export")),
                 a("Index Imports", href = route_link("filework/import")),
-                a("Edit Schedule", href = route_link("filework/schedule"))
+                a("Edit Schedule", href = route_link("filework/scheduleEdit"))
               )
             )
           },
