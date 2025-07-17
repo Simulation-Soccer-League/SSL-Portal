@@ -11,24 +11,13 @@ box::use(
     reactableOutput,
     renderReactable,
   ],
-  readr[
-    read_csv,
-    write_csv,
-  ],
   shiny,
   shinyFeedback[showToast],
-  shinyjs[click, disable, enable, reset],
-  stringr[
-    str_to_lower, 
-  ],
-  utils[download.file, ],
 )
 
 box::use(
   app/logic/constant,
   app/logic/db/get[getBankTransactions],
-  app/logic/db/database[portalQuery],
-  app/logic/db/logFunctions[logBankTransaction],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[approveTransaction, rejectTransaction],
   app/logic/player/playerChecks[

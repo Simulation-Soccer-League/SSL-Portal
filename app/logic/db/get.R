@@ -6,7 +6,6 @@ box::use(
 )
 
 box::use(
-  app / logic / db / api[readAPI],
   app / logic / db / database[indexQuery, portalQuery],
 )
 
@@ -114,8 +113,8 @@ getTopEarners <- function() {
 }
 
 #' @export
-getPlayerNames <- function(active = FALSE){
-  if(active){
+getPlayerNames <- function(active = FALSE) {
+  if (active) {
     portalQuery(
       "SELECT name, pid, team
       FROM allplayersview
@@ -133,7 +132,7 @@ getPlayerNames <- function(active = FALSE){
 }
 
 #' @export
-getActivePlayer <- function(uid){
+getActivePlayer <- function(uid) {
   portalQuery(
     "SELECT pid
     FROM allplayersview
@@ -160,7 +159,7 @@ getPlayers <- function(active) {
 }
 
 #' @export
-getChangedBuilds <- function(){
+getChangedBuilds <- function() {
   ## Gets date of the start of the week in Pacific
   weekEnd <- 
     lubridate$now() |> 
@@ -682,4 +681,3 @@ getNextGameID <- function(season) {
     season = season
   )
 }
-

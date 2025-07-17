@@ -1,9 +1,11 @@
 box::use(
-  DBI,
   dplyr,
   lubridate[now, with_tz],
   purrr[pwalk],
-  stringr[str_to_lower, str_to_upper, str_remove_all, str_to_title],
+  stringr[
+    str_to_lower, 
+    str_to_upper, 
+  ],
 )
 
 box::use(
@@ -76,20 +78,20 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
         .l = 
           list(
             col       = updates$attribute,
-            new_value = updates$new
+            newValue  = updates$new
           ),
         .f = 
-          function(col, new_value) {
+          function(col, newValue) {
             # quote the column name exactly once
-            col_q <- paste0("`", str_to_lower(col), "`")
+            colQ <- paste0("`", str_to_lower(col), "`")
             
             portalQuery(
               query = paste0(
                 "UPDATE playerdata\n",
-                "SET ", col_q, " = {new_value}\n",
+                "SET ", colQ, " = {newValue}\n",
                 "WHERE pid = {pid};"
               ),
-              new_value = new_value,
+              newValue = newValue,
               pid       = pid,
               type = "set"
             )
@@ -128,7 +130,7 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
 }
 
 #' @export
-updateTPE <- function(uid, pid, tpe){
+updateTPE <- function(uid, pid, tpe) {
   
   result <- 
     tryCatch({
@@ -143,9 +145,9 @@ updateTPE <- function(uid, pid, tpe){
       
       # fire one parameterized INSERT per row
       pwalk(
-        .l = list(source = tpe$source, tpe_val = tpe$tpe),
+        .l = list(source = tpe$source, tpeVal = tpe$tpe),
         .f = 
-          function(source, tpe_val) {
+          function(source, tpeVal) {
             portalQuery(
               query = 
                 "INSERT INTO tpehistory (
@@ -157,7 +159,7 @@ updateTPE <- function(uid, pid, tpe){
               pid    = pid,
               time   = ts,
               source = source,
-              tpe    = tpe_val,
+              tpe    = tpeVal,
               type = "set"
             )
           }
@@ -195,7 +197,7 @@ updateTPE <- function(uid, pid, tpe){
 }
 
 #' @export
-approveTransaction <- function(data, uid){
+approveTransaction <- function(data, uid) {
   # Begin the transaction
   portalQuery(
     query = "START TRANSACTION;",
@@ -203,7 +205,7 @@ approveTransaction <- function(data, uid){
   )
   
   tryCatch({
-    for (i in 1:nrow(data)) {
+    for (i in seq_len(nrow(data))) {
       portalQuery(
         query = "UPDATE banktransactions 
                SET status = 1, approvedBy = {approvedBy}
@@ -237,7 +239,7 @@ approveTransaction <- function(data, uid){
 }
 
 #' @export
-rejectTransaction <- function(data, uid){
+rejectTransaction <- function(data, uid) {
   # Begin the transaction
   portalQuery(
     query = "START TRANSACTION;",
@@ -245,7 +247,7 @@ rejectTransaction <- function(data, uid){
   )
   
   tryCatch({
-    for (i in 1:nrow(data)) {
+    for (i in seq_len(nrow(data))) {
       portalQuery(
         query = "UPDATE banktransactions 
                SET status = -1, approvedBy = {approvedBy}

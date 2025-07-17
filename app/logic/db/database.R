@@ -10,7 +10,7 @@ dbPort <- Sys.getenv("PORT") |> as.integer()
 dbUser <- Sys.getenv("DBUSER")
 dbPassword <- Sys.getenv("DBPASSWORD")
 
-getQuery <- function(query, ..., schema){
+getQuery <- function(query, ..., schema) {
   tryCatch({
     con <-
       DBI$dbConnect(
@@ -41,7 +41,7 @@ getQuery <- function(query, ..., schema){
   }, error = function(e) {
     # Log or handle the error
     message("Error executing query: ", e$message)
-    return(NULL)
+    NULL
   }, finally = {
     # Ensure the connection is closed
     if (!is.null(con) && DBI$dbIsValid(con)) {
@@ -50,7 +50,7 @@ getQuery <- function(query, ..., schema){
   })
 }
 
-setQuery <- function(query, ..., schema){
+setQuery <- function(query, ..., schema) {
   tryCatch({
     con <-
       DBI$dbConnect(
@@ -81,7 +81,7 @@ setQuery <- function(query, ..., schema){
   }, error = function(e) {
     # Log or handle the error
     message("Error executing query: ", e$message)
-    return(NULL)
+    NULL
   }, finally = {
     # Ensure the connection is closed
     if (!is.null(con) && DBI$dbIsValid(con)) {
@@ -93,7 +93,7 @@ setQuery <- function(query, ..., schema){
 #' Function for queries to mybb
 #' @export
 mybbQuery <- function(query, ..., type = "get") {
-  if(type == "get"){
+  if (type == "get") {
     getQuery(query, ..., schema = "mybb")    
   } else {
     setQuery(query, ..., schema = "mybb")    
@@ -103,7 +103,7 @@ mybbQuery <- function(query, ..., type = "get") {
 #' Function for queries to portal
 #' @export
 portalQuery <- function(query, ..., type = "get") {
-  if(type == "get"){
+  if (type == "get") {
     getQuery(query, ..., schema = "portal")    
   } else {
     setQuery(query, ..., schema = "portal")    
@@ -113,7 +113,7 @@ portalQuery <- function(query, ..., type = "get") {
 #' Function for queries to index
 #' @export
 indexQuery <- function(query, ..., type = "get") {
-  if(type == "get"){
+  if (type == "get") {
     getQuery(query, ..., schema = "index")    
   } else {
     setQuery(query, ..., schema = "index")    
@@ -123,7 +123,7 @@ indexQuery <- function(query, ..., type = "get") {
 #' Function for queries to budget
 #' @export
 budgetQuery <- function(query, ..., type = "get") {
-  if(type == "get"){
+  if (type == "get") {
     getQuery(query, ..., schema = "budget")    
   } else {
     setQuery(query, ..., schema = "budget")    
