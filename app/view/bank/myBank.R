@@ -258,7 +258,7 @@ server <- function(id, auth, updated) {
           portalQuery(
             "SELECT time
             FROM banktransactions
-            WHERE uid = ?uid
+            WHERE uid = {uid}
             ORDER BY time DESC
             LIMIT 1;",
             uid = auth$uid
@@ -341,8 +341,8 @@ server <- function(id, auth, updated) {
               portalQuery(
                 query = 
                   "UPDATE playerdata 
-                  SET purchasedTPE = purchasedTPE + ?tpe 
-                  WHERE pid = ?pid;",
+                  SET purchasedTPE = purchasedTPE + {tpe} 
+                  WHERE pid = {pid};",
                 tpe = inputTrain$individualTraining,
                 pid = playerData()$pid,
                 type = "set"

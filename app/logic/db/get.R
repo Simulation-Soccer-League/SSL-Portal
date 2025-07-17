@@ -6,7 +6,6 @@ box::use(
 )
 
 box::use(
-  app / logic / db / api[readAPI],
   app / logic / db / database[indexQuery, portalQuery],
 )
 
@@ -15,7 +14,7 @@ getUpdateHistory <- function(pid) {
   portalQuery(
     "SELECT Time, Username, `Changed attribute`, `From`, `To`
     FROM updatehistoryview
-    WHERE pid = ?pid
+    WHERE pid = {pid}
     ORDER BY Time DESC;",
     pid = pid
   ) |>
@@ -31,7 +30,7 @@ getTpeHistory <- function(pid) {
   portalQuery(
     "SELECT Time, Username, Source, `TPE Change`
     FROM tpehistoryview
-    WHERE pid = ?pid
+    WHERE pid = {pid}
     ORDER BY Time DESC;",
     pid = pid
   ) |>
@@ -47,7 +46,7 @@ getBankHistory <- function(pid) {
   portalQuery(
     "SELECT Time, Player, Username, Source, Transaction, Status
     FROM bankhistoryview
-    WHERE pid = ?pid
+    WHERE pid = {pid}
     ORDER BY Time DESC;",
     pid = pid
   ) |>
@@ -57,6 +56,17 @@ getBankHistory <- function(pid) {
         lubridate$as_datetime(tz = "US/Pacific")
     )
 }
+
+#' @export
+getBankTransactions <- function(status) {
+  portalQuery(
+    "SELECT *
+    FROM bankhistoryview
+    WHERE status IN ({status*});",
+    status = status
+  )
+}
+
 
 #' @export
 getRecentCreates <- function() {
@@ -103,8 +113,8 @@ getTopEarners <- function() {
 }
 
 #' @export
-getPlayerNames <- function(active = FALSE){
-  if(active){
+getPlayerNames <- function(active = FALSE) {
+  if (active) {
     portalQuery(
       "SELECT name, pid, team
       FROM allplayersview
@@ -122,11 +132,11 @@ getPlayerNames <- function(active = FALSE){
 }
 
 #' @export
-getActivePlayer <- function(uid){
+getActivePlayer <- function(uid) {
   portalQuery(
     "SELECT pid
     FROM allplayersview
-    WHERE status_p = 1 AND uid = ?uid;",
+    WHERE status_p = 1 AND uid = {uid};",
     uid = uid
   ) |> 
     unlist()
@@ -139,7 +149,7 @@ getPlayers <- function(active) {
   portalQuery(
     "SELECT *
     FROM allplayersview
-    WHERE status_p >= ?active",
+    WHERE status_p >= {active}",
     active = active
   ) |>
     mutate(
@@ -149,7 +159,7 @@ getPlayers <- function(active) {
 }
 
 #' @export
-getChangedBuilds <- function(){
+getChangedBuilds <- function() {
   ## Gets date of the start of the week in Pacific
   weekEnd <- 
     lubridate$now() |> 
@@ -173,7 +183,7 @@ getChangedBuilds <- function(){
         LEFT JOIN weeklybuilds wb ON pd.pid = wb.pid
         JOIN updatehistory uh ON pd.pid = uh.pid
         LEFT JOIN teams t ON pd.team = t.orgID AND pd.affiliate = t.affiliate
-        WHERE uh.Time < ?weekEnd AND uh.Time > ?weekStart AND uh.uid <> 1;",
+        WHERE uh.Time < {weekEnd} AND uh.Time > {weekStart} AND uh.uid <> 1;",
     weekEnd = weekEnd,
     weekStart = weekStart
   )
@@ -198,7 +208,7 @@ getDraftClass <- function(class = NULL) {
     FROM 
       allplayersview
     WHERE
-      class = ?class AND 
+      class = {class} AND 
       status_p  > 0
     ORDER BY tpe DESC",
     class = paste0("S", class)
@@ -242,17 +252,17 @@ getStandings <- function(league, season) {
         FROM schedule
         WHERE HomeScore IS NOT NULL
           -- league filter: either ALL or exact match
-          AND ( ?league = 'ALL'    OR matchtype = ?league )
+          AND ( {league} = 'ALL'    OR matchtype = {league} )
           -- season filter: either ALL or exact match
-          AND ( ?season = 'ALL'    OR Season    = ?season )
+          AND ( {season} = 'ALL'    OR Season    = {season} )
         
         UNION ALL
         
         SELECT Away  AS Team, Home, Away, HomeScore, AwayScore, matchtype, Season
         FROM schedule
         WHERE HomeScore IS NOT NULL
-          AND ( ?league = 'ALL'    OR matchtype = ?league )
-          AND ( ?season = 'ALL'    OR Season    = ?season )
+          AND ( {league} = 'ALL'    OR matchtype = {league} )
+          AND ( {season} = 'ALL'    OR Season    = {season} )
       ) AS combined
       GROUP BY Team
       ORDER BY
@@ -282,9 +292,9 @@ getSchedule <- function(league, season) {
       Penalties
     FROM schedule
     WHERE
-      ( ?season = 'ALL'       OR season    = ?season )
+      ( {season} = 'ALL'       OR season    = {season} )
       AND
-      ( ?league = 'ALL'       OR MatchType = ?league )
+      ( {league} = 'ALL'       OR MatchType = {league} )
     ORDER BY IRLDate;
   ",
     season = season,
@@ -297,7 +307,7 @@ getPlayer <- function(pid) {
   portalQuery(
     "SELECT * 
     FROM allplayersview
-    WHERE pid = ?pid",
+    WHERE pid = {pid}",
     pid = pid
   ) |>
     mutate(
@@ -340,7 +350,7 @@ getAcademyIndex <- function(outfield = TRUE, season) {
           END AS `open play crosses%`,
           `shots on target` / `shots` * 100 AS `shot accuracy%`,
           `xG` - 0.83*`penalties taken` AS `pen adj xG`
-      FROM academyoutfield WHERE season = ?season;",
+      FROM academyoutfield WHERE season = {season};",
       season = season
     ) |>
       suppressWarnings()
@@ -350,7 +360,7 @@ getAcademyIndex <- function(outfield = TRUE, season) {
           `name`, `club`, `apps`, `minutes played`, `average rating`, `player of the match`, won, lost, draw, `clean sheets`, conceded, `saves parried`, `saves held`,
           `saves tipped`, (1 - (conceded / (conceded + `saves parried` + `saves held` + `saves tipped`))) * 100 AS `save%`,
           `penalties faced`, `penalties saved`, `xsave%`, `xg prevented`
-      FROM academykeeper WHERE season = ?season;",
+      FROM academykeeper WHERE season = {season};",
       season = season
     ) |>
       suppressWarnings()
@@ -452,9 +462,9 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
             FROM `gamedataoutfield` AS gd
             JOIN schedule AS s ON gd.gid = s.gid
             WHERE
-              ( ?league = 'ALL' OR s.MatchType = ?league )
+              ( {league} = 'ALL' OR s.MatchType = {league} )
               AND
-              ( ?season = 'ALL' OR s.season    = ?season )
+              ( {season} = 'ALL' OR s.season    = {season} )
           ) AS q01
           GROUP BY `name`
         ) AS q02
@@ -520,9 +530,9 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
             JOIN schedule AS s
               ON gd.gid = s.gid
             WHERE
-              ( ?league = 'ALL' OR s.MatchType = ?league )
+              ( {league} = 'ALL' OR s.MatchType = {league} )
               AND
-              ( ?season = 'ALL' OR s.season    = ?season )
+              ( {season} = 'ALL' OR s.season    = {season} )
           ) AS q01
           GROUP BY `name`
         ) AS q02
@@ -596,7 +606,7 @@ getSeasonalTotal <- function(outfield = TRUE, season) {
         JOIN schedule AS s
           ON gd.gid = s.gid
         WHERE
-          ( ?season = 'ALL' OR s.Season = ?season )
+          ( {season} = 'ALL' OR s.Season = {season} )
         GROUP BY
           name, club
         ORDER BY
@@ -628,7 +638,7 @@ getSeasonalTotal <- function(outfield = TRUE, season) {
         JOIN schedule AS s
           ON gd.gid = s.gid
         WHERE
-          ( ?season = 'ALL' OR s.Season = ?season )
+          ( {season} = 'ALL' OR s.Season = {season} )
         GROUP BY
           name, club
         ORDER BY
@@ -650,7 +660,7 @@ getNextGameID <- function(season) {
         LEFT JOIN gamedataoutfield o
           ON s.gid = o.gid
         WHERE o.gid IS NULL
-          AND s.season    = ?season
+          AND s.season    = {season}
           AND s.Matchtype >= 0
         GROUP BY home
 
@@ -661,7 +671,7 @@ getNextGameID <- function(season) {
         LEFT JOIN gamedataoutfield o
           ON s.gid = o.gid
         WHERE o.gid IS NULL
-          AND s.season    = ?season
+          AND s.season    = {season}
           AND s.Matchtype >= 0
         GROUP BY away
       ) AS combined
@@ -671,4 +681,3 @@ getNextGameID <- function(season) {
     season = season
   )
 }
-

@@ -23,13 +23,13 @@ setRefreshToken <- function(uid, token, session = getDefaultReactiveDomain()) {
         expires_at,
         token
       ) VALUES (
-        ?uid,
-        ?expires,
-        ?token
+        {uid},
+        {expires},
+        {token}
       )
       ON DUPLICATE KEY UPDATE
-        token      = ?token,
-        expires_at = ?expires;
+        token      = {token},
+        expires_at = {expires};
     ",
     uid     = uid,
     expires = expires,
@@ -46,7 +46,7 @@ customCheckCredentials <- function(user, password, session = getDefaultReactiveD
       query =
         "SELECT uid, username, password, salt, usergroup, additionalgroups, suspendposting
         FROM mybb_users
-        WHERE username = ?user;",
+        WHERE username = {user};",
       user = user
     ) |>
     suppressWarnings()
@@ -116,7 +116,7 @@ getRefreshToken <- function(token) {
     query = 
       "SELECT * 
       FROM currentrefreshtokensview
-      WHERE token = ?token;",
+      WHERE token = {token};",
     token = token
   ) |>
     suppressWarnings()

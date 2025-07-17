@@ -1,6 +1,7 @@
 # This file allows packrat (used by rsconnect during deployment) to pick up dependencies.
 library(dplyover)
 library(future)
+library(glue)
 library(jsonlite)
 library(plotly)
 library(promises)
