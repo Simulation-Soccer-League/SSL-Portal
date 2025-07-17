@@ -59,6 +59,17 @@ getBankHistory <- function(pid) {
 }
 
 #' @export
+getBankTransactions <- function(status) {
+  portalQuery(
+    "SELECT *
+    FROM bankhistoryview
+    WHERE status IN ({status*});",
+    status = status
+  )
+}
+
+
+#' @export
 getRecentCreates <- function() {
   portalQuery(
     "SELECT name, username, position

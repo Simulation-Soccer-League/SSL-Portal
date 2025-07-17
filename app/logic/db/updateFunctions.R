@@ -193,3 +193,87 @@ updateTPE <- function(uid, pid, tpe){
   }
   
 }
+
+#' @export
+approveTransaction <- function(data, uid){
+  # Begin the transaction
+  portalQuery(
+    query = "START TRANSACTION;",
+    type = "set"
+  )
+  
+  tryCatch({
+    for (i in 1:nrow(data)) {
+      portalQuery(
+        query = "UPDATE banktransactions 
+               SET status = 1, approvedBy = {approvedBy}
+               WHERE status = 0 
+                 AND time = {time} 
+                 AND pid = {pid} 
+                 AND source = {source};",
+        approvedBy = uid,
+        time       = data[i, "Time"],
+        pid        = data[i, "pid"],
+        source     = data[i, "Source"],
+        type       = "set"
+      )
+    }
+    
+    # Commit the transaction if all updates succeed
+    portalQuery(
+      query = "COMMIT;",
+      type = "set"
+    )
+    
+  }, error = function(e) {
+    # Rollback the transaction if any error occurs
+    portalQuery(
+      query = "ROLLBACK;",
+      type = "set"
+    )
+    message("Error updating banktransactions, transaction rolled back: ", e$message)
+  })
+  
+}
+
+#' @export
+rejectTransaction <- function(data, uid){
+  # Begin the transaction
+  portalQuery(
+    query = "START TRANSACTION;",
+    type = "set"
+  )
+  
+  tryCatch({
+    for (i in 1:nrow(data)) {
+      portalQuery(
+        query = "UPDATE banktransactions 
+               SET status = -1, approvedBy = {approvedBy}
+               WHERE status = 0 
+                 AND time = {time} 
+                 AND pid = {pid} 
+                 AND source = {source};",
+        approvedBy = uid,
+        time       = data[i, "Time"],
+        pid        = data[i, "pid"],
+        source     = data[i, "Source"],
+        type       = "set"
+      )
+    }
+    
+    # Commit the transaction if all updates succeed
+    portalQuery(
+      query = "COMMIT;",
+      type = "set"
+    )
+    
+  }, error = function(e) {
+    # Rollback the transaction if any error occurs
+    portalQuery(
+      query = "ROLLBACK;",
+      type = "set"
+    )
+    message("Error updating banktransactions, transaction rolled back: ", e$message)
+  })
+  
+}

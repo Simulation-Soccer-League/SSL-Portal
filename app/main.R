@@ -11,6 +11,7 @@ box::use(
   app/view/navigationBar,
   app/view/bank/myBank,
   app/view/bank/bankDeposit,
+  app/view/bank/bankProcess,
   app/view/index/academyIndex,
   app/view/index/careerRecords,
   app/view/index/leagueIndex,
@@ -51,6 +52,7 @@ ui <- function(id) {
       route("search", playerSearch$ui(ns("search"))),
       route("myBank", myBank$ui(ns("myBank"))),
       route("bank/deposit", bankDeposit$ui(ns("bankDeposit"))),
+      route("bank/process", bankProcess$ui(ns("bankProcess"))),
       route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
       route("myPlayer/update", playerUpdate$ui(ns("update"))),
       route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
@@ -205,6 +207,11 @@ server <- function(id) {
         
         bankDeposit$server("bankDeposit", auth = authOutput(), updated = updated)
         loadedServer$bankDeposit <- TRUE
+        
+      } else if (current == "bank/process" & !loadedServer$bankProcess) {
+        
+        bankProcess$server("bankProcess", auth = authOutput(), updated = updated)
+        loadedServer$bankProcess <- TRUE
         
       } 
     }) |>
