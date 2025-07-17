@@ -209,7 +209,7 @@ getDraftClass <- function(class = NULL) {
       allplayersview
     WHERE
       class = {class} AND 
-      status_p  > 0
+      status_p  >= 0
     ORDER BY tpe DESC",
     class = paste0("S", class)
   ) |>
@@ -525,7 +525,8 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
               gd.`clean sheets`, gd.`conceded`, gd.`saves parried`,
               gd.`saves held`, gd.`saves tipped`, gd.`save%`,
               gd.`penalties faced`, gd.`penalties saved`,
-              gd.`xsave%`, gd.`xg prevented`
+              gd.`xsave%`, gd.`xg prevented`, s.Home, s.Away,
+              s.HomeScore, s.AwayScore
             FROM `gamedatakeeper` AS gd
             JOIN schedule AS s
               ON gd.gid = s.gid

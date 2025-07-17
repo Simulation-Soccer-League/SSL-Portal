@@ -29,7 +29,7 @@ ui <- function(id) {
             label = "Select a season",
             choices =
               c(
-                1:constant$currentSeason$season |>
+                seq_len(constant$currentSeason$season) |>
                   sort(decreasing = TRUE),
                 "ALL"
               )
