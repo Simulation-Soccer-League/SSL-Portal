@@ -225,8 +225,5 @@ server <- function(id, auth, updated) {
       shiny$bindEvent(
         input$saveGame
       )
-      
-    
-    
   })
 }
