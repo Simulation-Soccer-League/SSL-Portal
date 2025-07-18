@@ -130,7 +130,7 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
 }
 
 #' @export
-updateTPE <- function(uid, pid, tpe) {
+updateTPE <- function(uid, pids, tpe) {
   
   result <- 
     tryCatch({
@@ -145,9 +145,9 @@ updateTPE <- function(uid, pid, tpe) {
       
       # fire one parameterized INSERT per row
       pwalk(
-        .l = list(source = tpe$source, tpeVal = tpe$tpe),
+        .l = list(pid = pids, source = tpe$source, tpeVal = tpe$tpe),
         .f = 
-          function(source, tpeVal) {
+          function(pid, source, tpeVal) {
             portalQuery(
               query = 
                 "INSERT INTO tpehistory (
@@ -162,19 +162,19 @@ updateTPE <- function(uid, pid, tpe) {
               tpe    = tpeVal,
               type = "set"
             )
+            
+            portalQuery(
+              query = 
+                "UPDATE playerdata
+                  SET
+                    tpe      = tpe + {tpe},
+                    tpebank  = tpebank + {tpe}
+                  WHERE pid = {pid};",
+              tpe = tpe$tpe,
+              pid = pid,
+              type = "set"
+            )
           }
-      )
-      
-      portalQuery(
-        query = 
-          "UPDATE playerdata
-            SET
-              tpe      = tpe + {tpe},
-              tpebank  = tpebank + {tpe}
-            WHERE pid = {pid};",
-        tpe = tpe$tpe,
-        pid = pid,
-        type = "set"
       )
       
       TRUE  # Indicate success if all insertions succeed.

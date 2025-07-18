@@ -192,6 +192,14 @@ server <- function(id, auth, resAuth, updated) {
                 }
               )
             )
+          },
+          if (any(isPT(userGroup), isBoD(userGroup), isBoDIntern(userGroup))) {
+            navMenuItem(
+              label = "PT",
+              subItems = list(
+                a("PT Deposit", href = route_link("pt/deposit"))
+              )
+            )
           }
         )
         navMenu(

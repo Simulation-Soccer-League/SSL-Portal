@@ -2,8 +2,6 @@ box::use(
   bslib,
   dplyr,
   reactable[
-    colDef,
-    colFormat,
     reactable,
     reactableOutput,
     renderReactable,
@@ -24,8 +22,8 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
-  app/logic/db/logFunctions[logBankTransaction],
   app/logic/db/login[isNonActiveForumUser],
+  app/logic/db/updateFunctions[updateTPE],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],
@@ -61,7 +59,7 @@ server <- function(id, auth, updated) {
         shiny$tagList(
           bslib$card(
             bslib$card_header(
-              shiny$h3("Bank Deposit")
+              shiny$h3("PT Deposit")
             ),
             bslib$card_body(
               bslib$layout_column_wrap(
@@ -70,8 +68,8 @@ server <- function(id, auth, updated) {
                   shiny$h5("Instructions"),
                   shiny$p(
                     paste0(
-                      "The .csv file should contain the player name ('player'), the 
-                      money gained ('amount') and the source ('source'). 
+                      "The .csv file should contain the username ('user'), the 
+                      tpe gained ('tpe') and the source ('source'). 
                       The encoding of the file should be UTF-8. If you are not sure how 
                       to check this, follow the instructions in this ", 
                       shiny$a(
@@ -89,7 +87,7 @@ server <- function(id, auth, updated) {
                 shiny$div(
                   shiny$p("The template file should be populated like this:"),
                   shiny$tags$img(
-                    src = "https://i.imgur.com/pEZymWd.png"
+                    src = "https://i.imgur.com/0fy7ucf.png"
                   ),
                   shiny$br(),
                   shiny$br(),
@@ -116,7 +114,8 @@ server <- function(id, auth, updated) {
               ),
               shiny$h4("Check the processed deposit"),
               shiny$p("The processed file is shown below. Red highlighted rows
-                      indicate that the player is not found with the current spelling.
+                      indicate that an active player has not been found for the given username.
+                      The spelling is case sensitive so check the capitalization.
                       Any row with no source specified can be input using the text input."),
               reactableOutput(ns("checkImport"))
             )
@@ -133,7 +132,7 @@ server <- function(id, auth, updated) {
       })
       
       #### REACTIVES ####
-      bankDeposit <- shiny$reactive({
+      ptDeposit <- shiny$reactive({
         shiny$req(input$depositFile)
         
         file <- input$depositFile
@@ -143,7 +142,7 @@ server <- function(id, auth, updated) {
           show_col_types = FALSE
         )
         
-        if (all(c("player", "amount", "source") %in% 
+        if (all(c("username", "tpe", "source") %in% 
             (colnames(data) |> str_to_lower()))) {
           
           colnames(data) <- colnames(data) |> str_to_lower()
@@ -151,10 +150,10 @@ server <- function(id, auth, updated) {
           ## Gets player ids for all the active players in the list
           pids <- 
             portalQuery(
-              "SELECT pid, name
-              FROM allplayersview
-              WHERE name IN ({playerList*}) AND status_p = 1;",
-              playerList = data$player
+              "SELECT pid, name, username
+                FROM allplayersview
+                WHERE status_p = 1 AND username IN ({usernames*});",
+              usernames = data$username
             )
           
           enable("confirmDeposit")
@@ -162,7 +161,7 @@ server <- function(id, auth, updated) {
           data |> 
             dplyr$left_join(
               pids,
-              by = c("player" = "name")
+              by = "username"
             ) |> 
             dplyr$mutate(
               pid = dplyr$if_else(is.na(pid), -99, pid)
@@ -181,10 +180,10 @@ server <- function(id, auth, updated) {
       
       #### OUTPUT SERVER ####
       output$checkImport <- renderReactable({
-        if (bankDeposit() |> is.null()) {
+        if (ptDeposit() |> is.null()) {
           NULL
         } else {
-          bankDeposit() |> 
+          ptDeposit() |> 
             dplyr$mutate(
               source = dplyr$if_else(
                 is.na(source),
@@ -194,21 +193,9 @@ server <- function(id, auth, updated) {
             ) |> 
             reactable(
               pagination = FALSE,
-              columns = 
-                list(
-                  amount = 
-                    colDef(
-                      format = 
-                        colFormat(
-                          digits = 0, 
-                          separators = TRUE, 
-                          currency = "USD"
-                          )
-                      )
-                ),
               rowStyle = function(index) {
-                if (bankDeposit()[index, "pid"] < 0) {
-                  list(background = "#FFCCCB", color = "#000000")
+                if (ptDeposit()[index, "pid"] < 0) {
+                  list(background = constant$red, color = "white")
                 }
               }
             )
@@ -220,19 +207,20 @@ server <- function(id, auth, updated) {
           paste("unprocessed", input$depositFile$name)
         },
         content = function(file) {
-          bankDeposit() |> 
+          ptDeposit() |> 
             dplyr$filter(pid == -99) |> 
-            dplyr$select(!pid) |> 
+            dplyr$select(!c(pid, name)) |> 
             write_csv(file, na = "")
         }
       )
       
       output$downloadTemplate <- shiny$downloadHandler(
         filename = function() {
-          "Bank Deposit Template.csv"
+          "PT Deposit Template.csv"
         },
         content = function(file) {
-          url <- "https://raw.githubusercontent.com/canadice/ssl-index/main/SSL-Index/bankDepositTemplate.csv"  
+          url <- 
+            "https://raw.githubusercontent.com/canadice/ssl-index/main/SSL-Index/ptDepositTemplate.csv"
           download.file(url, destfile = file)
         }
       )
@@ -243,7 +231,7 @@ server <- function(id, auth, updated) {
         disable("confirmDeposit")
         
         processed <- 
-          bankDeposit() |> 
+          ptDeposit() |> 
           dplyr$mutate(
             source = dplyr$if_else(
               is.na(source),
@@ -254,7 +242,7 @@ server <- function(id, auth, updated) {
           dplyr$filter(pid != -99)  
         
         unProcessed <- 
-          bankDeposit() |> 
+          ptDeposit() |> 
           dplyr$filter(pid == -99)
         
         if (nrow(unProcessed) > 0) {
@@ -278,12 +266,10 @@ server <- function(id, auth, updated) {
           
           
           tryCatch({
-            logBankTransaction(
+            updateTPE(
               uid = auth$uid,
-              pid = processed$pid,
-              source = processed$source,
-              transaction = processed$amount,
-              status = 0
+              pids = processed$pid,
+              tpe = processed |> dplyr$select(source, tpe)
             )
             
             updated(updated() + 1)

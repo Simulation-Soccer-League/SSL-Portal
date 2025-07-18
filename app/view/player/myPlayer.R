@@ -201,7 +201,7 @@ server <- function(id, auth, updated) {
               tpe = 6
             )
           
-          updateTPE(uid = auth$uid, pid = playerData()$pid, tpe = tpe)
+          updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
           
           updated(updated() + 1)
           
@@ -248,7 +248,7 @@ server <- function(id, auth, updated) {
               )
             )
           
-          updateTPE(uid = auth$uid, pid = playerData()$pid, tpe = tpe)
+          updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
           
           updated(updated() + 1)
           

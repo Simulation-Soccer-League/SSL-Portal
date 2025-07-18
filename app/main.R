@@ -20,6 +20,7 @@ box::use(
   app/view/jobs/filework/export,
   app/view/jobs/filework/import,
   app/view/jobs/filework/scheduleEdit,
+  app/view/jobs/pt/ptDeposit,
   app/view/player/createPlayer,
   app/view/player/myPlayer,
   app/view/player/playerUpdate,
@@ -62,7 +63,9 @@ ui <- function(id) {
       route("createPlayer", createPlayer$ui(ns("create"))),
       route("filework/export", export$ui(ns("export"))),
       route("filework/import", import$ui(ns("import"))),
-      route("filework/scheduleEdit", scheduleEdit$ui(ns("scheduleEdit")))
+      route("filework/scheduleEdit", scheduleEdit$ui(ns("scheduleEdit"))),
+      route("pt/deposit", ptDeposit$ui(ns("ptDeposit"))),
+      
     )
   )
 }
@@ -103,7 +106,7 @@ server <- function(id) {
         schedule = FALSE, academy = FALSE, 
         myBank = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
-        tradeProcess = FALSE, playerEdit = FALSE, submitPT = FALSE,
+        tradeProcess = FALSE, playerEdit = FALSE, ptDeposit = FALSE,
         bankDeposit = FALSE, bankProcess = FALSE, scheduleEdit = FALSE,
         managerTeam = FALSE,
         assignManager = FALSE, bodoverview = FALSE, export = FALSE,
@@ -219,6 +222,11 @@ server <- function(id) {
         
         scheduleEdit$server("scheduleEdit", auth = authOutput(), updated = updated)
         loadedServer$scheduleEdit <- TRUE
+        
+      } else if (current == "pt/deposit" & !loadedServer$ptDeposit) {
+        
+        ptDeposit$server("ptDeposit", auth = authOutput(), updated = updated)
+        loadedServer$ptDeposit <- TRUE
         
       } 
     }) |>
