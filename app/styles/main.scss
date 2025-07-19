@@ -203,7 +203,7 @@ $navbar-items-width: 112px;
     padding: 8px;
   }
 
-  &:hover .nav-menu-sub-items {
+  .nav-menu-item:hover .nav-menu-sub-items {
     display: block;
   }
 }
