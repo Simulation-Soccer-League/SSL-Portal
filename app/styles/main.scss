@@ -1,13 +1,13 @@
 /* stylelint-disable color-function-notation */
 :root {
-  --color: 0, 0%;
-  --ssl-blue: #070b51;
+  --color: #F5F5F5;
+  --ssl-blue: #2A8F3C;
   --ssl-blue-l: color-mix(in srgb, var(--ssl-blue) 95%, white);
   --ssl-blue-d: color-mix(in srgb, var(--ssl-blue) 95%, black);
   --ssl-gold: #bd9523;
   --ssl-accent-d: #1c1c1c;
-  --lighter-text: hsl(var(--color), 100%);
-  --darker-text: hsl(var(--color), 0%);
+  --lighter-text: #111;
+  --darker-text: #111;
   --key: #276bb0;
   --important: #60c689;
   --top-background: hsl(var(--color), 10%);
@@ -20,7 +20,7 @@
 /* General styles */
 body {
   font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
-  color: white;
+  color: #111;
   background: var(--bottom-background);
 }
 
@@ -32,7 +32,7 @@ h5 {
   font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
   font-weight: 800;
   font-style: normal;
-  color: white;
+  color: #111;
 }
 
 #router-page-wrapper {
@@ -200,10 +200,11 @@ $navbar-items-width: 112px;
   }
 
   .nav-menu-item:has(.nav-menu-sub-items) {
+    position: relative;
     padding: 8px;
   }
 
-  &:hover .nav-menu-sub-items {
+  .nav-menu-item:hover .nav-menu-sub-items {
     display: block;
   }
 }
@@ -672,7 +673,7 @@ $navbar-items-width: 112px;
 .card {
   position: relative;
   border-radius: 3px;
-  background: #444;
+  background: #E8E8E8;
   border-top: 1px solid var(--ssl-gold);
   margin-bottom: 20px;
   width: 100%;
