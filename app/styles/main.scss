@@ -200,6 +200,7 @@ $navbar-items-width: 112px;
   }
 
   .nav-menu-item:has(.nav-menu-sub-items) {
+    position: relative;
     padding: 8px;
   }
 
