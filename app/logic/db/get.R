@@ -683,3 +683,14 @@ getNextGameID <- function(season) {
     season = season
   )
 }
+
+#' @export
+getManagers <- function() {
+  portalQuery(
+    "SELECT organizations.id, teams.name, teams.primaryColor, managers.orgManager, managers.assManager1, managers.assManager2 
+      FROM organizations
+      LEFT JOIN managers ON organizations.id = managers.orgID
+      LEFT JOIN teams ON organizations.id = teams.orgID
+      WHERE teams.affiliate = 1 AND organizations.id >= 0;"
+  )
+}

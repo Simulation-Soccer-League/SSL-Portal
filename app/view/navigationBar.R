@@ -170,16 +170,6 @@ server <- function(id, auth, resAuth, updated) {
         isPT(userGroup)
       )) {
         items <- list(
-          if (any(isFileworker(userGroup), isBoD(userGroup), isBoDIntern(userGroup))) {
-            navMenuItem(
-              label = "File Work",
-              subItems = list(
-                a("Build Exports", href = route_link("filework/export")),
-                a("Index Imports", href = route_link("filework/import")),
-                a("Edit Schedule", href = route_link("filework/scheduleEdit"))
-              )
-            )
-          },
           if (any(isBankerAccountant(userGroup), isPT(userGroup), isBoD(userGroup),
                   isBoDIntern(userGroup), isManager(userGroup))) {
             navMenuItem(
@@ -190,6 +180,24 @@ server <- function(id, auth, resAuth, updated) {
                         isBoDIntern(userGroup))) {
                   a("Process Transactions", href = route_link("bank/process"))
                 }
+              )
+            )
+          },
+          if (any(isBoD(userGroup), isBoDIntern(userGroup))) {
+            navMenuItem(
+              label = "Board of Directors",
+              subItems = list(
+                a("Assign Managers", href = route_link("bod/manager"))
+              )
+            )
+          },
+          if (any(isFileworker(userGroup), isBoD(userGroup), isBoDIntern(userGroup))) {
+            navMenuItem(
+              label = "File Work",
+              subItems = list(
+                a("Build Exports", href = route_link("filework/export")),
+                a("Index Imports", href = route_link("filework/import")),
+                a("Edit Schedule", href = route_link("filework/scheduleEdit"))
               )
             )
           },

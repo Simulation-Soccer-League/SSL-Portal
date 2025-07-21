@@ -29,7 +29,8 @@ getQuery <- function(query, ..., schema) {
     safeQuery <- glue$glue_sql(
       query,
       .con = con,
-      .envir = list(...) |> list2env()
+      .envir = list(...) |> list2env(),
+      .na    = "NULL" 
     )
     
     # safeQuery <- DBI$sqlInterpolate(con, query, ...)
@@ -69,7 +70,8 @@ setQuery <- function(query, ..., schema) {
     safeQuery <- glue$glue_sql(
       query,
       .con = con,
-      .envir = list(...) |> list2env()
+      .envir = list(...) |> list2env(),
+      .na    = "NULL" 
     )
     
     # safeQuery <- DBI$sqlInterpolate(con, query, ...)

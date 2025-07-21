@@ -17,6 +17,7 @@ box::use(
   app/view/index/standings,
   app/view/jobs/bank/bankDeposit,
   app/view/jobs/bank/bankProcess,
+  app/view/jobs/bod/assignManager,
   app/view/jobs/filework/export,
   app/view/jobs/filework/import,
   app/view/jobs/filework/scheduleEdit,
@@ -65,7 +66,7 @@ ui <- function(id) {
       route("filework/import", import$ui(ns("import"))),
       route("filework/scheduleEdit", scheduleEdit$ui(ns("scheduleEdit"))),
       route("pt/deposit", ptDeposit$ui(ns("ptDeposit"))),
-      
+      route("bod/manager", assignManager$ui(ns("assignManager"))),
     )
   )
 }
@@ -227,6 +228,11 @@ server <- function(id) {
         
         ptDeposit$server("ptDeposit", auth = authOutput(), updated = updated)
         loadedServer$ptDeposit <- TRUE
+        
+      } else if (current == "bod/manager" & !loadedServer$assignManager) {
+        
+        assignManager$server("assignManager", auth = authOutput(), updated = updated)
+        loadedServer$assignManager <- TRUE
         
       } 
     }) |>
