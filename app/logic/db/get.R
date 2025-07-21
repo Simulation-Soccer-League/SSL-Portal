@@ -694,3 +694,12 @@ getManagers <- function() {
       WHERE teams.affiliate = 1 AND organizations.id >= 0;"
   )
 }
+
+#' @export
+getUnapprovedPlayers <- function() {
+  portalQuery(
+    "SELECT pid, username, first, last, tpe, tpebank, render
+    FROM allplayersview
+    WHERE status_p = -1;"
+  )
+}

@@ -17,6 +17,7 @@ box::use(
   app/view/index/standings,
   app/view/jobs/bank/bankDeposit,
   app/view/jobs/bank/bankProcess,
+  app/view/jobs/bod/approvePlayer,
   app/view/jobs/bod/assignManager,
   app/view/jobs/filework/export,
   app/view/jobs/filework/import,
@@ -67,6 +68,7 @@ ui <- function(id) {
       route("filework/scheduleEdit", scheduleEdit$ui(ns("scheduleEdit"))),
       route("pt/deposit", ptDeposit$ui(ns("ptDeposit"))),
       route("bod/manager", assignManager$ui(ns("assignManager"))),
+      route("bod/approve", approvePlayer$ui(ns("approvePlayer"))),
     )
   )
 }
@@ -110,7 +112,8 @@ server <- function(id) {
         tradeProcess = FALSE, playerEdit = FALSE, ptDeposit = FALSE,
         bankDeposit = FALSE, bankProcess = FALSE, scheduleEdit = FALSE,
         managerTeam = FALSE,
-        assignManager = FALSE, bodoverview = FALSE, export = FALSE,
+        assignManager = FALSE, approvePlayer = FALSE, 
+        bodoverview = FALSE, export = FALSE,
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
       )
@@ -234,7 +237,12 @@ server <- function(id) {
         assignManager$server("assignManager", auth = authOutput(), updated = updated)
         loadedServer$assignManager <- TRUE
         
-      } 
+      } else if (current == "bod/approve" & !loadedServer$approvePlayer) {
+        
+        approvePlayer$server("approvePlayer", auth = authOutput(), updated = updated)
+        loadedServer$approvePlayer <- TRUE
+        
+      }
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
   })

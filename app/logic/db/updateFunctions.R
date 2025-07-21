@@ -1,16 +1,20 @@
 box::use(
   dplyr,
-  lubridate[now, with_tz],
+  lubridate[as_date, now, with_tz],
   purrr[pwalk],
   stringr[
+    str_detect,
     str_to_lower, 
     str_to_upper, 
   ],
+  tidyr[pivot_longer]
 )
 
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
+  app/logic/db/logFunctions[logBankTransaction],
+  app/logic/db/updateFunctions[updateTPE],
 )
 
 
@@ -262,6 +266,164 @@ rejectTransaction <- function(data, uid) {
         type       = "set"
       )
     }
+    
+    # Commit the transaction if all updates succeed
+    portalQuery(
+      query = "COMMIT;",
+      type = "set"
+    )
+    
+  }, error = function(e) {
+    # Rollback the transaction if any error occurs
+    portalQuery(
+      query = "ROLLBACK;",
+      type = "set"
+    )
+    message("Error updating banktransactions, transaction rolled back: ", e$message)
+  })
+  
+}
+
+#' @export
+approvePlayer <- function(data, uid) {
+  
+  currentTime <- now() |> 
+    with_tz("US/Pacific") |> 
+    as.numeric()
+  
+  # Begin the transaction
+  portalQuery(
+    query = "START TRANSACTION;",
+    type = "set"
+  )
+  
+  tryCatch({
+    
+    ## Adding initial TPE to history
+    portalQuery(
+      query = "INSERT INTO tpehistory (time, uid, pid, source, tpe)
+               SELECT {currentTime}, 1, pid, 'Initial TPE', 350
+               FROM playerdata
+               WHERE pid = {pid};",
+      currentTime = currentTime,
+      pid = data$pid,
+      type = "set"
+    )
+    
+    ## Getting and logging initial attribute changes
+    attributes <- 
+      portalQuery(
+        "SELECT pid, 
+          `pos_st`, `pos_lam`, `pos_cam`, `pos_ram`, `pos_lm`, `pos_cm`, `pos_rm`, 
+          `pos_lwb`, `pos_cdm`, `pos_rwb`, `pos_ld`, `pos_cd`, `pos_rd`, `pos_gk`, 
+          acceleration, agility, balance, `jumping reach`, `natural fitness`, pace, 
+          stamina, strength, corners, crossing, dribbling, finishing, `first touch`, 
+          `free kick`, heading, `long shots`, `long throws`, marking, passing, 
+          `penalty taking`, tackling, technique, aggression, anticipation, bravery, 
+          composure, concentration, decisions, determination, flair, leadership, 
+          `off the ball`, positioning, teamwork, vision, `work rate`, `aerial reach`, 
+          `command of area`, communication, eccentricity, handling, kicking, 
+          `one on ones`, reflexes, `tendency to rush`, `tendency to punch`, throwing, 
+          traits, `left foot`, `right foot`
+        FROM playerdata
+        WHERE pid = {pid};",
+      pid = data$pid
+    )
+    
+    attrLong <- attributes |> 
+      pivot_longer(!pid, values_transform = as.character)
+    
+    pwalk(
+      .f = 
+        function(attribute, old, new) {
+          portalQuery(
+            query = 
+              "INSERT INTO updatehistory (
+                  uid,
+                  pid,
+                  time,
+                  attribute,
+                  old,
+                  new
+                ) VALUES (
+                  1,
+                  {pid},
+                  {time},
+                  {attribute},
+                  {old},
+                  {new}
+                );",
+            pid       = data$pid,
+            time      = currentTime,
+            attribute = attribute |> str_to_upper(),
+            old       = 
+              dplyr$if_else(
+                str_detect(attribute, "pos"),
+                "0",
+                dplyr$if_else(
+                  attribute == "traits",
+                  "NO TRAITS",
+                  "5"
+                )
+              ),
+            new       = new,
+            type = "set"
+          )
+        },
+      .l = list(attribute = attributes$name,
+                new       = attributes$value)
+    )
+    
+    ## Adding Academy Contract to bank history
+    logBankTransaction(
+      uid = uid, 
+      pid = data$pid, 
+      source = "Academy Contract",
+      transaction = 3000000,
+      status = 1
+    )
+    
+    ## Handling Catchup-TPE
+    today <- now() |> 
+      with_tz("US/Pacific") |> 
+      as_date() |> 
+      as.numeric()
+    
+    seasonStart <- constant$currentSeason$startDate |> 
+      as_date() |> 
+      as.numeric()
+    
+    tpe <- 
+      dplyr$tibble(
+        source = "Catch-up TPE",
+        tpe = floor((today - seasonStart) / 7) * 6
+      )
+    
+    if (tpe$tpe > 0) {
+      updateTPE(uid = 1, pids = data$pid, tpe = tpe)
+    }
+    
+    ## TODO SEND APPROVED MESSAGE TO DISCORD
+    
+    ## Final update to `playerdata`
+    class <- constant$currentSeason$season + 1
+    
+    portalQuery(
+      "UPDATE playerdata
+      SET rerollused = 0,
+          redistused = 0,
+          team = -1,
+          affiliate = 1,
+          status_p = 1,
+          name = concat(trim(first), ' ', trim(last)),
+          class = concat('S', {class}),
+          created = {time}
+      WHERE pid = {pid};",
+      class = class,
+      time = currentTime,
+      pid = data$pid,
+      type = "set"
+    )
     
     # Commit the transaction if all updates succeed
     portalQuery(

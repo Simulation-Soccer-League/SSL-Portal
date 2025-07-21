@@ -187,6 +187,7 @@ server <- function(id, auth, resAuth, updated) {
             navMenuItem(
               label = "Board of Directors",
               subItems = list(
+                a("Approve Players", href = route_link("bod/approve")),
                 a("Assign Managers", href = route_link("bod/manager"))
               )
             )
