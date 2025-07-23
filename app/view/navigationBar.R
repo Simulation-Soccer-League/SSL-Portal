@@ -79,7 +79,6 @@ ui <- function(id) {
     tags$script("// script.js
                     function getCookies(){
                       var res = Cookies.get();
-                      console.log(res.token);
 
                       Shiny.setInputValue('app-nav-token', res.token, {priority:'event'});
                     }
@@ -188,7 +187,8 @@ server <- function(id, auth, resAuth, updated) {
               label = "Board of Directors",
               subItems = list(
                 a("Approve Players", href = route_link("bod/approve")),
-                a("Assign Managers", href = route_link("bod/manager"))
+                a("Assign Managers", href = route_link("bod/manager")),
+                a("Edit Player", href = route_link("bod/edit"))
               )
             )
           },

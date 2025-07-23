@@ -19,6 +19,7 @@ box::use(
   app/view/jobs/bank/bankProcess,
   app/view/jobs/bod/approvePlayer,
   app/view/jobs/bod/assignManager,
+  app/view/jobs/bod/editPlayer,
   app/view/jobs/filework/export,
   app/view/jobs/filework/import,
   app/view/jobs/filework/scheduleEdit,
@@ -69,6 +70,7 @@ ui <- function(id) {
       route("pt/deposit", ptDeposit$ui(ns("ptDeposit"))),
       route("bod/manager", assignManager$ui(ns("assignManager"))),
       route("bod/approve", approvePlayer$ui(ns("approvePlayer"))),
+      route("bod/edit", editPlayer$ui(ns("editPlayer"))),
     )
   )
 }
@@ -109,10 +111,10 @@ server <- function(id) {
         schedule = FALSE, academy = FALSE, 
         myBank = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
-        tradeProcess = FALSE, playerEdit = FALSE, ptDeposit = FALSE,
+        tradeProcess = FALSE, ptDeposit = FALSE,
         bankDeposit = FALSE, bankProcess = FALSE, scheduleEdit = FALSE,
         managerTeam = FALSE,
-        assignManager = FALSE, approvePlayer = FALSE, 
+        assignManager = FALSE, approvePlayer = FALSE, editPlayer = FALSE,
         bodoverview = FALSE, export = FALSE,
         organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
         positionTracker = FALSE
@@ -241,6 +243,11 @@ server <- function(id) {
         
         approvePlayer$server("approvePlayer", auth = authOutput(), updated = updated)
         loadedServer$approvePlayer <- TRUE
+        
+      } else if (current == "bod/edit" & !loadedServer$editPlayer) {
+        
+        editPlayer$server("editPlayer", auth = authOutput(), updated = updated)
+        loadedServer$editPlayer <- TRUE
         
       }
     }) |>
