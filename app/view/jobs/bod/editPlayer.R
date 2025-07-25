@@ -24,6 +24,7 @@ box::use(
     getPlayers,
   ],
   app/logic/db/login[isNonActiveForumUser],
+  app/logic/db/updateFunctions[updatePlayerData],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],
@@ -510,7 +511,62 @@ server <- function(id, auth, updated) {
             )
         }
         
-        print(summary)
+        old <- 
+          playerData() |> 
+          dplyr$select(
+            team = organization, affiliate,
+            `left foot`, `right foot`,
+            traits, render,
+            pos_st:pos_gk
+          ) |> 
+          dplyr$mutate(
+            team = organizations()$id[organizations()$name == team]
+          ) |> 
+          pivot_longer(
+            dplyr$everything(),
+            values_transform = as.character
+          )
+        
+        update <- 
+          dplyr$left_join(
+            summary |> 
+              pivot_longer(
+                dplyr$everything(),
+                values_transform = as.character
+              ),
+            old,
+            by = "name"
+          ) |> 
+          dplyr$rename(attribute = name, old = value.y, new = value.x) |> 
+          dplyr$filter(old != new)
+        
+        if (nrow(update) != 0) {
+          tryCatch({
+            updatePlayerData(uid = auth$uid, pid = playerData()$pid, updates = update)
+            
+            updated(updated() + 1)
+            
+            showToast(
+              .options = constant$sslToastOptions,
+              "success",
+              "The player has been updated!"
+            )
+          }, error = function(e) {
+            showToast(
+              .options = constant$sslToastOptions,
+              "error",
+              "Something has gone wrong, contact Canadice."
+            )
+            
+            message("Error executing query: ", e)
+          })
+        } else {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "Nothing has been changed in the build."
+          )
+        }
         
       }) |> 
         shiny$bindEvent(input$update)
