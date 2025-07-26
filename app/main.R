@@ -133,9 +133,6 @@ server <- function(id) {
         positionTracker = FALSE
       )
     
-    ## TODO: MIGHT NEED TO CHANGE SO THAT ANY PAGE TIED TO A LOGIN UPDATES WHEN SOMEONE LOGS IN/OUT
-    ## CANNOT LOAD EVERY TIME THE PAGE LOADS AS THAT WOULD GENERATE MULTIPLE OBSERVERS
-
     ## Observer that checks the current page and loads the server for the page ONCE
     shiny$observe({
       current <- str_remove(session$clientData$url_hash,
@@ -497,5 +494,23 @@ server <- function(id) {
       
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
+    
+    # Reset all loadedServer flags whenever the auth object updates
+    shiny$observe({
+      # ensure authOutput() has a value
+      shiny$req(authOutput())
+      
+      # grab all flag names, then set each to FALSE
+      flags <- shiny$reactiveValuesToList(loadedServer)
+      for (flagName in names(flags)) {
+        loadedServer[[flagName]] <- FALSE
+      }
+    }) |> 
+      shiny$bindEvent(
+        authOutput(), 
+        ignoreInit = TRUE  # skip on module startup
+      )
+    
+    
   })
 }
