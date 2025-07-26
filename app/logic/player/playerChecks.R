@@ -5,6 +5,7 @@ box::use(
   reactable[reactable],
   rlang[`!!`, `:=`],
   shiny,
+  shinyFeedback[showToast],
   stringr[
     str_extract, 
     str_remove_all, 
@@ -21,6 +22,7 @@ box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
   app/logic/db/get[getActivePlayer],
+  app/logic/db/login[isNonActiveForumUser],
 )
 
 #' @export
@@ -414,4 +416,35 @@ completedTC <- function(pid) {
     start = start
   ) |> 
     nrow() > 0
+}
+
+#' @export
+navigationCheck <- function(auth) {
+  if (any(auth$usergroup |> is.null(), auth$suspended |> is.null())){
+    showToast(
+      .options = constant$sslToastOptions,
+      "error",
+      "You do not have access to this page, please log in!"
+    )
+    
+    FALSE
+  } else if (isNonActiveForumUser(auth$usergroup, auth$suspended)){
+    showToast(
+      .options = constant$sslToastOptions,
+      "error",
+      "You do not have access to this page."
+    )
+    
+    FALSE
+  } else if (!hasActivePlayer(auth$uid)) {
+    showToast(
+      .options = constant$sslToastOptions,
+      "error",
+      "You do not have an active player, please create one first!"
+    )
+    
+    FALSE
+  } else {
+    TRUE
+  }
 }

@@ -41,13 +41,21 @@ server <- function(id, auth, updated) {
     ns <- session$ns
     
     if (any(auth$usergroup |> is.null(), auth$suspended |> is.null())){
-      output$ui <- shiny$renderUI({
-        "YOU DO NOT HAVE ACCESS TO THIS PAGE, PLEASE LOG IN!"
-      })
+      showToast(
+        .options = constant$sslToastOptions,
+        "error",
+        "You do not have access to this page, please log in!"
+      )
+      
+      change_page("")
     } else if (isNonActiveForumUser(auth$usergroup, auth$suspended)){
-      output$ui <- shiny$renderUI({
-        "YOU DO NOT HAVE ACCESS TO THIS PAGE"
-      })
+      showToast(
+        .options = constant$sslToastOptions,
+        "error",
+        "You do not have access to this page."
+      )
+      
+      change_page("")
     } else if (hasActivePlayer(auth$uid)) {
       output$ui <- shiny$renderUI({
         "YOU HAVE ALREADY CREATED A PLAYER."

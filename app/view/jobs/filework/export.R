@@ -28,54 +28,44 @@ server <- function(id, auth, updated) {
     ns <- session$ns
 
     #### OUTPUT UI ####
-    if (any(auth$usergroup |> is.null(), auth$suspended |> is.null())) {
-      output$ui <- shiny$renderUI({
-        "YOU DO NOT HAVE ACCESS TO THIS PAGE, PLEASE LOG IN!"
-      })
-    } else if (isBoD(auth$usergroup) | isFileworker(auth$usergroup)) {
-      output$ui <- shiny$renderUI({
-        names <- getPlayerNames(active = TRUE)
+    output$ui <- shiny$renderUI({
+      names <- getPlayerNames(active = TRUE)
 
-        namedVector <- names$pid
-        names(namedVector) <- names$name
+      namedVector <- names$pid
+      names(namedVector) <- names$name
 
-        shiny$tagList(
-          bslib$layout_column_wrap(
-            width = 1/3,
-            shiny$p("This tool combines all updated builds from the last week into a zip-file. Each player is summarized in their own
-               JSON file which can be imported using FMRTE. NOTE THAT NATIONALITIES ARE NOT INCLUDED IN THE JSON."),
-            shiny$div(
-              id = ns("playerDownload"),
-              shiny$downloadButton(ns("downloadData"), "Download Updated Players")
-            ),
-            ""
+      shiny$tagList(
+        bslib$layout_column_wrap(
+          width = 1/3,
+          shiny$p("This tool combines all updated builds from the last week into a zip-file. Each player is summarized in their own
+             JSON file which can be imported using FMRTE. NOTE THAT NATIONALITIES ARE NOT INCLUDED IN THE JSON."),
+          shiny$div(
+            id = ns("playerDownload"),
+            shiny$downloadButton(ns("downloadData"), "Download Updated Players")
           ),
-          reactableOutput(ns("changes")),
-          shiny$br(),
-          bslib$layout_column_wrap(
-            width = NULL,
-            style = bslib$css(grid_template_columns = "3fr 2fr"),
-            shiny$div(
-              shiny$h4("Select a player and download a single build:"),
-              shiny$selectizeInput(
-                inputId = ns("selectedPlayer"),
-                label = "Select a player to export",
-                choices = namedVector
-              )
-            ),
-            shiny$div(
-              id = ns("singlePlayerDownload"),
-              shiny$downloadButton(ns("singleDownloadData"), "Download Selected Player")
+          ""
+        ),
+        reactableOutput(ns("changes")),
+        shiny$br(),
+        bslib$layout_column_wrap(
+          width = NULL,
+          style = bslib$css(grid_template_columns = "3fr 2fr"),
+          shiny$div(
+            shiny$h4("Select a player and download a single build:"),
+            shiny$selectizeInput(
+              inputId = ns("selectedPlayer"),
+              label = "Select a player to export",
+              choices = namedVector
             )
+          ),
+          shiny$div(
+            id = ns("singlePlayerDownload"),
+            shiny$downloadButton(ns("singleDownloadData"), "Download Selected Player")
           )
         )
-      })
-    } else {
-      # TODO ADD NOTE THAT YOU HAVE NO ACCESS
-      output$ui <- shiny$renderUI({
-        "YOU DO NOT HAVE ACCESS TO THIS PAGE"
-      })
-    }
+      )
+    })
+    
 
     #### OUTPUT SERVER ####
 

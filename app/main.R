@@ -1,13 +1,22 @@
 box::use(
   cachem,
   shiny,
-  shiny.router[route, router_server, router_ui],
+  shiny.router[change_page, route, router_server, router_ui],
   shinyFeedback[useShinyFeedback],
   shinyjs[useShinyjs],
   stringr[str_detect, str_remove],
 )
 
 box::use(
+  app/logic/db/login[
+    isBankerAccountant,
+    isBoD,
+    isBoDIntern,
+    isFileworker,
+    isManager,
+    isPT,
+  ],
+  app/logic/player/playerChecks[navigationCheck],
   app/view/navigationBar,
   app/view/bank/myBank,
   app/view/index/academyIndex,
@@ -172,92 +181,319 @@ server <- function(id) {
         player$server("player", updated = updated)
         loadedServer$player <- TRUE
       
-      } else if (current == "myPlayer/" & !loadedServer$myPlayer) {
+      } else if (current == "myPlayer/") {
         
-        myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
-        loadedServer$myPlayer <- TRUE
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$myPlayer) {
+            myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
+            
+            loadedServer$myPlayer <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-      } else if (current == "myBank" & !loadedServer$myBank) {
+      } else if (current == "myBank/") {
         
-        myBank$server("myBank", auth = authOutput(), updated = updated)
-        loadedServer$myBank <- TRUE
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$myBank) {
+            myBank$server(
+              "myBank",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$myBank <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-      } else if (current == "filework/export" & !loadedServer$export) {
+      } else if (current == "filework/export") {
         
-        export$server("export", auth = authOutput(), updated = updated)
-        loadedServer$export <- TRUE
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$export & 
+              any(
+                isFileworker(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+            ) {
+            export$server(
+              "export",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$export <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-      } else if (current == "filework/import" & !loadedServer$import) {
+      } else if (current == "filework/import") {
         
-        import$server("import", auth = authOutput(), updated = updated())
-        loadedServer$import <- TRUE
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$import & 
+              any(
+                isFileworker(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            import$server(
+              "import",
+              auth    = authOutput(),
+              updated = updated()
+            )
+            loadedServer$import <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-      } else if (current == "myPlayer/update" & !loadedServer$playerUpdate) {
+      } else if (current == "myPlayer/update") {
         
-        playerUpdate$server("update", auth = authOutput(), updated = updated, type = "update")
-        loadedServer$playerUpdate <- TRUE
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$playerUpdate) {
+            playerUpdate$server(
+              "update",
+              auth    = authOutput(),
+              updated = updated,
+              type    = "update"
+            )
+            loadedServer$playerUpdate <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-      } else if (current == "myPlayer/reroll" & !loadedServer$playerReroll) {
+      } else if (current == "myPlayer/reroll") {
         
-        playerUpdate$server("reroll", auth = authOutput(), updated = updated, type = "reroll")
-        loadedServer$playerReroll <- TRUE
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$playerReroll) {
+            playerUpdate$server(
+              "reroll",
+              auth    = authOutput(),
+              updated = updated,
+              type    = "reroll"
+            )
+            loadedServer$playerReroll <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-      } else if (current == "myPlayer/redistribute" & !loadedServer$playerRedist) {
+      } else if (current == "myPlayer/redistribute") {
         
-        playerUpdate$server("redist", auth = authOutput(), updated = updated, type = "redistribution")
-        loadedServer$playerRedist <- TRUE
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$playerRedist) {
+            playerUpdate$server(
+              "redist",
+              auth    = authOutput(),
+              updated = updated,
+              type    = "redistribution"
+            )
+            loadedServer$playerRedist <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-      } else if (current == "myPlayer/regress" & !loadedServer$playerRegress) {
+      } else if (current == "myPlayer/regress") {
         
-        playerUpdate$server("regress", auth = authOutput(), updated = updated, type = "regression")
-        loadedServer$playerRegress <- TRUE
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$playerRegress) {
+            playerUpdate$server(
+              "regress",
+              auth    = authOutput(),
+              updated = updated,
+              type    = "regression"
+            )
+            loadedServer$playerRegress <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-      } else if (current == "createPlayer" & !loadedServer$create) {
+      } else if (current == "createPlayer" & !loadedServer$create) { 
         
-        createPlayer$server("create", auth = authOutput(), updated = updated)
-        loadedServer$create <- TRUE
+        createPlayer$server(
+          "create", 
+          auth = authOutput(), 
+          updated = updated
+        ) 
         
-      } else if (current == "bank/deposit" & !loadedServer$bankDeposit) {
+        loadedServer$create <- TRUE 
         
-        bankDeposit$server("bankDeposit", auth = authOutput(), updated = updated)
-        loadedServer$bankDeposit <- TRUE
+      } else if (current == "bank/deposit") {
         
-      } else if (current == "bank/process" & !loadedServer$bankProcess) {
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$bankDeposit & 
+              any(
+                isBankerAccountant(authOutput()$usergroup),
+                isManager(authOutput()$usergroup),
+                isPT(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            bankDeposit$server(
+              "bankDeposit",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$bankDeposit <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-        bankProcess$server("bankProcess", auth = authOutput(), updated = updated)
-        loadedServer$bankProcess <- TRUE
+      } else if (current == "bank/process") {
         
-      } else if (current == "filework/scheduleEdit" & !loadedServer$scheduleEdit) {
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$bankProcess& 
+              any(
+                isBankerAccountant(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            bankProcess$server(
+              "bankProcess",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$bankProcess <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-        scheduleEdit$server("scheduleEdit", auth = authOutput(), updated = updated)
-        loadedServer$scheduleEdit <- TRUE
+      } else if (current == "filework/scheduleEdit") {
         
-      } else if (current == "pt/deposit" & !loadedServer$ptDeposit) {
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$scheduleEdit & 
+              any(
+                isFileworker(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            scheduleEdit$server(
+              "scheduleEdit",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$scheduleEdit <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-        ptDeposit$server("ptDeposit", auth = authOutput(), updated = updated)
-        loadedServer$ptDeposit <- TRUE
+      } else if (current == "pt/deposit") {
         
-      } else if (current == "bod/manager" & !loadedServer$assignManager) {
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$ptDeposit & 
+              any(
+                isPT(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            ptDeposit$server(
+              "ptDeposit",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$ptDeposit <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-        assignManager$server("assignManager", auth = authOutput(), updated = updated)
-        loadedServer$assignManager <- TRUE
+      } else if (current == "bod/manager") {
         
-      } else if (current == "bod/approve" & !loadedServer$approvePlayer) {
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$assignManager & 
+              any(
+                isManager(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            assignManager$server(
+              "assignManager",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$assignManager <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-        approvePlayer$server("approvePlayer", auth = authOutput(), updated = updated)
-        loadedServer$approvePlayer <- TRUE
+      } else if (current == "bod/approve") {
         
-      } else if (current == "bod/edit" & !loadedServer$editPlayer) {
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$approvePlayer & 
+              any(
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            approvePlayer$server(
+              "approvePlayer",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$approvePlayer <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-        editPlayer$server("editPlayer", auth = authOutput(), updated = updated)
-        loadedServer$editPlayer <- TRUE
+      } else if (current == "bod/edit") {
         
-      } else if (current == "organization/overview" & !loadedServer$rosterOverview) {
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$editPlayer & 
+              any(
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            editPlayer$server(
+              "editPlayer",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$editPlayer <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
-        rosterOverview$server("rosterOverview", auth = authOutput(), updated = updated)
-        loadedServer$rosterOverview <- TRUE
+      } else if (current == "organization/overview") {
+        
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$rosterOverview & 
+              any(
+                isManager(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup),
+                isBoDIntern(authOutput()$usergroup)
+              )
+          ) {
+            rosterOverview$server(
+              "rosterOverview",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$rosterOverview <- TRUE
+          }
+        } else {
+          change_page("")
+        }
         
       }
+      
     }) |>
       shiny$bindEvent(session$clientData$url_hash)
   })

@@ -37,31 +37,21 @@ server <- function(id, auth, updated) {
     ns <- session$ns
     
     #### OUTPUT UI ####
-    if (any(auth$usergroup |> is.null(), auth$suspended |> is.null())) {
-      output$ui <- shiny$renderUI({
-        "YOU DO NOT HAVE ACCESS TO THIS PAGE, PLEASE LOG IN!"
-      })
-    } else if (isNonActiveForumUser(auth$usergroup, auth$suspended)) {
-      output$ui <- shiny$renderUI({
-        "YOU DO NOT HAVE ACCESS TO THIS PAGE"
-      })
-    } else if (isBoD(auth$usergroup) | isFileworker(auth$usergroup)) {
-      output$ui <- shiny$renderUI({
-        shiny$tagList(
-          bslib$card(
-            bslib$card_header(
-              shiny$h3("Edit the schedule")
-            ),
-            bslib$card_body(
-              shiny$uiOutput(ns("schedule")),
-              shiny$br(),
-              shiny$br(),
-              shiny$actionButton(ns("saveGame"), "Save edits")
-            )
+    output$ui <- shiny$renderUI({
+      shiny$tagList(
+        bslib$card(
+          bslib$card_header(
+            shiny$h3("Edit the schedule")
+          ),
+          bslib$card_body(
+            shiny$uiOutput(ns("schedule")),
+            shiny$br(),
+            shiny$br(),
+            shiny$actionButton(ns("saveGame"), "Save edits")
           )
         )
-      })
-    } 
+      )
+    })
     
     #### REACTIVES ####
     schedule <- shiny$reactive({
