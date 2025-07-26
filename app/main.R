@@ -191,7 +191,7 @@ server <- function(id) {
           change_page("")
         }
         
-      } else if (current == "myBank/") {
+      } else if (current == "myBank") {
         
         if (navigationCheck(authOutput())) {
           if (!loadedServer$myBank) {
