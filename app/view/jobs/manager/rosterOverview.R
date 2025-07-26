@@ -11,15 +11,9 @@ box::use(
   shiny,
   shinyFeedback[showToast],
   shinyjs,
-  sortable[add_rank_list, bucket_list],
-  stats[setNames],
   stringr[
-    str_remove,
-    str_split,
-    str_to_lower,
     str_to_upper,
   ],
-  tidyr[pivot_longer],
 )
 
 box::use(
@@ -69,11 +63,11 @@ server <- function(id, auth, updated) {
             ),
             bslib$card_body(
               shiny$p(
-                "This page is used by managers to get an overview of their players and be able to 
-                regress them. Any highlighted player in red needs to be regressed and if the user
-                is unable to do so, you as a manager can complete their regression. Select the player
-                you want to regress and click on 'Regress' to open up the player attribute view where
-                you are able to regress attributes."
+                "This page is used by managers to get an overview of their players and be able 
+                to regress them. Any highlighted player in red needs to be regressed and if the 
+                user is unable to do so, you as a manager can complete their regression. Select 
+                the player you want to regress and click on 'Regress' to open up the player 
+                attribute view where you are able to regress attributes."
               ),
               reactableOutput(ns("rosterOverview")) |> 
                 withSpinnerCustom(height = 100),
@@ -143,9 +137,11 @@ server <- function(id, auth, updated) {
             selection = "single",
             onClick = "select",
             groupBy = "affiliate",
-            defaultColDef = colDef(header = function(value){str_to_upper(value)}),
-            rowStyle = function(index){
-              if(players()[index, "tpebank"] < 0){
+            defaultColDef = colDef(header = function(value) {
+              str_to_upper(value)
+            }),
+            rowStyle = function(index) {
+              if (players()[index, "tpebank"] < 0) {
                 list(background = "#FFCCCB", color = "black")
               }
             }
