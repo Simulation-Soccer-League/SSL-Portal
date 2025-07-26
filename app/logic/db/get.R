@@ -158,6 +158,25 @@ getPlayers <- function(active) {
     suppressWarnings()
 }
 
+
+#' @export
+getPlayersFromOrganization <- function(uid) {
+  portalQuery(
+    "SELECT *
+    FROM allplayersview
+    WHERE organization = (
+      SELECT organization
+      FROM allplayersview
+      WHERE uid = {uid} AND organization <> 'Academy'
+    );",
+    uid = uid
+  ) |>
+    mutate(
+      across(where(is.numeric), ~ replace_na(.x, 5))
+    ) |>
+    suppressWarnings()
+}
+
 #' @export
 getChangedBuilds <- function() {
   ## Gets date of the start of the week in Pacific

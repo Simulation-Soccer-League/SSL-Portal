@@ -23,6 +23,7 @@ box::use(
   app/view/jobs/filework/export,
   app/view/jobs/filework/import,
   app/view/jobs/filework/scheduleEdit,
+  app/view/jobs/manager/rosterOverview,
   app/view/jobs/pt/ptDeposit,
   app/view/player/createPlayer,
   app/view/player/myPlayer,
@@ -71,6 +72,7 @@ ui <- function(id) {
       route("bod/manager", assignManager$ui(ns("assignManager"))),
       route("bod/approve", approvePlayer$ui(ns("approvePlayer"))),
       route("bod/edit", editPlayer$ui(ns("editPlayer"))),
+      route("organization/overview", rosterOverview$ui(ns("rosterOverview"))),
     )
   )
 }
@@ -115,8 +117,9 @@ server <- function(id) {
         bankDeposit = FALSE, bankProcess = FALSE, scheduleEdit = FALSE,
         managerTeam = FALSE,
         assignManager = FALSE, approvePlayer = FALSE, editPlayer = FALSE,
-        bodoverview = FALSE, export = FALSE,
-        organization = FALSE, draftclass = FALSE, nationTracker = FALSE,
+        rosterOverview = FALSE, 
+        export = FALSE, organization = FALSE, draftclass = FALSE, 
+        nationTracker = FALSE,
         positionTracker = FALSE
       )
     
@@ -248,6 +251,11 @@ server <- function(id) {
         
         editPlayer$server("editPlayer", auth = authOutput(), updated = updated)
         loadedServer$editPlayer <- TRUE
+        
+      } else if (current == "organization/overview" & !loadedServer$rosterOverview) {
+        
+        rosterOverview$server("rosterOverview", auth = authOutput(), updated = updated)
+        loadedServer$rosterOverview <- TRUE
         
       }
     }) |>

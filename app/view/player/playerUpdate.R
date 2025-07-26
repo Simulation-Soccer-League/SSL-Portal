@@ -41,7 +41,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, auth, updated, type) {
+server <- function(id, auth, updated, type, player = NULL) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -468,11 +468,15 @@ server <- function(id, auth, updated, type) {
       
       #### REACTIVES ####
       playerData <- shiny$reactive({
-        getActivePlayer(auth$uid) |> 
-          getPlayer()  |> 
-          dplyr$mutate(
-            nationality = constant$sslNations[nationality] 
-          )
+        if (is.null(player)) {
+          getActivePlayer(auth$uid) |> 
+            getPlayer()  |> 
+            dplyr$mutate(
+              nationality = constant$sslNations[nationality] 
+            )  
+        } else {
+          player
+        }
       })
       
       # Based attributes on the input$playerType
@@ -561,7 +565,15 @@ server <- function(id, auth, updated, type) {
       
       #### OBSERVERS ####
       shiny$observe({
-        change_page("myPlayer/")
+        if (is.null(player)) {
+          change_page("myPlayer/")  
+        } else {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "You can't go back to anywhere."
+          )
+        }
       }) |> 
         shiny$bindEvent(input$back)
       
@@ -776,8 +788,9 @@ server <- function(id, auth, updated, type) {
             "success",
             "You have successfully updated your player!"
           )
-          
-          change_page("myPlayer/")
+          if (is.null(player)) {
+            change_page("myPlayer/")  
+          }
         }, error = function(e){
           message("Error executing query: ", e)
           
