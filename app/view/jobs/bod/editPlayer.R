@@ -3,7 +3,6 @@ box::use(
   dplyr,
   shiny,
   shinyFeedback[showToast],
-  shinyjs[disable, enable],
   sortable[add_rank_list, bucket_list],
   stats[setNames],
   stringr[
@@ -17,7 +16,6 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery],
   app/logic/db/get[
     getOrganizations,
     getPlayer,
@@ -490,7 +488,7 @@ server <- function(id, auth, updated) {
             render = input$render
           )
         
-        for(pos in names(constant$positionsGK)){
+        for (pos in names(constant$positionsGK)) {
           column <- paste0("pos_", str_to_lower(pos))
           
           summary <- 
