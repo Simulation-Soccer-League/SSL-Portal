@@ -231,7 +231,7 @@ server <- function(id, cost, playerData) {
       # }
       
       ## If you hit 7 traits none are purchasable 
-      if ((nrTraits() >= 7) | (input$traits |> length() >= 7)) {
+      if (input$traits |> length() >= 7) {
         allTraits <- 
           constant$traits |> unlist(use.names = FALSE)
         

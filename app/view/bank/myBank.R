@@ -73,19 +73,13 @@ server <- function(id, auth, updated) {
             playerInfo$ui(ns("info")),
             playerHistory$ui(ns("history"))
           ),
-          bslib$card(
-            bslib$card_header(
-              shiny$h3("Player Store Purchases")
-            ),
-            bslib$card_body(
-              training$ui(ns("training")),
-              traits$ui(ns("traits")),
-              if (playerData()$pos_gk != 20) {
-                positions$ui(ns("positions"))
-              },
-              footedness$ui(ns("footedness"))
-            )
-          ),
+          shiny$h3("Player Store Purchases"),
+          training$ui(ns("training")),
+          traits$ui(ns("traits")),
+          if (playerData()$pos_gk != 20) {
+            positions$ui(ns("positions"))
+          },
+          footedness$ui(ns("footedness")),
           bslib$layout_column_wrap(
             width = 1 / 2,
             shiny$uiOutput(ns("cost")),
@@ -112,15 +106,7 @@ server <- function(id, auth, updated) {
       traitSum <- shiny$reactiveVal(0)
       positionSum <- shiny$reactiveVal(0)
       footSum <- shiny$reactiveVal(0)
-      
-      totalCost <- shiny$reactive({
-        sum(
-          trainingSum(),
-          traitSum(),
-          positionSum(),
-          footSum()
-        )
-      })
+      totalCost <- shiny$reactiveVal({0})
       
       
       #### OUTPUT SERVER ####
@@ -384,6 +370,24 @@ server <- function(id, auth, updated) {
         shiny$bindEvent(
           input$confirmUpdate,
           ignoreInit = TRUE
+        )
+      
+      shiny$observe({
+        totalCost(
+          sum(
+            trainingSum(),
+            traitSum(),
+            positionSum(),
+            footSum(),
+            na.rm = TRUE
+          )
+        )
+      }) |> 
+        shiny$bindEvent(
+          trainingSum(),
+          traitSum(),
+          positionSum(),
+          footSum()
         )
     }
   })
