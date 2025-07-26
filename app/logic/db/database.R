@@ -42,7 +42,8 @@ getQuery <- function(query, ..., schema) {
   }, error = function(e) {
     # Log or handle the error
     message("Error executing query: ", e$message)
-    NULL
+    
+    stop()
   }, finally = {
     # Ensure the connection is closed
     if (!is.null(con) && DBI$dbIsValid(con)) {
@@ -83,7 +84,8 @@ setQuery <- function(query, ..., schema) {
   }, error = function(e) {
     # Log or handle the error
     message("Error executing query: ", e$message)
-    NULL
+    
+    stop()
   }, finally = {
     # Ensure the connection is closed
     if (!is.null(con) && DBI$dbIsValid(con)) {

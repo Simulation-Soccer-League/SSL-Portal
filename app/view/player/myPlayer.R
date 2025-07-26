@@ -2,26 +2,25 @@ box::use(
   bslib,
   dplyr,
   purrr[is_empty],
-  rlang[`!!!`],
   shiny,
+  shiny.router[change_page],
   shinyFeedback[showToast],
   shinyjs[disable, enable],
-  shiny.router[change_page],
   stringr[str_extract_all],
   tippy[tippy],
 )
 
 box::use(
   app/logic/constant,
+  app/logic/db/database[portalQuery],
+  app/logic/db/discord[sendRetiredPlayer],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updateTPE],
   app/logic/player/playerChecks[
     completedAC,
     completedTC, 
     eligibleRedist, 
-    eligibleReroll, 
-    hasActivePlayer
+    eligibleReroll
   ],
   app/view/tracker/player,
 )
@@ -40,7 +39,7 @@ server <- function(id, auth, updated) {
     #### OUTPUT UI ####
     output$ui <- shiny$renderUI({
       buttonList <- list(
-        if (completedAC(playerData()$pid)){
+        if (completedAC(playerData()$pid)) {
           shiny$actionButton(
             ns("AC"),
             label = 
@@ -65,7 +64,7 @@ server <- function(id, auth, updated) {
             style = paste0("background: ", constant$blue)
           )
         },
-        if (completedTC(playerData()$pid)){
+        if (completedTC(playerData()$pid)) {
           NULL
         } else {
           shiny$actionButton(
@@ -107,8 +106,12 @@ server <- function(id, auth, updated) {
             disabled = TRUE
           )
         },
-        shiny$actionButton(ns("Retire"), label = "Retire", style = paste0("background: ", constant$red)),
-        if (eligibleRedist(playerData())){
+        shiny$actionButton(
+          ns("Retire"), 
+          label = "Retire", 
+          style = paste0("background: ", constant$red)
+        ),
+        if (eligibleRedist(playerData())) {
           shiny$actionButton(
             ns("Redistribute"), 
             label = "Redistribute"
@@ -116,7 +119,7 @@ server <- function(id, auth, updated) {
         } else {
           NULL
         },
-        if (eligibleReroll(playerData())){
+        if (eligibleReroll(playerData())) {
           shiny$actionButton(
             ns("Reroll"), 
             label = "Reroll"
@@ -196,7 +199,7 @@ server <- function(id, auth, updated) {
           "success",
           "You have successfully claimed your Activity Check for the week!"
         )
-      }, error = function(e){
+      }, error = function(e) {
         message("Error executing query: ", e)
         
         showToast(
@@ -243,7 +246,7 @@ server <- function(id, auth, updated) {
           "success",
           "You have successfully claimed your Training Camp for the season!"
         )
-      }, error = function(e){
+      }, error = function(e) {
         message("Error executing query: ", e)
         
         showToast(
@@ -258,5 +261,80 @@ server <- function(id, auth, updated) {
       
     }) |> 
       shiny$bindEvent(input$TC)
+    
+    shiny$observe({
+      shiny$showModal(
+        shiny$modalDialog(
+          "Are you sure you want to retire? This is a permanent decision and 
+          you may not un-retire after going through with the retirement.",
+          title = "Retirement",
+          footer = shiny$tagList(
+            shiny$modalButton("No, go back"),
+            shiny$actionButton(
+              inputId = ns("confirmRetirement1"),
+              label = "Yes, I am fully aware of the results of this decision and want to continue!"
+            )
+          ),
+          easyClose = FALSE
+        )
+      )
+    }) |> 
+      shiny$bindEvent(input$Retire)
+    
+    shiny$observe({
+      shiny$removeModal()
+      
+      shiny$showModal(
+        shiny$modalDialog(
+          "Are you really sure? This is your final warning, you cannot 
+          revert your decision if you continue.",
+          title = "Retirement",
+          footer = shiny$tagList(
+            shiny$modalButton("No, go back"),
+            shiny$actionButton(
+              inputId = session$ns("confirmRetirement2"),
+              label = "Yes, I want to permanently retire!"
+            )
+          ),
+          easyClose = FALSE
+        )
+      )
+    }) |> 
+      shiny$bindEvent(input$confirmRetirement1)
+    
+    shiny$observe({
+      shiny$removeModal()
+      
+      tryCatch({
+        # Begin the transaction
+        portalQuery(
+          query = "START TRANSACTION;",
+          type = "set"
+        )
+        
+        portalQuery(
+          query = "UPDATE playerdata 
+          SET status_p = 2 
+          WHERE pid = {pid};",
+          pid = getActivePlayer(auth$uid),
+          type = "set"
+        )
+        
+        sendRetiredPlayer(playerData())
+      }, error = function(e) {
+        # Rollback the transaction if any error occurs
+        portalQuery(
+          query = "ROLLBACK;",
+          type = "set"
+        )
+        
+        message("Error updating banktransactions, transaction rolled back: ", e$message)
+      })
+      
+    }) |> 
+      shiny$bindEvent(
+        input$confirmRetirement2
+      )
+    
   })
 }

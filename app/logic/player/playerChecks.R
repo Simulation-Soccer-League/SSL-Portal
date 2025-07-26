@@ -21,6 +21,7 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
+  app/logic/db/discord[sendNewCreate],
   app/logic/db/get[getActivePlayer],
   app/logic/db/login[isNonActiveForumUser],
 )
@@ -180,7 +181,7 @@ verifyBuild <- function(input, bankedTPE, session){
       weight = input$weight,
       hair_color = input$hairColor,
       hair_length = input$hairLength,
-      skintone = input$skintone,
+      skintone = input$skinColor,
       render = input$render,
       `left foot` = dplyr$if_else(input$footedness == "Right", 10, 20),
       `right foot` = dplyr$if_else(input$footedness == "Right", 20, 10),
@@ -223,11 +224,13 @@ verifyBuild <- function(input, bankedTPE, session){
   
   # Add attributes variables for each position
   for (att in (constant$attributes$attribute)) {
-    summary <- summary  |> 
-      dplyr$mutate(
-        !!str_to_lower(att) := 
-          input[[att |> str_remove_all(" ")]]
-      )
+    if (!input[[att |> str_remove_all(" ")]] |> is.na()) {
+      summary <- summary  |> 
+        dplyr$mutate(
+          !!str_to_lower(att) := 
+            input[[att |> str_remove_all(" ")]]
+        )  
+    }
   }
   
   shiny$showModal(
@@ -262,104 +265,215 @@ verifyBuild <- function(input, bankedTPE, session){
 
 #' @export
 submitBuild <- function(input, bankedTPE, userinfo){
-  summary <- 
-    tibble(
-      uid = userinfo$uid,
-      status_p = -1,
-      first = str_trim(input$firstName),
-      last = str_trim(input$lastName),
-      tpe = 350,
-      tpebank = bankedTPE(),
-      birthplace = input$birthplace,
-      nationality = input$nationality,
-      height = input$height,
-      weight = input$weight,
-      hair_color = input$hairColor,
-      hair_length = input$hairLength,
-      skintone = input$skintone,
-      render = input$render,
-      `left foot` = dplyr$if_else(input$footedness == "Right", 10, 20),
-      `right foot` = dplyr$if_else(input$footedness == "Right", 20, 10),
+  
+  tryCatch({
+    # Begin the transaction
+    portalQuery(
+      query = "START TRANSACTION;",
+      type = "set"
     )
-  
-  if(input$playerType == "Outfield"){
-    summary$position <- input$primary
     
-    # Add pos_ variables for each position
-    positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
-    for (pos in positions) {
-      summary <- summary |> 
-        dplyr$mutate(
-          !!paste0("pos_", str_to_lower(pos)) := 
-            dplyr$case_when(
-              pos %in% input$primary ~ 20,
-              pos %in% input$secondary ~ 15,
-              TRUE ~ 0
-            )
-        )
-    }
-    
-    summary$traits <- paste0(input$traits, collapse = constant$traitSep)
-  } else {
-    summary$position <- "GK"
-    
-    # Add pos_ variables for each position
-    positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
-    for (pos in positions) {
-      summary <- summary |> 
-        dplyr$mutate(
-          !!paste0("pos_", str_to_lower(pos)) := 
-            dplyr$case_when(
-              pos == "GK" ~ 20,
-              TRUE ~ 0
-            )
-        )
-    }
-  }
-  
-  # Add attributes variables for each position
-  for (att in (constant$attributes$attribute |> str_to_lower())) {
-    summary <- summary  |> 
-      dplyr$mutate(
-        !!str_to_lower(att) := 
-          input[[att |> str_remove_all(" ")]]
+    summary <- 
+      tibble(
+        uid = userinfo$uid,
+        status_p = -1,
+        first = str_trim(input$firstName),
+        last = str_trim(input$lastName),
+        tpe = 350,
+        tpebank = bankedTPE(),
+        birthplace = input$birthplace,
+        nationality = input$nationality,
+        height = input$height,
+        weight = input$weight,
+        hair_color = input$hairColor,
+        hair_length = input$hairLength,
+        skintone = input$skinColor,
+        render = input$render,
+        `left foot` = dplyr$if_else(input$footedness == "Right", 10, 20),
+        `right foot` = dplyr$if_else(input$footedness == "Right", 20, 10),
       )
-  }
+    
+    if(input$playerType == "Outfield"){
+      summary$position <- input$primary
+      
+      # Add pos_ variables for each position
+      positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
+      for (pos in positions) {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!paste0("pos_", str_to_lower(pos)) := 
+              dplyr$case_when(
+                pos %in% input$primary ~ 20,
+                pos %in% input$secondary ~ 15,
+                TRUE ~ 0
+              )
+          )
+      }
+      
+      summary$traits <- paste0(input$traits, collapse = constant$traitSep)
+    } else {
+      summary$position <- "GK"
+      
+      # Add pos_ variables for each position
+      positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
+      for (pos in positions) {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!paste0("pos_", str_to_lower(pos)) := 
+              dplyr$case_when(
+                pos == "GK" ~ 20,
+                TRUE ~ 0
+              )
+          )
+      }
+      
+      summary$traits <- "NO TRAITS"
+    }
+    
+    # Add attributes variables for each position
+    for (att in (constant$attributes$attribute)) {
+      if (!input[[att |> str_remove_all(" ")]] |> is.na()) {
+        summary <- summary  |> 
+          dplyr$mutate(
+            !!str_to_lower(att) := 
+              input[[att |> str_remove_all(" ")]]
+          )  
+      }
+    }
+    
+    # helper: fetch df[[col]] if it exists, otherwise emit SQL NULL
+    getSummaryValue <- function(df, col) {
+      if (col %in% names(df)) {
+        df[[col]]
+      } else {
+        NA
+      }
+    }
 
-  # Adding 'string' to character variables for SQL  
-  summary <- 
-    summary |> 
-    dplyr$mutate(
-      dplyr$across(
-        .cols = !render,
-        ~ dplyr$if_else(.x == "", NA, .x)
-      )
+    # call portalQuery with query + named params
+    portalQuery(
+      query =
+        "INSERT INTO playerdata (`uid`, `status_p`, `first`, `last`, `tpe`, `tpebank`,
+          `birthplace`, `nationality`, `height`, `weight`, `hair_color`, `hair_length`,
+          `skintone`, 
+          `render`, `left foot`, `right foot`, `position`, `traits`, pos_gk`, `pos_ld`, `pos_cd`,
+          `pos_rd`, `pos_lwb`, `pos_cdm`, `pos_rwb`, `pos_lm`, `pos_cm`, `pos_rm`,
+          `pos_lam`, `pos_cam`, `pos_ram`, `pos_st`, `acceleration`, `agility`, 
+          `balance`, `jumping reach`, `natural fitness`, `pace`, `stamina`, `strength`, 
+          `corners`, `crossing`, `dribbling`, `finishing`, `first touch`, `free kick`, 
+          `heading`, `long shots`, `long throws`, `marking`, `passing`, `penalty taking`, 
+          `tackling`, `technique`, `aggression`, `anticipation`, `bravery`, `composure`, 
+          `concentration`, `decisions`, `determination`, `flair`, `leadership`, 
+          `off the ball`, `positioning`, `teamwork`, `vision`, `work rate`, `aerial reach`, 
+          `command of area`, `communication`, `eccentricity`, `handling`, `kicking`, 
+          `one on ones`, `tendency to punch`, `reflexes`, `tendency to rush`, `throwing`)
+        VALUES ({uid}, {status_p}, {first}, {last}, {tpe}, {tpebank}, {birthplace},
+          {nationality}, {height}, {weight}, {hair_color}, {hair_length}, {skintone}, 
+          {render},
+          {left}, {right}, {position}, {traits}, {pos_gk}, {pos_ld}, {pos_cd}, {pos_rd},
+          {pos_lwb}, {pos_cdm}, {pos_rwb}, {pos_lm}, {pos_cm}, {pos_rm}, {pos_lam},
+          {pos_cam}, {pos_ram}, {pos_st}, {acceleration}, {agility}, {balance}, 
+          {jumpingreach}, {naturalfitness}, {pace}, {stamina}, {strength}, {corners}, 
+          {crossing}, {dribbling}, {finishing}, {firsttouch}, {freekick}, {heading}, 
+          {longshots}, {longthrows}, {marking}, {passing}, {penaltytaking}, {tackling}, 
+          {technique}, {aggression}, {anticipation}, {bravery}, {composure}, {concentration}, 
+          {decisions}, {determination}, {flair}, {leadership}, {offtheball}, {positioning}, 
+          {teamwork}, {vision}, {workrate}, {aerialreach}, {commandofarea}, 
+          {communication}, {eccentricity}, {handling}, {kicking}, {oneonones}, 
+          {tendencytopunch}, {reflexes}, {tendencytorush}, {throwing});",
+      uid = summary$uid,
+      status_p = summary$status_p,
+      first = summary$first,
+      last = summary$last,
+      tpe = summary$tpe,
+      tpebank = summary$tpebank,
+      birthplace = summary$birthplace,
+      nationality = summary$nationality,
+      height = summary$height,
+      weight = summary$weight,
+      hair_color = summary$hair_color,
+      hair_length = summary$hair_length,
+      skintone = summary$skintone,
+      render = summary$render,
+      left = summary$`left foot`,
+      right = summary$`right foot`,
+      position = summary$position,
+      traits = summary$traits,
+      pos_gk  = summary$pos_gk,
+      pos_ld  = summary$pos_ld,
+      pos_cd  = summary$pos_cd,
+      pos_rd  = summary$pos_rd,
+      pos_lwb = summary$pos_lwb,
+      pos_cdm = summary$pos_cdm,
+      pos_rwb = summary$pos_rwb,
+      pos_lm  = summary$pos_lm,
+      pos_cm  = summary$pos_cm,
+      pos_rm  = summary$pos_rm,
+      pos_lam = summary$pos_lam,
+      pos_cam = summary$pos_cam,
+      pos_ram = summary$pos_ram,
+      pos_st  = summary$pos_st,
+      acceleration    = getSummaryValue(summary, "acceleration"),
+      agility         = getSummaryValue(summary, "agility"),
+      balance         = getSummaryValue(summary, "balance"),
+      jumpingreach    = getSummaryValue(summary, "jumping reach"),
+      naturalfitness  = getSummaryValue(summary, "natural fitness"),
+      pace            = getSummaryValue(summary, "pace"),
+      stamina         = getSummaryValue(summary, "stamina"),
+      strength        = getSummaryValue(summary, "strength"),
+      corners         = getSummaryValue(summary, "corners"),
+      crossing        = getSummaryValue(summary, "crossing"),
+      dribbling       = getSummaryValue(summary, "dribbling"),
+      finishing       = getSummaryValue(summary, "finishing"),
+      firsttouch      = getSummaryValue(summary, "first touch"),
+      freekick        = getSummaryValue(summary, "free kick"),
+      heading         = getSummaryValue(summary, "heading"),
+      longshots       = getSummaryValue(summary, "long shots"),
+      longthrows      = getSummaryValue(summary, "long throws"),
+      marking         = getSummaryValue(summary, "marking"),
+      passing         = getSummaryValue(summary, "passing"),
+      penaltytaking   = getSummaryValue(summary, "penalty taking"),
+      tackling        = getSummaryValue(summary, "tackling"),
+      technique       = getSummaryValue(summary, "technique"),
+      aggression      = getSummaryValue(summary, "aggression"),
+      anticipation    = getSummaryValue(summary, "anticipation"),
+      bravery         = getSummaryValue(summary, "bravery"),
+      composure       = getSummaryValue(summary, "composure"),
+      concentration   = getSummaryValue(summary, "concentration"),
+      decisions       = getSummaryValue(summary, "decisions"),
+      determination   = getSummaryValue(summary, "determination"),
+      flair           = getSummaryValue(summary, "flair"),
+      leadership      = getSummaryValue(summary, "leadership"),
+      offtheball      = getSummaryValue(summary, "off the ball"),
+      positioning     = getSummaryValue(summary, "positioning"),
+      teamwork        = getSummaryValue(summary, "teamwork"),
+      vision          = getSummaryValue(summary, "vision"),
+      workrate        = getSummaryValue(summary, "work rate"),
+      aerialreach     = getSummaryValue(summary, "aerial reach"),
+      commandofarea   = getSummaryValue(summary, "command of area"),
+      communication   = getSummaryValue(summary, "communication"),
+      eccentricity    = getSummaryValue(summary, "eccentricity"),
+      handling        = getSummaryValue(summary, "handling"),
+      kicking         = getSummaryValue(summary, "kicking"),
+      oneonones       = getSummaryValue(summary, "one on ones"),
+      tendencytopunch = getSummaryValue(summary, "tendency to punch"),
+      reflexes        = getSummaryValue(summary, "reflexes"),
+      tendencytorush  = getSummaryValue(summary, "tendency to rush"),
+      throwing        = getSummaryValue(summary, "throwing"),
+      type = "set"
     )
-  
-  # Insert to database
-  # grab field names and the first row of data
-  fields <- colnames(summary)
-  values <- as.list(summary[1, , drop = FALSE])
-  names(values) <- fields
-  
-  # quote the column identifiers for SQL
-  cols_sql <- paste0("`", fields, "`", collapse = ", ")
-  # build a matching list of ?placeholders
-  placeholders <- paste0(paste0("{", fields, "}"), collapse = ", ")
-  
-  # one tidy SQL string
-  sql <- sprintf(
-    "INSERT INTO playerdata (%s) VALUES (%s);",
-    cols_sql,
-    placeholders
-  )
-  
-  # call portalQuery with query + named params
-  do.call(
-    portalQuery,
-    c(list(query = sql, type = "set"), values)
-  )
-  
+
+    sendNewCreate(data = summary, username = userinfo$username)
+    
+    portalQuery(query = "COMMIT;", type = "set")
+  }, error = function(e) {
+    # If any error occurs, rollback the transaction and show an error message.
+    portalQuery(query = "ROLLBACK;", type = "set")
+    
+    message("Error executing query: ", e)
+    
+    stop()
+  })
 }
 
 #' @export

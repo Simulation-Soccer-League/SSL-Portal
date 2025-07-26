@@ -4,7 +4,13 @@ box::use(
   purrr[map],
   rlang[`!!!`],
   shiny,
-  shinyFeedback[feedback, feedbackDanger, feedbackWarning, hideFeedback, showToast],
+  shinyFeedback[
+    feedback, 
+    feedbackDanger, 
+    feedbackWarning, 
+    hideFeedback, 
+    showToast
+  ],
   shinyjs,
   shiny.router[change_page],
   sortable[add_rank_list, bucket_list],
@@ -196,7 +202,8 @@ server <- function(id, auth, updated) {
             shiny$textOutput(ns("tpeRemaining")),
             shiny$actionButton(ns("submit"), label = "Submit Player")
           ) |> 
-            shiny$div(class = "frozen-bottom")
+            shiny$div(class = "frozen-bottom"),
+          shiny$div(style = "min-height:100px;")
         )
       })
       
@@ -205,61 +212,84 @@ server <- function(id, auth, updated) {
       output$attributes <- shiny$renderUI({
         map(
           .x = attributeGroups(),
-          .f = function(chosengroup){
+          .f = function(chosengroup) {
             output[[chosengroup]] <- shiny$renderUI({
-              temp <- 
-                constant$attributes |> 
-                dplyr$filter(
-                  if (input$playerType == "Goalkeeper"){
-                    group == chosengroup & keeper == TRUE
-                  } else {
-                    group == chosengroup
+              l1 <- 
+                lapply(
+                  attributes()$una |> 
+                    dplyr$filter(group == chosengroup) |> 
+                    dplyr$select(attribute) |> 
+                    unlist(),
+                  FUN = function(currentAtt) {
+                    shiny$tagList(
+                      shiny$numericInput(
+                        inputId = ns(currentAtt |> str_remove_all(" ")),
+                        label = 
+                          tippy(
+                            currentAtt,
+                            constant$attributes |> 
+                              dplyr$filter(attribute == currentAtt) |> 
+                              dplyr$select(explanation),
+                            theme = "ssl"
+                          ),
+                        value = NULL
+                      )
+                    ) |> 
+                      shinyjs$hidden()
                   }
-                ) |> 
-                dplyr$select(attribute)
+                )
               
-              lapply(
-                temp$attribute,
-                FUN = function(currentAtt){
-                  if(currentAtt %in% c("Natural Fitness", "Stamina")){
-                    shiny$tagList(
-                      shiny$numericInput(
-                        inputId = ns(currentAtt |> str_remove_all(" ")),
-                        label = 
-                          tippy(
-                            currentAtt,
-                            constant$attributes |> 
-                              dplyr$filter(attribute == currentAtt) |> 
-                              dplyr$select(explanation),
-                            theme = "ssl"
-                          ),
-                        value = 20,
-                        max = 20,
-                        min = 20
-                      ) |> 
-                        shinyjs$disabled()
-                    )
-                  } else {
-                    shiny$tagList(
-                      shiny$numericInput(
-                        inputId = ns(currentAtt |> str_remove_all(" ")),
-                        label = 
-                          tippy(
-                            currentAtt,
-                            constant$attributes |> 
-                              dplyr$filter(attribute == currentAtt) |> 
-                              dplyr$select(explanation),
-                            theme = "ssl"
-                          ),
-                        value = 5,
-                        min = 5,
-                        max = 20
-                      ),
-                      shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" "))))
-                    )
+              
+              l2 <- 
+                lapply(
+                  attributes()$ava |> 
+                    dplyr$filter(group == chosengroup) |> 
+                    dplyr$select(attribute) |> 
+                    unlist(),
+                  FUN = function(currentAtt) {
+                    if (currentAtt %in% c("Natural Fitness", "Stamina")) {
+                      shiny$tagList(
+                        shiny$numericInput(
+                          inputId = ns(currentAtt |> str_remove_all(" ")),
+                          label = 
+                            tippy(
+                              currentAtt,
+                              constant$attributes |> 
+                                dplyr$filter(attribute == currentAtt) |> 
+                                dplyr$select(explanation),
+                              theme = "ssl"
+                            ),
+                          value = 20,
+                          max = 20,
+                          min = 20
+                        ) |> 
+                          shinyjs$disabled()
+                      )
+                    } else {
+                      shiny$tagList(
+                        shiny$numericInput(
+                          inputId = ns(currentAtt |> str_remove_all(" ")),
+                          label = 
+                            tippy(
+                              currentAtt,
+                              constant$attributes |> 
+                                dplyr$filter(attribute == currentAtt) |> 
+                                dplyr$select(explanation),
+                              theme = "ssl"
+                            ),
+                          value = 5,
+                          min = 5,
+                          max = 20
+                        ),
+                        shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" "))))
+                      )
+                    }
                   }
-                }
-              )
+                )
+                
+                shiny$tagList(
+                  l1, l2
+                )
             })
           }
         )
@@ -404,7 +434,28 @@ server <- function(id, auth, updated) {
           unique() |> 
           dplyr$arrange() |> 
           unlist()
-      })
+      }) |> 
+        shiny$bindEvent(input$playerType)
+      
+      attributes <- shiny$reactive({
+        available <- constant$attributes |> 
+          dplyr$filter(
+            if (input$playerType == "Goalkeeper"){
+              (group %in% c("Goalkeeper", "Technical") & keeper == "TRUE") | (group %in% c("Physical", "Mental"))
+            } else {
+              group %in% c("Physical", "Mental", "Technical")
+            }
+          ) 
+        
+        unavailable <- 
+          constant$attributes |> 
+          dplyr$filter(
+            !(attribute %in% available$attribute)
+          )
+        
+        list(ava = available, una = unavailable)
+      }) |> 
+        shiny$bindEvent(input$playerType)
       
       bankedTPE <- shiny$reactive({
         appliedTPE <- 
@@ -455,7 +506,6 @@ server <- function(id, auth, updated) {
             
             # Constrain the input value within dynamic boundaries.
             adjustedVal <- min(max(currentVal, minVal), maxVal)
-            
             # Update the numeric input only if the current value is out of bounds.
             if (currentVal != adjustedVal) {
               shiny$updateNumericInput(
@@ -734,7 +784,7 @@ server <- function(id, auth, updated) {
             "Another player in the league's history have used this name. 
             Please change it to something else."
           )
-        } else if( constant$attributes$attribute |> str_remove_all(" ") |> 
+        } else if( attributes()$ava$attribute |> str_remove_all(" ") |> 
                    sapply(X = _, FUN = function(att){input[[att]] > 20 | input[[att]] < 5}, simplify = TRUE) |> 
                    unlist() |> 
                    any()
@@ -770,21 +820,30 @@ server <- function(id, auth, updated) {
       shiny$observe({
         shiny$removeModal()
         
-        showToast(
-          .options = constant$sslToastOptions,
-          "success", 
-          "Your player has been submitted for approval. 
+        tryCatch({
+          submitBuild(input, bankedTPE, auth)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "success", 
+            "Your player has been submitted for approval. 
           You will be notified via the forum or Discord by a 
           member of the BoD when the approval has been completed 
           or if there are any issues."
-        )
-        
-        submitBuild(input, bankedTPE, auth)
-        
-        updated(updated() + 1)
-        
-        change_page("/")
-        
+          )
+          
+          updated(updated() + 1)
+          
+          change_page("/")
+        }, error = function(e) {
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            "Something has gone wrong, contact Canadice."
+          )
+          
+          message("Create a player error: ", e)
+        })
       }) |> 
         shiny$bindEvent(input$confirmBuild)
     }

@@ -13,6 +13,7 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
+  app/logic/db/discord[sendApprovedCreate],
   app/logic/db/logFunctions[logBankTransaction],
   app/logic/db/updateFunctions[updateTPE],
 )
@@ -403,7 +404,7 @@ approvePlayer <- function(data, uid) {
       updateTPE(uid = 1, pids = data$pid, tpe = tpe)
     }
     
-    ## TODO SEND APPROVED MESSAGE TO DISCORD
+    sendApprovedCreate(data = data)
     
     ## Final update to `playerdata`
     class <- constant$currentSeason$season + 1
@@ -437,7 +438,10 @@ approvePlayer <- function(data, uid) {
       query = "ROLLBACK;",
       type = "set"
     )
-    message("Error updating banktransactions, transaction rolled back: ", e$message)
+  
+    message("Error approving player, transaction rolled back: ", e$message)
+    
+    stop()
   })
   
 }
