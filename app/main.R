@@ -17,7 +17,6 @@ box::use(
     isPT,
   ],
   app/logic/player/playerChecks[navigationCheck],
-  app/view/navigationBar,
   app/view/bank/myBank,
   app/view/index/academyIndex,
   app/view/index/careerRecords,
@@ -34,6 +33,7 @@ box::use(
   app/view/jobs/filework/scheduleEdit,
   app/view/jobs/manager/rosterOverview,
   app/view/jobs/pt/ptDeposit,
+  app/view/navigationBar,
   app/view/player/createPlayer,
   app/view/player/myPlayer,
   app/view/player/playerUpdate,
@@ -44,7 +44,7 @@ box::use(
   app/view/welcome,
 )
 
-shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 8*60*60))
+shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 8 * 60 * 60))
 
 #' @export
 ui <- function(id) {
@@ -104,7 +104,8 @@ server <- function(id) {
       shiny$reactiveValuesToList(resAuth)
     })
     
-    ## Defines a reactive value that tracks if portal updates are made that require re-loading assets
+    ## Defines a reactive value that tracks if portal updates are 
+    ## made that require re-loading assets
     updated <- shiny$reactiveVal(0)
     
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated)
@@ -211,7 +212,7 @@ server <- function(id) {
       } else if (current == "filework/export") {
         
         if (navigationCheck(authOutput())) {
-          if (!loadedServer$export & 
+          if (!loadedServer$export &
               any(
                 isFileworker(authOutput()$usergroup),
                 isBoD(authOutput()$usergroup),
@@ -350,7 +351,7 @@ server <- function(id) {
       } else if (current == "bank/process") {
         
         if (navigationCheck(authOutput())) {
-          if (!loadedServer$bankProcess& 
+          if (!loadedServer$bankProcess & 
               any(
                 isBankerAccountant(authOutput()$usergroup),
                 isBoD(authOutput()$usergroup),
