@@ -202,6 +202,14 @@ server <- function(id, auth, resAuth, updated) {
               )
             )
           },
+          if (any(isManager(userGroup), isBoD(userGroup))) {
+            navMenuItem(
+              label = "Manager",
+              subItems = list(
+                a("Roster Overview", href = route_link("organization/overview"))
+              )
+            )
+          },
           if (any(isPT(userGroup), isBoD(userGroup), isBoDIntern(userGroup))) {
             navMenuItem(
               label = "PT",
