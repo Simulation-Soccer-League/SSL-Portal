@@ -30,7 +30,20 @@ ui <- function(id) {
             shiny$div(style = "width: 150px;", class = "hide-in-mobile"),
             shiny$div(shiny$h5("Latest Results"), style = "width: 100%;"),
             shiny$div(
-              shiny$uiOutput(ns("leagueSelector")),
+              shiny$div(
+                shiny$selectInput(
+                  inputId = ns("selectedLeague"),
+                  label = NULL,
+                  choices =
+                    c(
+                      "All Leagues" = "ALL",
+                      "Major" = "1",
+                      "Minor" = "2",
+                      "Cup" = "0"
+                    ),
+                  width = "150px"
+                )
+              ),
               style = "font-size: 14px; font-weight: 400;"
             )
           )
@@ -199,23 +212,6 @@ server <- function(id, usergroup) {
         league <- input$selectedLeague
 
         getSchedule(league = league, season = constant$currentSeason$season)
-      })
-
-      output$leagueSelector <- shiny$renderUI({
-        shiny$div(
-          shiny$selectInput(
-            inputId = session$ns("selectedLeague"),
-            label = NULL,
-            choices =
-              c(
-                "All Leagues" = "ALL",
-                "Major" = "1",
-                "Minor" = "2",
-                "Cup" = "0"
-              ),
-            width = "150px"
-          )
-        )
       })
 
       output$schedule <- shiny$renderUI({
