@@ -393,9 +393,9 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
     indexQuery(
       query = "
         SELECT
-          `name`, `club`, `position`, `apps`, `minutes played`,`player of the match`,
-          `distance run (km)`, `goals`,`assists`,`xg`,`shots on target`,`shots`,
-          `penalties taken`,`penalties scored`,`successful passes`,`attempted passes`,
+          `name`, `club`, `position`, `apps`, `minutes played`,`average rating`, 
+          `player of the match`, `distance run (km)`, `goals`,`assists`,`xg`,`shots on target`,
+          `shots`, `penalties taken`,`penalties scored`,`successful passes`,`attempted passes`,
           `successful passes`/`attempted passes`*100 AS `pass%`,`key passes`,
           `successful crosses`,`attempted crosses`,`successful crosses`/`attempted crosses`*100 AS `cross%`,
           `chances created`,`successful headers`,`attempted headers`,
