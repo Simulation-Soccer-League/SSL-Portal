@@ -144,6 +144,8 @@ server <- function(id, auth, updated, type, player = NULL) {
                     dplyr$select(Value) |> 
                     unlist()
                   
+                  attID <- currentAtt |> str_remove_all(" ")
+                  
                   if(currentAtt %in% c("Natural Fitness", "Stamina")){
                     shiny$div(
                       class = "player-attribute-editor",
@@ -156,7 +158,7 @@ server <- function(id, auth, updated, type, player = NULL) {
                             )
                           ),
                           numericStepper(
-                            inputId = ns(currentAtt |> str_remove_all(" ")),
+                            inputId = ns(attID),
                             value = 20,
                             disabled = TRUE
                           )
@@ -171,23 +173,23 @@ server <- function(id, auth, updated, type, player = NULL) {
                         shiny$tagList(
                           shiny$div(
                             shiny$tagList(
-                              if (constant$roleAttributes[[input$selectedRole]][[currentAtt]] == 1) {
+                              if (constant$roleAttributes[[input$selectedRole]][[attID]] == 1) {
                                 shiny$icon("circle-exclamation", style = "color: var(--important);")
-                              } else if (constant$roleAttributes[[input$selectedRole]][[currentAtt]] == 2) {
+                              } else if (constant$roleAttributes[[input$selectedRole]][[attID]] == 2) {
                                 shiny$icon("circle-exclamation", style = "color: var(--key);")
                               },
                               shiny$span(style = "font-weight: 700;", currentAtt),
                             )
                           ),
                           numericStepper(
-                            inputId = ns(currentAtt |> str_remove_all(" ")),
+                            inputId = ns(attID),
                             value = value,
                             min = dplyr$if_else(type == "update", value, 5),
                             max = dplyr$if_else(type == "regression", value, 20),
                           )
                         )
                       ),
-                      shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" ")))),
+                      shiny$uiOutput(ns(paste0("cost", attID))),
                     )
                   }
                 }
@@ -256,19 +258,19 @@ server <- function(id, auth, updated, type, player = NULL) {
         shiny$textInput(
           ns("firstName"), 
           "Enter a first name:", 
-          value = dplyr$if_else(type == "redistribution", playerData()$first, ""),
+          value = playerData()$first,
           placeholder = "First Name"
         ),
         shiny$textInput(
           ns("lastName"), 
           "*Enter a last name:", 
-          value = dplyr$if_else(type == "redistribution", playerData()$last, ""),
+          value = playerData()$last,
           placeholder = "Last Name"
         ),
         shiny$textInput(
           ns("birthplace"), 
           tippy("Enter a place of birth:", "Only thematic", theme = "ssl"), 
-          value = dplyr$if_else(type == "redistribution", playerData()$birthplace, ""),
+          value = playerData()$birthplace,
           placeholder = "City"
         ),
         shiny$selectInput(
@@ -282,14 +284,14 @@ server <- function(id, auth, updated, type, player = NULL) {
         shiny$numericInput(
           ns("height"), 
           tippy("Enter height (inches):", "Only cosmetic", theme = "ssl"), 
-          value = dplyr$if_else(type == "redistribution", playerData()$height, 62), 
+          value = playerData()$height, 
           min = 55, 
           max = 90
         ),
         shiny$numericInput(
           ns("weight"), 
           tippy("Enter weight (pounds):", "Only cosmetic", theme = "ssl"), 
-          value = dplyr$if_else(type == "redistribution", playerData()$weight, 180), 
+          value = playerData()$weight, 
           min = 100, 
           max = 350, 
           step = 5
@@ -298,18 +300,14 @@ server <- function(id, auth, updated, type, player = NULL) {
           ns("footedness"), 
           "*Select preferred foot:", 
           choices = c("", "Left", "Right"),
-          selected = 
-            dplyr$if_else(
-              type == "redistribution", 
-              dplyr$if_else(playerData()$`left foot` == 20, "Left", "Right"), 
-              "")
+          selected = dplyr$if_else(playerData()$`left foot` == 20, "Left", "Right")
           ),
         shiny$textInput(
           ns("render"), 
           tippy("Select a player likeness:", 
                 "A player render is a person or thing you want your player to look like for graphics used within the league.",
                 theme = "ssl"), 
-          value = dplyr$if_else(type == "redistribution", playerData()$render, ""),
+          value = playerData()$render,
           placeholder = "ex. Lionel Messi"
         ),
         if(playerData()$pos_gk == 20 | type == "reroll"){

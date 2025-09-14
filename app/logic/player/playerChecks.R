@@ -32,7 +32,7 @@ eligibleReroll <- function(data){
     str_extract(pattern = "[0-9]+") |> 
     as.numeric()
   
-  (class > (constant$currentSeason$season - 2)) | 
+  (class > (constant$currentSeason$season - 2)) & 
     (data$rerollused == 0)
 }
 
@@ -42,7 +42,7 @@ eligibleRedist <- function(data){
     str_extract(pattern = "[0-9]+") |> 
     as.numeric()
   
-  (class > (constant$currentSeason$season - 1)) | 
+  (class > (constant$currentSeason$season - 1)) & 
     (data$redistused == 0)
 }
 
