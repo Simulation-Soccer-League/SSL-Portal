@@ -185,7 +185,20 @@ server <- function(id, auth, updated, type, player = NULL) {
                             inputId = ns(attID),
                             value = value,
                             min = dplyr$if_else(type == "update", value, 5),
-                            max = dplyr$if_else(type == "regression", value, 20),
+                            max = 
+                              dplyr$if_else(
+                                currentAtt %in% c("Acceleration", "Agility", "Balance", "Jumping Reach", "Pace", "Strength"),
+                                dplyr$if_else(
+                                  type == "regression", 
+                                  min(value, 20 - max(playerData()$timesregressed - 2, 0)), 
+                                  20 - max(playerData()$timesregressed - 2, 0)
+                                ),
+                                dplyr$if_else(
+                                  type == "regression", 
+                                  value, 
+                                  20
+                                )
+                              )
                           )
                         )
                       ),
@@ -340,12 +353,25 @@ server <- function(id, auth, updated, type, player = NULL) {
       class='keyAttribute'>very important</span> and
       <span class='importantAttribute'>important</span>          attributes.") |> shiny$HTML(),
         shiny$br(),
-        shiny$selectInput(
-          ns("selectedRole"), 
-          label = tippy("Select a player role", 
-                        tooltip = "Please note, the role you play will be determined by your Manager. If you want to play a specific role, make sure to speak with your Manager.",
-                        theme = "ssl"), 
-          choices = names(constant$roleAttributes))
+        bslib$layout_column_wrap(
+          width = NULL,
+          style = bslib$css(grid_template_columns = "1fr 2fr 2fr"),
+          shiny$selectInput(
+            ns("selectedRole"), 
+            label = tippy("Select a player role", 
+                          tooltip = "Please note, the role you play will be determined by your Manager. If you want to play a specific role, make sure to speak with your Manager.",
+                          theme = "ssl"), 
+            choices = names(constant$roleAttributes)),
+          if ((playerData()$timesregressed - 2) > 0) {
+            paste(
+              "Your maximum Physical attribute value is",
+              20 - (playerData()$timesregressed - 2)
+            )
+          } else {
+            ""
+          },
+          ""
+        )
       )
     })
     
@@ -615,7 +641,7 @@ server <- function(id, auth, updated, type, player = NULL) {
           showToast(
             .options = constant$sslToastOptions,
             "error", 
-            "You have missed some required field. Please check the marked fields."
+            "You have missed a required field. Please check the marked fields."
           )
           
           feedbackDanger("lastName", input$lastName == "", "Please enter a last name for your player. If you only want to use one name, please enter it here instead of as a first name.")
