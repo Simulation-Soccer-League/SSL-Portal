@@ -142,6 +142,7 @@ server <- function(id, usergroup) {
                 ) |>
                 reactable(
                   defaultColDef = colDef(minWidth = 30),
+                  pagination = FALSE,
                   columns =
                     list(
                       Team = colDef(
