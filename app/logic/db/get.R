@@ -71,7 +71,7 @@ getBankTransactions <- function(status) {
 #' @export
 getRecentCreates <- function() {
   portalQuery(
-    "SELECT name, username, position
+    "SELECT name, username, position, pid
     FROM allplayersview
     ORDER BY created DESC
     LIMIT 10;"
@@ -101,7 +101,8 @@ getTopEarners <- function() {
       SELECT
         pd.name,
         pd.username,
-        t.`TPE Earned`
+        t.`TPE Earned`,
+        pd.pid
       FROM t
       JOIN allplayersview pd
         ON pd.pid = t.pid

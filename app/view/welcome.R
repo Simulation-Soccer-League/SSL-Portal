@@ -5,6 +5,7 @@ box::use(
   reactable[colDef, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
   shiny,
+  shiny.router[route_link],
   tippy[tippy],
 )
 
@@ -259,19 +260,47 @@ server <- function(id, usergroup) {
 
       #### Weekly TPE Leaders ####
       output$weeklyLeaders <- renderReactable({
-        getTopEarners() |>
+        data <- getTopEarners() 
+        
+        data |>
           reactable(
-            defaultColDef = colDef(minWidth = 75)
+            defaultColDef = colDef(minWidth = 75),
+            columns = list(
+              pid = colDef(show = FALSE),
+              name = colDef(
+                searchable = TRUE,
+                cell = function(value, rowIndex) {
+                  pid <- data[rowIndex, "pid"] # Get the corresponding pid
+                  shiny$a(
+                    href = route_link(paste0("tracker/player?pid=", pid)),
+                    value # Display the name as the link text
+                  )
+                }
+              )
+            )
           )
       })
 
       #### Recently created ####
       output$created <- renderReactable({
-        getRecentCreates() |>
+        data <- getRecentCreates() 
+        
+        data |>
           reactable(
             defaultColDef = colDef(minWidth = 25),
             columns = list(
-              Pos = colDef(maxWidth = 50)
+              position = colDef(maxWidth = 50),
+              pid = colDef(show = FALSE),
+              name = colDef(
+                searchable = TRUE,
+                cell = function(value, rowIndex) {
+                  pid <- data[rowIndex, "pid"] # Get the corresponding pid
+                  shiny$a(
+                    href = route_link(paste0("tracker/player?pid=", pid)),
+                    value # Display the name as the link text
+                  )
+                }
+              )
             )
           )
       })
