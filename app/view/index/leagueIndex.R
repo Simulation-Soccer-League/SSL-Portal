@@ -33,7 +33,11 @@ ui <- function(id) {
                 "ALL"
               )
           ),
-          "",
+          shiny::checkboxInput(
+            ns("retired"),
+            label = "Remove retired players",
+            value = FALSE
+          ),
           shiny$uiOutput(ns("leagueSelector"))
         )
       ),
@@ -126,7 +130,6 @@ server <- function(id) {
         map(
           .x = outstatistics,
           .f = function(chosenStat) {
-            print(chosenStat)
             shiny$tagList(
               shiny$div(
                 class = "leader-table",
@@ -143,8 +146,6 @@ server <- function(id) {
       lapply(outstatistics, function(stat) {
         output[[paste0(stat, "_leader")]] <- renderReactable({
           data <- outfieldData()
-
-          print(stat)
 
           data |>
             dplyr$select(
@@ -167,7 +168,6 @@ server <- function(id) {
         map(
           .x = keepstatistics,
           .f = function(chosenStat) {
-            print(chosenStat)
             shiny$tagList(
               shiny$div(
                 class = "leader-table",
@@ -183,7 +183,9 @@ server <- function(id) {
 
       lapply(keepstatistics, function(stat) {
         output[[paste0(stat, "_leader")]] <- renderReactable({
-          data <- keeperData()
+          data <- keeperData() |> 
+            dplyr$filter(input$retired == FALSE | 
+                           max_season == max(max_season, na.rm = FALSE))
 
           data |>
             dplyr$select(
@@ -202,18 +204,23 @@ server <- function(id) {
 
       #### REACTABLE OUTPUT ####
       output$outfieldBasic <- renderReactable({
-        data <- outfieldData()
-
+        data <- outfieldData() |> 
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
+        
         currentData <-
           data |>
           dplyr$select(
-            name:assists, `shots on target`:offsides, blocks, `shots blocked`, `average rating`
-          )
-
+            name:assists, `shots on target`:offsides, blocks, `shots blocked`, `average rating`,
+            max_season
+          ) |> 
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
+        
         currentData |>
           indexReactable()
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague)
+        shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
 
       output$outfieldAdvanced <- renderReactable({
         data <- outfieldData()
@@ -225,13 +232,16 @@ server <- function(id) {
             xg,
             xa:`fk shots`,
             `open play key passes`:`goals outside box`,
-            `press%`:`pen adj xG`
-          )
+            `press%`:`pen adj xG`,
+            max_season
+          ) |> 
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
           indexReactable()
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague)
+        shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
 
       output$keeperBasic <- renderReactable({
         data <- keeperData()
@@ -239,13 +249,16 @@ server <- function(id) {
         currentData <-
           data |>
           dplyr$select(
-            name:`save%`
-          )
+            name:`save%`,
+            max_season
+          ) |> 
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
           indexReactable()
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague)
+        shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
 
       output$keeperAdvanced <- renderReactable({
         data <- keeperData()
@@ -254,13 +267,16 @@ server <- function(id) {
           data |>
           dplyr$select(
             name:club,
-            `penalties faced`:`xg prevented`
-          )
+            `penalties faced`:`xg prevented`,
+            max_season
+          ) |> 
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
           indexReactable()
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague)
+        shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
     }
   )
 }

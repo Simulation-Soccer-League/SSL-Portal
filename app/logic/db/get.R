@@ -406,13 +406,13 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
           `yellow cards`,`red cards`,`fouls`,`fouls against`,`offsides`,`xa`,
           `xg overperformance`,`fk shots`,`blocks`,`open play key passes`,
           `successful open play crosses`,`attempted open play crosses`,`shots blocked`,
-          `progressive passes`,`successful presses`,`attempted presses`,
+          `progressive passes`,`successful presses`,`attempted presses`, `goals outside box`,
           CASE WHEN IFNULL(`attempted presses`,0)=0 THEN 0
                ELSE `successful presses`/`attempted presses`*100 END AS `press%`,
           CASE WHEN IFNULL(`attempted open play crosses`,0)=0 THEN 0
                ELSE `successful open play crosses`/`attempted open play crosses`*100 END AS `open play crosses%`,
           `shots on target`/`shots`*100 AS `shot accuracy%`,
-          `xG` - 0.83*`penalties taken` AS `pen adj xG`
+          `xG` - 0.83*`penalties taken` AS `pen adj xG`, max_season
         FROM (
           SELECT
             `name`,
@@ -462,7 +462,8 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
             SUM(`attempted presses`)                     AS `attempted presses`,
             SUM(`goals outside box`)                     AS `goals outside box`,
             SUM(`player of the match`)                   AS `player of the match`,
-            AVG(`average rating`)                        AS `average rating`
+            AVG(`average rating`)                        AS `average rating`,
+            MAX(season)                                  AS `max_season`
           FROM (
             SELECT
               gd.`name`, gd.`club`, gd.`position`, gd.`apps`, gd.`minutes played`,
@@ -479,7 +480,7 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
               gd.`open play key passes`, gd.`successful open play crosses`,
               gd.`attempted open play crosses`, gd.`shots blocked`,
               gd.`progressive passes`, gd.`successful presses`, gd.`attempted presses`,
-              gd.`goals outside box`
+              gd.`goals outside box`, s.season
             FROM `gamedataoutfield` AS gd
             JOIN schedule AS s ON gd.gid = s.gid
             WHERE
@@ -488,8 +489,7 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
               ( {season} = 'ALL' OR s.season    = {season} )
           ) AS q01
           GROUP BY `name`
-        ) AS q02
-      ",
+        ) AS q02;",
       league = league,
       season = season
     ) |>
@@ -507,7 +507,7 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
              conceded + `saves parried` + `saves held` + `saves tipped`))
           ) * 100                     AS `save%`,
           `penalties faced`, `penalties saved`,
-          `xsave%`, `xg prevented`
+          `xsave%`, `xg prevented`, max_season
         FROM (
           SELECT
             `name`,
@@ -538,7 +538,8 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
             SUM(`penalties faced`)                  AS `penalties faced`,
             SUM(`penalties saved`)                  AS `penalties saved`,
             AVG(`xsave%`)                           AS `xsave%`,
-            SUM(`xg prevented`)                     AS `xg prevented`
+            SUM(`xg prevented`)                     AS `xg prevented`,
+            MAX(season)                             AS `max_season`
           FROM (
             SELECT
               gd.`name`, gd.`club`, gd.`apps`, gd.`minutes played`,
@@ -547,7 +548,7 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
               gd.`saves held`, gd.`saves tipped`, gd.`save%`,
               gd.`penalties faced`, gd.`penalties saved`,
               gd.`xsave%`, gd.`xg prevented`, s.Home, s.Away,
-              s.HomeScore, s.AwayScore
+              s.HomeScore, s.AwayScore, s.season
             FROM `gamedatakeeper` AS gd
             JOIN schedule AS s
               ON gd.gid = s.gid
