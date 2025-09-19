@@ -38,6 +38,8 @@ ui <- function(id) {
             label = "Remove retired players",
             value = FALSE
           ),
+          
+          #TODO make the checkboxinput only show if season == "ALL"
           shiny$uiOutput(ns("leagueSelector"))
         )
       ),
