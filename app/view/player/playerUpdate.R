@@ -1,5 +1,6 @@
 box::use(
   bslib,
+  bsicons[bs_icon],
   dplyr,
   purrr[map, is_empty],
   reactable[reactable],
@@ -363,12 +364,31 @@ server <- function(id, auth, updated, type, player = NULL) {
                           theme = "ssl"), 
             choices = names(constant$roleAttributes)),
           if ((playerData()$timesregressed - 2) > 0) {
-            paste(
-              "Your maximum Physical attribute value is",
-              20 - (playerData()$timesregressed - 2)
+            bslib$value_box(
+              style = "width: 65%;",
+              title = "Maximum Physical Attribute",
+              value = 20 - (playerData()$timesregressed - 2),
+              fill = TRUE,
+              theme = 
+                bslib$value_box_theme(
+                  name = "danger",
+                  bg = constant$red
+                ),
+              showcase = bs_icon("exclamation-triangle-fill")
             )
           } else {
-            ""
+            bslib$value_box(
+              style = "width: 65%;",
+              title = "Maximum Physical Attribute",
+              value = 20 - (playerData()$timesregressed - 2),
+              fill = TRUE,
+              theme = 
+                bslib$value_box_theme(
+                  name = "danger",
+                  fg = constant$red
+                ),
+              showcase = bs_icon("exclamation-triangle-fill")
+            )
           },
           ""
         )
