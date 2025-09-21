@@ -5,6 +5,7 @@ box::use(
   shinyFeedback[useShinyFeedback],
   shinyjs[useShinyjs],
   stringr[str_detect, str_remove],
+  utils[head, installed.packages, sessionInfo],
 )
 
 box::use(
@@ -45,6 +46,39 @@ box::use(
 )
 
 shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 8 * 60 * 60))
+
+check_renv_env <- function() {
+  cat("=== renv diagnostic ===\n")
+  
+  # 1. Library paths
+  cat("\n.libPaths():\n")
+  print(.libPaths())
+  
+  # 2. Installed packages in the active renv library
+  cat("\nInstalled packages in renv library:\n")
+  renv_lib <- .libPaths()[1]
+  pkgs <- installed.packages(lib.loc = renv_lib)[, c("Package", "Version")]
+  print(head(pkgs, 20))  # show first 20
+  cat("... total:", nrow(pkgs), "packages\n")
+  
+  # 3. Packages actually loaded in this session
+  cat("\nCurrently loaded packages:\n")
+  print(sessionInfo()$otherPkgs)
+  
+  # 4. Packages recorded in renv.lock
+  if (file.exists("renv.lock")) {
+    lock <- jsonlite::fromJSON("renv.lock")
+    cat("\nPackages in renv.lock:\n")
+    print(names(lock$Packages))
+  } else {
+    cat("\nNo renv.lock found in this directory.\n")
+  }
+  
+  cat("\n=== end diagnostic ===\n")
+}
+
+check_renv_env()
+
 
 #' @export
 ui <- function(id) {
