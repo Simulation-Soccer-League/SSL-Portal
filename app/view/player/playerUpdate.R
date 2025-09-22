@@ -363,32 +363,22 @@ server <- function(id, auth, updated, type, player = NULL) {
                           tooltip = "Please note, the role you play will be determined by your Manager. If you want to play a specific role, make sure to speak with your Manager.",
                           theme = "ssl"), 
             choices = names(constant$roleAttributes)),
-          if ((playerData()$timesregressed - 2) > 0) {
+          if (playerData()$timesregressed > 0) {
             bslib$value_box(
               style = "width: 65%;",
               title = "Maximum Physical Attribute",
-              value = 20 - (playerData()$timesregressed - 2),
+              value = min(20 - (playerData()$timesregressed - 2)),
               fill = TRUE,
               theme = 
                 bslib$value_box_theme(
                   name = "danger",
-                  bg = constant$red
+                  bg = constant$red,
+                  fg = "#000000"
                 ),
               showcase = bs_icon("exclamation-triangle-fill")
             )
           } else {
-            bslib$value_box(
-              style = "width: 65%;",
-              title = "Maximum Physical Attribute",
-              value = 20 - (playerData()$timesregressed - 2),
-              fill = TRUE,
-              theme = 
-                bslib$value_box_theme(
-                  name = "danger",
-                  fg = constant$red
-                ),
-              showcase = bs_icon("exclamation-triangle-fill")
-            )
+            ""
           },
           ""
         )
