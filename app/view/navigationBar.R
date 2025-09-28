@@ -40,7 +40,8 @@ getNavItems <- function(ns, suffix) {
           items = list(
             a("Search", href = route_link("search")),
             a("Organizations", href = route_link("tracker/organization")),
-            a("Draft Class", href = route_link("tracker/draftclass"))
+            a("Draft Class", href = route_link("tracker/draftclass")),
+            a("WSFC Regions", href = route_link("tracker/wsfc"))
           )
         ),
         navMenu(

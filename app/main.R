@@ -42,6 +42,7 @@ box::use(
   app/view/tracker/organization,
   app/view/tracker/player,
   app/view/tracker/playerSearch,
+  app/view/tracker/wsfc,
   app/view/welcome,
 )
 
@@ -65,6 +66,7 @@ ui <- function(id) {
       route("tracker/draftclass", draftclass$ui(ns("draftclass"))),
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/organization", organization$ui(ns("organization"))),
+      route("tracker/wsfc", wsfc$ui(ns("wsfc"))),
       route("search", playerSearch$ui(ns("search"))),
       route("myBank", myBank$ui(ns("myBank"))),
       route("bank/deposit", bankDeposit$ui(ns("bankDeposit"))),
@@ -129,7 +131,8 @@ server <- function(id) {
         rosterOverview = FALSE, 
         export = FALSE, organization = FALSE, draftclass = FALSE, 
         nationTracker = FALSE,
-        positionTracker = FALSE, main = FALSE
+        positionTracker = FALSE, main = FALSE,
+        wsfc = FALSE
       )
     
     ## Observer that checks the current page and loads the server for the page ONCE
@@ -172,6 +175,11 @@ server <- function(id) {
         
         organization$server("organization")
         loadedServer$organization <- TRUE
+        
+      } else if (current == "tracker/wsfc" & !loadedServer$wsfc) {
+        
+        wsfc$server("wsfc")
+        loadedServer$wsfc <- TRUE
         
       } else if (current == "tracker/draftclass" & !loadedServer$draftclass) {
         
