@@ -356,7 +356,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
         "INSERT INTO playerdata (`uid`, `status_p`, `first`, `last`, `tpe`, `tpebank`,
           `birthplace`, `nationality`, `height`, `weight`, `hair_color`, `hair_length`,
           `skintone`, 
-          `render`, `left foot`, `right foot`, `position`, `traits`, pos_gk`, `pos_ld`, `pos_cd`,
+          `render`, `left foot`, `right foot`, `position`, `traits`, `pos_gk`, `pos_ld`, `pos_cd`,
           `pos_rd`, `pos_lwb`, `pos_cdm`, `pos_rwb`, `pos_lm`, `pos_cm`, `pos_rm`,
           `pos_lam`, `pos_cam`, `pos_ram`, `pos_st`, `acceleration`, `agility`, 
           `balance`, `jumping reach`, `natural fitness`, `pace`, `stamina`, `strength`, 
