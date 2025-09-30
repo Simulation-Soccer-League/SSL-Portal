@@ -43,7 +43,6 @@ server <- function(id, updated, playerData) {
       data <- playerData()
       shiny$tagList(
         shiny$h2(paste(data$name, sprintf("(%s)", data$class))),
-        shiny$h4(paste0("(", data$pronouns, ")")),
         shiny$h3(paste0("@", data$username))
       )
     }) |> shiny$bindCache(updated())

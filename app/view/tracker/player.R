@@ -146,6 +146,7 @@ server <- function(id, pid = NULL, updated) {
 
       shiny$tagList(
         shiny$h2(paste(data$name, paste0("(", data$class, ")"), sep = " ")),
+        shiny$h5(paste0("(", data$pronouns, ")")),
         shiny$h3(paste0("@", data$username))
       )
     }) |> 
