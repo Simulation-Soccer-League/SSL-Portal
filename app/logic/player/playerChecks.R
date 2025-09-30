@@ -291,6 +291,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
         render = input$render,
         `left foot` = dplyr$if_else(input$footedness == "Right", 10, 20),
         `right foot` = dplyr$if_else(input$footedness == "Right", 20, 10),
+        pronouns = input$pronouns |> paste0(collapse = constant$traitSep)
       )
     
     if(input$playerType == "Outfield"){
@@ -353,7 +354,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
     # call portalQuery with query + named params
     portalQuery(
       query =
-        "INSERT INTO playerdata (`uid`, `status_p`, `first`, `last`, `tpe`, `tpebank`,
+        "INSERT INTO playerdata (`uid`, `status_p`, `first`, `last`, `pronouns`, `tpe`, `tpebank`,
           `birthplace`, `nationality`, `height`, `weight`, `hair_color`, `hair_length`,
           `skintone`, 
           `render`, `left foot`, `right foot`, `position`, `traits`, `pos_gk`, `pos_ld`, `pos_cd`,
@@ -367,7 +368,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
           `off the ball`, `positioning`, `teamwork`, `vision`, `work rate`, `aerial reach`, 
           `command of area`, `communication`, `eccentricity`, `handling`, `kicking`, 
           `one on ones`, `tendency to punch`, `reflexes`, `tendency to rush`, `throwing`)
-        VALUES ({uid}, {status_p}, {first}, {last}, {tpe}, {tpebank}, {birthplace},
+        VALUES ({uid}, {status_p}, {first}, {last}, {pronouns}, {tpe}, {tpebank}, {birthplace},
           {nationality}, {height}, {weight}, {hair_color}, {hair_length}, {skintone}, 
           {render},
           {left}, {right}, {position}, {traits}, {pos_gk}, {pos_ld}, {pos_cd}, {pos_rd},
@@ -385,6 +386,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
       status_p = summary$status_p,
       first = summary$first,
       last = summary$last,
+      pronouns = summary$pronouns,
       tpe = summary$tpe,
       tpebank = summary$tpebank,
       birthplace = summary$birthplace,

@@ -2,7 +2,6 @@ box::use(
   # magick,
   dplyr[mutate],
   tibble,
-  utils[data],
 )
 
 box::use(

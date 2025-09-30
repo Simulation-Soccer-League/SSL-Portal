@@ -96,6 +96,16 @@ server <- function(id, auth, updated) {
             width = 1/3,
             shiny$textInput(ns("firstName"), "Enter a first name:", placeholder = "First Name"),
             shiny$textInput(ns("lastName"), "*Enter a last name:", placeholder = "Last Name"),
+            shiny$selectInput(
+              ns("pronouns"), 
+              tippy(
+                "*Select your player's pronouns",
+                "This is used by commentators to correctly gender your player. Multiple selections are allowed",
+                theme = "ssl"
+              ),
+              choices = c("He/Him", "She/Her", "They/Them"),
+              multiple = TRUE
+            ),
             shiny$textInput(
               ns("birthplace"), 
               tippy("Enter a place of birth:", "Only thematic", theme = "ssl"), 
@@ -129,13 +139,15 @@ server <- function(id, auth, updated) {
                     theme = "ssl"), 
               placeholder = "ex. Lionel Messi"
             ),
+            "",
             shiny$radioButtons(
               ns("playerType"), 
               "Outfield or Goalkeeper", 
               choices = c("Outfield", "Goalkeeper"), 
               selected = "Outfield", 
               inline = TRUE
-            )
+            ),
+            ""
           ),
           shiny$h4("FM Cosmetics", align = "center"),
           bslib$layout_column_wrap(
@@ -728,12 +740,15 @@ server <- function(id, auth, updated) {
       ## Verifies the creation
       shiny$observe({
         # Checks required fields
+        print(input$pronouns)
+        
         if(
           (sapply(
             c(input$lastName, input$nationality, input$footedness, 
               input$hairColor, input$hairLength, input$skinColor), 
             FUN = function(x) x == "", simplify = TRUE
           ) |> any()) | 
+          is.null(input$pronouns) | 
           (
             input$playerType == "Outfield" & 
             (input$traits |> length() != 2 | 
@@ -753,6 +768,7 @@ server <- function(id, auth, updated) {
           feedbackDanger("hairColor", input$hairColor == "", "Please enter the hair color for your player.")
           feedbackDanger("hairLength", input$hairLength == "", "Please enter the hair length for your player.")
           feedbackDanger("skinColor", input$skinColor == "", "Please enter the skin tone for your player.")
+          feedbackDanger("pronouns", is.null(input$pronouns), "Please enter at least one pronoun for your player.")
           
           if(input$traits |> length() != 2){
             showToast(
