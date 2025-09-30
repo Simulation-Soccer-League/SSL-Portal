@@ -740,8 +740,6 @@ server <- function(id, auth, updated) {
       ## Verifies the creation
       shiny$observe({
         # Checks required fields
-        print(input$pronouns)
-        
         if(
           (sapply(
             c(input$lastName, input$nationality, input$footedness, 
