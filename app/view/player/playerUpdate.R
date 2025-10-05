@@ -155,7 +155,15 @@ server <- function(id, auth, updated, type, player = NULL) {
                         shiny$tagList(
                           shiny$div(
                             shiny$tagList(
-                              shiny$span(style = "font-weight: 700;", currentAtt),
+                              shiny$span(style = "font-weight: 700;", 
+                                         tippy(
+                                           currentAtt,
+                                           constant$attributes |> 
+                                             dplyr$filter(attribute == currentAtt) |> 
+                                             dplyr$select(explanation),
+                                           theme = "ssl"
+                                         )
+                              )
                             )
                           ),
                           numericStepper(
@@ -179,7 +187,15 @@ server <- function(id, auth, updated, type, player = NULL) {
                               } else if (constant$roleAttributes[[input$selectedRole]][[attID]] == 2) {
                                 shiny$icon("circle-exclamation", style = "color: var(--key);")
                               },
-                              shiny$span(style = "font-weight: 700;", currentAtt),
+                              shiny$span(style = "font-weight: 700;", 
+                                         tippy(
+                                           currentAtt,
+                                           constant$attributes |> 
+                                             dplyr$filter(attribute == currentAtt) |> 
+                                             dplyr$select(explanation),
+                                           theme = "ssl"
+                                         )
+                              )
                             )
                           ),
                           numericStepper(
