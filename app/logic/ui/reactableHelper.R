@@ -250,7 +250,7 @@ orgReactable <- function(data) {
   reactable(
     data,
     defaultColDef = colDef(header = function(value) {
-      tippy(str_to_upper(value), tooltip = value, theme = "ssl")
+      tippy(str_to_upper(value), tooltip = str_to_upper(value), theme = "ssl")
     }),
     pagination = FALSE,
     columns = list(

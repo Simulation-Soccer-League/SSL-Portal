@@ -75,8 +75,7 @@ server <- function(id) {
                       unique(organizations$ID[organizations$organization == org])
                     )
                   )
-                ) |>
-                  withSpinnerCustom(height = 200)
+                )
               )
             )
           })
@@ -103,7 +102,8 @@ server <- function(id) {
               paste(majorName, dplyr$if_else(i < 0, "", "(Major)"))
             ),
             flexRow(
-              orgReactable(majors)
+              orgReactable(majors) |> 
+                withSpinnerCustom(height = 20)
             ),
             if (nrow(minors) > 0) {
               shiny$tagList(
@@ -111,7 +111,8 @@ server <- function(id) {
                   paste(minorName, "(Minor)")
                 ),
                 flexRow(
-                  orgReactable(minors)
+                  orgReactable(minors) |> 
+                    withSpinnerCustom(height = 20)
                 )
               )
             }
