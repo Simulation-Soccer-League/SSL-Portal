@@ -36,6 +36,9 @@ getNavItems <- function(ns, suffix) {
     flexRow(
       tagList(
         navMenu(
+          div(a("Home", href = route_link("/")))
+        ),
+        navMenu(
           label = "Trackers",
           items = list(
             a("Search", href = route_link("search")),
@@ -55,10 +58,7 @@ getNavItems <- function(ns, suffix) {
           )
         ),
         uiOutput(ns(paste0("jobsNavigation", suffix))) |>
-          withSpinnerCustom(height = 20),
-        navMenu(
-          div(a("Intro", href = route_link("/")))
-        )
+          withSpinnerCustom(height = 20)
       )
     ),
     uiOutput(ns(paste0("yourPlayer", suffix))) |>
