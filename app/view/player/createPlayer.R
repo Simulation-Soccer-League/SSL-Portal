@@ -32,6 +32,7 @@ box::use(
     submitBuild,
     verifyBuild
     ],
+  app/logic/ui/tags[flexCol, flexRow, numericStepper],
   app/view/tracker/player,
 )
 
@@ -233,18 +234,13 @@ server <- function(id, auth, updated) {
                     dplyr$select(attribute) |> 
                     unlist(),
                   FUN = function(currentAtt) {
+                    attID <- currentAtt |> str_remove_all(" ")
+                    
                     shiny$tagList(
-                      shiny$numericInput(
-                        inputId = ns(currentAtt |> str_remove_all(" ")),
-                        label = 
-                          tippy(
-                            currentAtt,
-                            constant$attributes |> 
-                              dplyr$filter(attribute == currentAtt) |> 
-                              dplyr$select(explanation),
-                            theme = "ssl"
-                          ),
-                        value = NULL
+                      numericStepper(
+                        inputId = ns(attID),
+                        value = 5,
+                        disabled = TRUE
                       )
                     ) |> 
                       shinyjs$hidden()
@@ -259,41 +255,68 @@ server <- function(id, auth, updated) {
                     dplyr$select(attribute) |> 
                     unlist(),
                   FUN = function(currentAtt) {
-                    if (currentAtt %in% c("Natural Fitness", "Stamina")) {
-                      shiny$tagList(
-                        shiny$numericInput(
-                          inputId = ns(currentAtt |> str_remove_all(" ")),
-                          label = 
-                            tippy(
-                              currentAtt,
-                              constant$attributes |> 
-                                dplyr$filter(attribute == currentAtt) |> 
-                                dplyr$select(explanation),
-                              theme = "ssl"
+                    attID <- currentAtt |> str_remove_all(" ")
+                    
+                    if(currentAtt %in% c("Natural Fitness", "Stamina")){
+                      shiny$div(
+                        class = "player-attribute-editor",
+                        shiny$div(
+                          class = "attribute-editor-header",
+                          shiny$tagList(
+                            shiny$div(
+                              shiny$tagList(
+                                shiny$span(style = "font-weight: 700;", 
+                                           tippy(
+                                             currentAtt,
+                                             constant$attributes |> 
+                                               dplyr$filter(attribute == currentAtt) |> 
+                                               dplyr$select(explanation),
+                                             theme = "ssl"
+                                           )
+                                )
+                              )
                             ),
-                          value = 20,
-                          max = 20,
-                          min = 20
-                        ) |> 
-                          shinyjs$disabled()
+                            numericStepper(
+                              inputId = ns(attID),
+                              value = 20,
+                              disabled = TRUE
+                            )
+                          )
+                        )
                       )
                     } else {
-                      shiny$tagList(
-                        shiny$numericInput(
-                          inputId = ns(currentAtt |> str_remove_all(" ")),
-                          label = 
-                            tippy(
-                              currentAtt,
-                              constant$attributes |> 
-                                dplyr$filter(attribute == currentAtt) |> 
-                                dplyr$select(explanation),
-                              theme = "ssl"
+                      shiny$div(
+                        class = "player-attribute-editor",
+                        shiny$div(
+                          class = "attribute-editor-header",
+                          shiny$tagList(
+                            shiny$div(
+                              shiny$tagList(
+                                if (constant$roleAttributes[[input$selectedRole]][[attID]] == 1) {
+                                  shiny$icon("circle-exclamation", style = "color: var(--important);")
+                                } else if (constant$roleAttributes[[input$selectedRole]][[attID]] == 2) {
+                                  shiny$icon("circle-exclamation", style = "color: var(--key);")
+                                },
+                                shiny$span(style = "font-weight: 700;", 
+                                           tippy(
+                                             currentAtt,
+                                             constant$attributes |> 
+                                               dplyr$filter(attribute == currentAtt) |> 
+                                               dplyr$select(explanation),
+                                             theme = "ssl"
+                                           )
+                                )
+                              )
                             ),
-                          value = 5,
-                          min = 5,
-                          max = 20
+                            numericStepper(
+                              inputId = ns(attID),
+                              value = 5,
+                              min = 5,
+                              max = 20
+                            )
+                          )
                         ),
-                        shiny$uiOutput(ns(paste0("cost", currentAtt |> str_remove_all(" "))))
+                        shiny$uiOutput(ns(paste0("cost", attID)))
                       )
                     }
                   }
@@ -315,18 +338,23 @@ server <- function(id, auth, updated) {
               if(attribute %in% c("Natural Fitness", "Stamina")){
                 
               } else {
-                shiny$p(
-                  paste0(
-                    "Next: ", 
-                    constant$tpeCost |> 
-                      dplyr$filter(value == curValue + 1) |> 
-                      dplyr$select(sinCost) |> unlist() |> 
-                      replace_na(0),
-                    " Total Cost: ",
-                    constant$tpeCost |> 
-                      dplyr$filter(value == curValue) |> 
-                      dplyr$select(cumCost) |> unlist() |> 
-                      replace_na(0)
+                shiny$div(
+                  class = "attribute-editor-footer",
+                  shiny$tagList(
+                    shiny$span(
+                      "Total: ",
+                      constant$tpeCost |> 
+                        dplyr$filter(value == curValue) |> 
+                        dplyr$select(cumCost) |> unlist() |> 
+                        replace_na(0)
+                    ),
+                    shiny$span(
+                      "Next: ",
+                      next_cost <- constant$tpeCost |> 
+                        dplyr$filter(value == curValue + 1) |> 
+                        dplyr$select(sinCost) |> unlist(),
+                      if (length(next_cost) == 0 || is.na(next_cost)) "--"
+                    )
                   )
                 )
               }
