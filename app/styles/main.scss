@@ -14,6 +14,9 @@
   --middle-background: hsl(var(--color), 20%);
   --bottom-background: hsl(var(--color), 30%);
   --border-color: hsl(var(--color), 25%);
+  --menu-color: #222831;
+  --sub-menu-color: #eeeeee;
+  --background-color: #393E46;
 }
 /* stylelint-enable color-function-notation */
 
@@ -21,7 +24,7 @@
 body {
   font-family: "Gotham SSm A", "Gotham SSm B", Helvetica, sans-serif;
   color: white;
-  background: var(--bottom-background);
+  background: var(--background-color);
 }
 
 h1,
@@ -57,7 +60,7 @@ h5 {
 
 /* Navbar with logo */
 .ssl-navbar {
-  background-color: var(--ssl-blue-d);
+  background-color: var(--menu-color);
   height: 72px;
   margin-bottom: 20px;
   position: relative;
@@ -94,6 +97,7 @@ h5 {
   z-index: 100;
 }
 
+/* Separate nav-container when the page is too narrow, default is display: none */
 .nav-container-narrow {
   display: none;
 }
@@ -101,12 +105,13 @@ h5 {
 $navbar-label-height: 32px;
 $navbar-items-width: 112px;
 
+/* Navigation menu items */
 .nav-menu {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  color: #eee;
+  color: var(--sub-menu-color);
   font-weight: 600;
   padding: 0 8px;
   height: $navbar-label-height;
@@ -122,8 +127,9 @@ $navbar-items-width: 112px;
     text-decoration: none;
   }
 
+  /* Hover information on the menus */
   &:hover {
-    background: #eee;
+    background: var(--sub-menu-color);
     color: black;
     cursor: pointer;
   }
@@ -145,27 +151,10 @@ $navbar-items-width: 112px;
   }
 }
 
-.nav-menu-sub-items {
-  display: none;
-  background: #eee;
-  position: absolute;
-  top: 0;
-  color: black;
-  left: $navbar-items-width;
-  width: max-content;
-  box-shadow: 0 0 2px black;
-  border-bottom-right-radius: 2px;
-  z-index: 100;
-
-  div {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
+/* Menu sub items for the navigation bar */
 .nav-menu-items { /* stylelint-disable-line no-descending-specificity */
   display: none;
-  background: #eee;
+  background: var(--sub-menu-color);
   position: absolute;
   top: $navbar-label-height;
   left: 0;
@@ -189,8 +178,8 @@ $navbar-items-width: 112px;
     }
 
     &:hover {
-      background: #4b8dad;
-      color: #eee;
+      background: var(--menu-color);
+      color: var(--sub-menu-color);
       cursor: pointer;
     }
 
@@ -208,6 +197,27 @@ $navbar-items-width: 112px;
     display: block;
   }
 }
+
+/* If a menu has even more sub items */
+.nav-menu-sub-items {
+  display: none;
+  background: var(--sub-menu-color);
+  position: absolute;
+  top: 0;
+  color: black;
+  left: $navbar-items-width;
+  width: max-content;
+  box-shadow: 0 0 2px black;
+  border-bottom-right-radius: 2px;
+  z-index: 100;
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+
 
 @media (max-width: 767px) {
   // Make sure page content isn't hidden behind fixed nav
@@ -243,7 +253,7 @@ $navbar-items-width: 112px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--ssl-blue-d);
+    background-color: var(--ssl-gold);
     transition: left 0.5s ease-in-out;
     z-index: 9999;
     color: white;
@@ -254,7 +264,7 @@ $navbar-items-width: 112px;
   }
 
   .nav-container-narrow {
-    background: var(--bottom-background);
+    background: var(--background-color);
     display: flex;
     flex-direction: column-reverse;
     justify-content: space-between;
@@ -294,7 +304,7 @@ $navbar-items-width: 112px;
     a,
     span {
       padding: 12px 8px;
-      color: #eee;
+      color: var(--sub-menu-color);
     }
 
     .fa-door-open,
@@ -320,7 +330,7 @@ $navbar-items-width: 112px;
     }
 
     .nav-menu-item {
-      background: var(--middle-background);
+      background: var(--background-color);
       border-bottom: 1px solid black !important;
       padding: 0 !important;
     }
@@ -362,9 +372,9 @@ $navbar-items-width: 112px;
     box-shadow: none;
 
     .nav-menu-sub-item {
-      background: var(--top-background);
+      background: var(--menu-color);
       border-bottom: 1px solid black;
-      color: #eee;
+      color: var(--sub-menu-color);
     }
 
     a,
@@ -500,10 +510,8 @@ $navbar-items-width: 112px;
 .card-body {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0; /* stylelint-disable-line declaration-block-no-redundant-longhand-properties */
   padding: 10px;
-  border: 2px solid var(--ssl-gold);
+  border-top: 2px solid var(--ssl-gold);
 }
 
 /* Buttons in dropdowns take the entire width */
@@ -571,87 +579,16 @@ $navbar-items-width: 112px;
 }
 
 .nav-tabs > li.active > a {
-  background-color: var(--top-background);
+  background-color: var(--background-color);
   color: var(--lighter-text);
 }
 
-.skin-blue .main-header .navbar {
-  background-color: var(--ssl-blue-d);
-
-  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
-}
-
-.skin-blue .wrapper,
-.skin-blue .main-sidebar,
-.skin-blue .left-side {
-  background-color: var(--top-background);
-
-  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
-  border-right: 2px solid var(--ssl-gold);
-}
-
-.skin-blue .main-header .logo {
-  background-color: var(--top-background);
-  color: #fff;
-  border-bottom: 0 solid #000;
-
-  /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
-  border-right: 2px solid var(--ssl-gold);
-}
-
-.skin-blue .sidebar-menu > li:hover > a,
-.skin-blue .sidebar-menu > li.active > a,
-.skin-blue .sidebar-menu > li.menu-open > a {
-  color: #fff;
-  background: var(--ssl-gold);
-
-  /* background-image: url(https://i.imgur.com/gVNA3OP.jpg); */
-}
-
-.skin-blue .sidebar-menu > li.active > a,
-.skin-blue .sidebar-menu > li:hover > a {
-  color: #fff;
-  background: var(--bottom-background);
-  border-left-color: var(--ssl-gold);
-}
-
-.skin-blue .sidebar-menu > li.active > a {
-  border: none;
-}
-
-.skin-blue .main-header .navbar .sidebar-toggle:hover {
-  background-color: var(--ssl-gold);
-}
-
-.skin-blue .sidebar-menu .treeview-menu > li.active > a,
-.skin-blue .sidebar-menu .treeview-menu > li > a:hover {
-  color: var(--ssl-blue-d);
-}
-
-.skin-blue .sidebar-menu > li > .treeview-menu {
-  margin: 0;
-  background: var(--ssl-gold);
-}
-
-.content {
-  min-height: 1000px;
-  padding: 15px;
-  padding-right: 15px;
-  padding-left: 15px;
-  margin-right: auto;
-  margin-left: auto;
-  background-color: var(--middle-background);
-  background-image: url("https://i.imgur.com/9BuU3Op.jpeg");
-}
-
 .card-header {
-  color: var(--ssl-gold);
   display: block;
   padding: 10px;
   position: relative;
 
   /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
-  border: 2px solid var(--ssl-gold);
   text-align: center;
 }
 
@@ -674,10 +611,9 @@ $navbar-items-width: 112px;
   position: relative;
   border-radius: 3px;
   background: #444;
-  border-top: 1px solid var(--ssl-gold);
   margin-bottom: 20px;
   width: 100%;
-  box-shadow: 0 1px 1px rgb(0 0 0 / 10%);
+  box-shadow: 3px 3px 4px rgb(0 0 0 / 10%);
 }
 
 .results .card-header,
@@ -779,7 +715,7 @@ $navbar-items-width: 112px;
   left: 0;
   text-align: center;
   width: 100%;
-  background-color: var(--top-background);
+  background-color: var(--menu-color);
   padding: 10px 20% 30px 30%;
   border-top: 1px solid var(--ssl-gold);
   display: flex;
@@ -946,9 +882,9 @@ $navbar-items-width: 112px;
 }
 
 .primary-button {
-  background-color: #4b8dad;
-  border-color: #070b51;
-  color: white;
+  background-color: #6DAEDB;
+  border-color: #cccccc;
+  color: var(--darker-text);
 }
 
 .career-record-button {
@@ -960,7 +896,7 @@ $navbar-items-width: 112px;
   border-radius: 8px;
   color: black;
   margin-bottom: 8px;
-  border-color: #bd9523;
+  /*border-color: #bd9523;*/
 
   @media (max-width: 767px) {
     width: 100%;
@@ -993,11 +929,13 @@ $navbar-items-width: 112px;
   }
 
   .numeric-stepper-button:hover {
-    background-color: var(--ssl-blue-l);
+    background-color: var(--sub-menu-color);
+    color: var(--darker-text);
   }
 
   .numeric-stepper-button:active {
-    background-color: var(--ssl-blue-d);
+    background-color: var(--sub-menu-color);
+    color: var(--darker-text);
   }
 
   .numeric-stepper-value {
