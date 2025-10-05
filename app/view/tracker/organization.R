@@ -46,6 +46,9 @@ server <- function(id) {
           userStatus,
           playerStatus,
           render,
+          `Seasonal Training` = purchasedTPE,
+          `Times Regressed` = timesregressed,
+          `Player Pronouns` = pronouns,
           team,
           affiliate,
           pid
