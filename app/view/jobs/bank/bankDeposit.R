@@ -202,7 +202,7 @@ server <- function(id, auth, updated) {
                     (input$depositSource |> nchar() > 255)
                   )
               ) {
-                list(background = "#FFCCCB", color = "#000000")
+                list(background = constant$red, color = "white")
               }
             }
           )
