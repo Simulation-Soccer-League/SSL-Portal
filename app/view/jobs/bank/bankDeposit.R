@@ -102,7 +102,9 @@ server <- function(id, auth, updated) {
             ),
             shiny$h4("Check the processed deposit"),
             shiny$p("The processed file is shown below. Red highlighted rows
-                    indicate that the player is not found with the current spelling.
+                    indicate that the player is not found with the current spelling
+                    or the that source is too long (limit 255 characters).
+                    
                     Any row with no source specified can be input using the text input."),
             reactableOutput(ns("checkImport"))
           )
@@ -176,7 +178,7 @@ server <- function(id, auth, updated) {
               is.na(source),
               input$depositSource,
               source
-            )
+            ) 
           ) |> 
           reactable(
             pagination = FALSE,
@@ -193,7 +195,13 @@ server <- function(id, auth, updated) {
                     )
               ),
             rowStyle = function(index) {
-              if (bankDeposit()[index, "pid"] < 0) {
+              if (bankDeposit()[index, "pid"] < 0 | 
+                  (bankDeposit()[index, "source"] |> nchar() > 255) |
+                  (
+                    (bankDeposit()[index, "source"] |> is.na()) & 
+                    (input$depositSource |> nchar() > 255)
+                  )
+              ) {
                 list(background = "#FFCCCB", color = "#000000")
               }
             }
