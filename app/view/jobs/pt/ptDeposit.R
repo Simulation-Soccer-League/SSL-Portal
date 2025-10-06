@@ -180,7 +180,13 @@ server <- function(id, auth, updated) {
           reactable(
             pagination = FALSE,
             rowStyle = function(index) {
-              if (ptDeposit()[index, "pid"] < 0) {
+              if (ptDeposit()[index, "pid"] < 0 | 
+                  (ptDeposit()[index, "source"] |> nchar() > 255) |
+                  (
+                    (ptDeposit()[index, "source"] |> is.na()) & 
+                    (input$depositSource |> nchar() > 255)
+                  )
+              ) {
                 list(background = constant$red, color = "white")
               }
             }
