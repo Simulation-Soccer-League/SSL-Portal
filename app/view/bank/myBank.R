@@ -4,6 +4,7 @@ box::use(
   lubridate[
     now,
   ],
+  purrr[is_empty],
   reactable[
     reactable, 
   ],
@@ -201,7 +202,11 @@ server <- function(id, auth, updated) {
                 ),
               new = 
                 c(
-                  paste0(inputTrait$traits, collapse = constant$traitSep),
+                  dplyr$if_else(
+                    inputTrait$traits |> is_empty(),
+                    "NO TRAITS",
+                    paste0(inputTrait$traits, collapse = constant$traitSep)
+                  ),
                   inputFoot$left |> as.character(), 
                   inputFoot$right |> as.character(),
                   rep("20", times = length(inputPos$primary)), 
@@ -283,7 +288,8 @@ server <- function(id, auth, updated) {
                   ),
                 old =
                   c(
-                    playerData()$traits, playerData()$`left foot`,
+                    playerData()$traits, 
+                    playerData()$`left foot`,
                     playerData()$`right foot`, 
                     currentPos$xp[currentPos$position %in% inputPos$primary],
                     currentPos$xp[currentPos$position %in% inputPos$secondary],
@@ -292,7 +298,11 @@ server <- function(id, auth, updated) {
                   ),
                 new =
                   c(
-                    paste0(inputTrait$traits, collapse = constant$traitSep),
+                    dplyr$if_else(
+                      inputTrait$traits |> is_empty(),
+                      "NO TRAITS",
+                      paste0(inputTrait$traits, collapse = constant$traitSep)
+                    ),
                     inputFoot$left |> as.character(), 
                     inputFoot$right |> as.character(),
                     rep("20", times = length(inputPos$primary)), 

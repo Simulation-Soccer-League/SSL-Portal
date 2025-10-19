@@ -248,7 +248,11 @@ server <- function(id, cost, playerData) {
     
     ## Calculates sum of trait purchase
     shiny$observe({
-      removed <- sum(!(currentTraits() %in% input$traits))
+      if ("NO TRAITS" %in% currentTraits()) {
+        removed <- 0
+      } else {
+        removed <- sum(!(currentTraits() %in% input$traits))  
+      }
       added <- sum(!(input$traits %in% currentTraits()))
       
       cost(removed * 500000 + added * 3000000)
