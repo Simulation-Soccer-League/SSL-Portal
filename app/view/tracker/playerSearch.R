@@ -1,8 +1,9 @@
 box::use(
-  dplyr[select],
+  dplyr[rename_with, select],
   reactable[colDef, reactable, reactableOutput, renderReactable],
   shiny,
   shiny.router[route_link],
+  stringr[str_to_upper],
 )
 
 box::use(
@@ -23,14 +24,17 @@ server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     output$players <- renderReactable({
       data <- getPlayers(active = TRUE) |>
-        select(name, username, pid, position, tpe, tpebank, class, playerStatus)
+        select(name, username, pid, team, position, tpe, tpebank, class, playerStatus)
 
       data |>
+        rename_with(str_to_upper) |> 
         reactable(
           searchable = TRUE,
+          defaultPageSize = 25,
+          showPageSizeOptions = TRUE,
           defaultColDef = colDef(searchable = FALSE),
           columns = list(
-            name = colDef(
+            NAME = colDef(
               searchable = TRUE,
               cell = function(value, rowIndex) {
                 pid <- data[rowIndex, "pid"] # Get the corresponding pid
@@ -40,7 +44,7 @@ server <- function(id) {
                 )
               }
             ),
-            pid = colDef(show = FALSE)
+            PID = colDef(show = FALSE)
           )
         )
     })

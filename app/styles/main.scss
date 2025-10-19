@@ -685,6 +685,10 @@ $navbar-items-width: 112px;
   color: var(--lighter-text);
 }
 
+.rt-page-size-select {
+  background-color: var(--bottom-background);
+}
+
 .sticky-reactable-column,
 .sticky-reactable-header {
   position: sticky !important;
