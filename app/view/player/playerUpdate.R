@@ -807,7 +807,7 @@ server <- function(id, auth, updated, type, player = NULL) {
       shiny$removeModal()
       
       tryCatch({
-        updates <- updateSummary(playerData(), input)
+        updates <- updateSummary(playerData(), input, type)
         
         updatePlayerData(
           uid = auth$uid, 

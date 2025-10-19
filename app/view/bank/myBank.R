@@ -12,6 +12,7 @@ box::use(
   shiny,
   shinyFeedback[showToast],
   shinyjs[disable, enable],
+  stats[na.omit],
   stringr[
     str_remove, 
     str_to_lower, 
@@ -137,7 +138,7 @@ server <- function(id, auth, updated) {
       
       #### OBSERVERS ####
       shiny$observe({
-        if (totalCost() > playerData()$bankBalance | totalCost() <= 0) {
+        if (totalCost() > playerData()$bankBalance | totalCost() < 0) {
           shiny$updateActionButton(
             inputId = "verifyPurchase", 
             label = "You have exceeded your bank balance!"
@@ -157,7 +158,13 @@ server <- function(id, auth, updated) {
       shiny$observe({
         disable("verifyPurchase")
         
-        if (totalCost() <= 0) {
+        if (totalCost() == 0) {
+          showToast(
+            .options = constant$myToastOptions,
+            "warning",
+            "You have not made a purchase yet."
+          )
+        } else if (totalCost() < 0) {
           showToast(
             .options = constant$myToastOptions,
             "error",
@@ -281,11 +288,24 @@ server <- function(id, auth, updated) {
                 attribute =
                   c(
                     "traits", "left foot", "right foot",
-                    paste("pos_", inputPos$primary |> str_to_lower(), sep = ""),
-                    paste("pos_", inputPos$secondary |> str_to_lower(), sep = ""),
-                    paste("pos_", inputPos$unusedPositions |> str_to_lower(), sep = ""),
+                    dplyr$if_else(
+                      inputPos$primary |> is.null(),
+                      NA,
+                      paste("pos_", inputPos$primary |> str_to_lower(), sep = "")
+                    ),
+                    dplyr$if_else(
+                      inputPos$secondary |> is.null(),
+                      NA,
+                      paste("pos_", inputPos$secondary |> str_to_lower(), sep = "")
+                    ),
+                    dplyr$if_else(
+                      inputPos$unusedPositions |> is.null(),
+                      NA,
+                      paste("pos_", inputPos$unusedPositions |> str_to_lower(), sep = "")
+                    ),
                     "tpe"
-                  ),
+                  ) |> 
+                  na.omit(),
                 old =
                   c(
                     playerData()$traits, 

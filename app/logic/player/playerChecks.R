@@ -15,7 +15,7 @@ box::use(
     str_trim
     ],
   tibble[tibble],
-  tidyr[pivot_longer, pivot_wider],
+  tidyr[pivot_longer, pivot_wider, replace_na],
 )
 
 box::use(
@@ -115,11 +115,22 @@ updateSummary <- function(current, input, type = "update"){
   
   # Add attributes variables and their value
   for (att in (constant$attributes$attribute)) {
-    summary <- summary |> 
-      dplyr$mutate(
-        !!str_to_lower(att) := 
-          input[[att |> str_remove_all(" ")]]
-      )
+    value <- input[[att |> str_remove_all(" ")]]
+    
+    if (value |> is.null()) {
+      summary <- summary |> 
+        dplyr$mutate(
+          !!str_to_lower(att) := 
+            5
+        )
+    } else {
+      summary <- summary |> 
+        dplyr$mutate(
+          !!str_to_lower(att) := 
+            value
+        )
+    }
+    
   }
   
   ## This takes all inputs and checks for differences against the current build
@@ -138,6 +149,12 @@ updateSummary <- function(current, input, type = "update"){
       names_from = source,
       values_from = value
     ) |>  
+    dplyr$mutate(
+      dplyr$across(
+        dplyr$everything(),
+        ~ replace_na(.x, 5)
+      )
+    ) |> 
     dplyr$filter(old != new) |> 
     dplyr$select(attribute = name, old, new)
 }
