@@ -738,7 +738,7 @@ server <- function(id, auth, updated, type, player = NULL) {
             dplyr$filter(diff > 0) |> 
             dplyr$summarize(sum = sum(diff))
           
-          if(attributes$sum > 100){
+          if(attributes$sum > 100 & type == "redistribution"){
             showToast(
               .options = constant$sslToastOptions,
               "error",
