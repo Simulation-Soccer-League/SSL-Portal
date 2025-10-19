@@ -518,7 +518,7 @@ server <- function(id, auth, updated) {
           unlist() |> 
           sum()
         
-        350 - appliedTPE + 2*(constant$tpeCost$cumCost |> max())
+        250 - appliedTPE + 2*(constant$tpeCost$cumCost |> max())
       }) |> 
         shiny$bindEvent(
           lapply(
