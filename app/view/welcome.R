@@ -1,11 +1,12 @@
 box::use(
   bslib,
-  dplyr[mutate, select],
+  dplyr[mutate, rename_with, select],
   plotly[config, layout, plot_ly, plotlyOutput, renderPlotly],
   reactable[colDef, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
   shiny,
   shiny.router[route_link],
+  stringr[str_to_upper,],
   tippy[tippy],
 )
 
@@ -263,11 +264,12 @@ server <- function(id, usergroup) {
         data <- getTopEarners() 
         
         data |>
+          rename_with(str_to_upper) |> 
           reactable(
             defaultColDef = colDef(minWidth = 75),
             columns = list(
-              pid = colDef(show = FALSE),
-              name = colDef(
+              PID = colDef(show = FALSE),
+              NAME = colDef(
                 searchable = TRUE,
                 cell = function(value, rowIndex) {
                   pid <- data[rowIndex, "pid"] # Get the corresponding pid
@@ -286,12 +288,12 @@ server <- function(id, usergroup) {
         data <- getRecentCreates() 
         
         data |>
+          rename_with(str_to_upper) |> 
           reactable(
             defaultColDef = colDef(minWidth = 25),
             columns = list(
-              position = colDef(maxWidth = 50),
-              pid = colDef(show = FALSE),
-              name = colDef(
+              PID = colDef(show = FALSE),
+              NAME = colDef(
                 searchable = TRUE,
                 cell = function(value, rowIndex) {
                   pid <- data[rowIndex, "pid"] # Get the corresponding pid
@@ -321,7 +323,8 @@ server <- function(id, usergroup) {
               tickfont = list(color = "white"), # Set x-axis tick labels color to white
               titlefont = list(color = "white"), # Set x-axis title color to white
               dtick = 2,
-              showgrid = FALSE
+              gridwidth = 0.5, 
+              gridcolor = "rgba(64, 64, 64, 0.5)"
             ),
             yaxis = list(
               title = "#ACs",
