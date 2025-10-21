@@ -15,7 +15,7 @@ box::use(
 )
 
 #' @export
-clubLogos <- function(value, index, currentData) {
+clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
   clubData <- currentData |>
     dplyr$select(club) |>
     dplyr$slice(index)
@@ -49,7 +49,7 @@ clubLogos <- function(value, index, currentData) {
     tagList(
       div(
         class = "table-club-name",
-        span(value),
+        if (!onlyLogo) span(value),
         div(list)
       )
     )
@@ -70,7 +70,7 @@ clubLogos <- function(value, index, currentData) {
   tagList(
     div(
       class = "tableClubName",
-      span(value),
+      if (!onlyLogo) span(value),
       div(list)
     )
   )
@@ -195,7 +195,7 @@ recordReactable <- function(currentData) {
 }
 
 #' @export
-indexReactable <- function(currentData) {
+indexReactable <- function(currentData, search = TRUE, club = FALSE) {
   statisticsTooltips <-
     constant$statisticsLegend[constant$statisticsLegend$statistic %in% colnames(currentData), ]
 
@@ -208,7 +208,7 @@ indexReactable <- function(currentData) {
     ) |>
     reactable(
       pagination = TRUE,
-      searchable = TRUE,
+      searchable = search,
       defaultColDef = colDef(minWidth = 100, maxWidth = 250, searchable = FALSE),
       columns =
         list(
@@ -224,8 +224,13 @@ indexReactable <- function(currentData) {
           ),
           club =
           colDef(
-            show = FALSE,
-            searchable = TRUE
+            name = "CLUB",
+            width = 60,
+            show = club,
+            searchable = TRUE,
+            cell = function(value, index) {
+              clubLogos(value, index, currentData, onlyLogo = TRUE)
+            }
           )
         ) |>
         append(

@@ -220,6 +220,7 @@ server <- function(id) {
                          max_season == max(max_season, na.rm = FALSE))
         
         currentData |>
+          dplyr$select(!max_season) |> 
           indexReactable()
       }) |>
         shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
@@ -241,6 +242,7 @@ server <- function(id) {
                          max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
+          dplyr$select(!max_season) |> 
           indexReactable()
       }) |>
         shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
@@ -258,6 +260,7 @@ server <- function(id) {
                          max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
+          dplyr$select(!max_season) |> 
           indexReactable()
       }) |>
         shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
@@ -276,6 +279,7 @@ server <- function(id) {
                          max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
+          dplyr$select(!max_season) |> 
           indexReactable()
       }) |>
         shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)

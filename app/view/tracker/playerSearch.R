@@ -24,7 +24,8 @@ server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     output$players <- renderReactable({
       data <- getPlayers(active = TRUE) |>
-        select(name, username, pid, team, position, tpe, tpebank, class, playerStatus)
+        select(name, username, pid, team, position, tpe, 
+               tpebank, class, playerStatus, userStatus)
 
       data |>
         rename_with(str_to_upper) |> 

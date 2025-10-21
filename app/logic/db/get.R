@@ -389,12 +389,24 @@ getAcademyIndex <- function(outfield = TRUE, season) {
 }
 
 #' @export
-getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
+getLeagueIndex <- function(
+    outfield = TRUE, 
+    season, 
+    league = "ALL", 
+    name = "ALL",
+    career = FALSE
+  ) {
   if (outfield) {
+    if (career) {
+      grouping <- "name, season"
+    } else {
+      grouping <- "name"
+    }
+    
     indexQuery(
-      query = "
+      query = paste0("
         SELECT
-          `name`, `club`, `position`, `apps`, `minutes played`,`average rating`, 
+          name, `club`, `position`, `apps`, `minutes played`,`average rating`, 
           `player of the match`, `distance run (km)`, `goals`,`assists`,`xg`,`shots on target`,
           `shots`, `penalties taken`,`penalties scored`,`successful passes`,`attempted passes`,
           `successful passes`/`attempted passes`*100 AS `pass%`,`key passes`,
@@ -415,7 +427,7 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
           `xG` - 0.83*`penalties taken` AS `pen adj xG`, max_season
         FROM (
           SELECT
-            `name`,
+            name,
             GROUP_CONCAT(DISTINCT club SEPARATOR ', ')    AS `club`,
             MAX(`position`)                              AS `position`,
             SUM(`apps`)                                  AS `apps`,
@@ -487,20 +499,28 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
               ( {league} = 'ALL' OR s.MatchType = {league} )
               AND
               ( {season} = 'ALL' OR s.season    = {season} )
+              AND
+              ( {name} = 'ALL' OR gd.name       = {name} )
           ) AS q01
-          GROUP BY `name`
-        ) AS q02;",
+          GROUP BY ", grouping, "
+        ) AS q02;"),
       league = league,
-      season = season
+      season = season,
+      name = name
     ) |>
       suppressWarnings()
   } else {
+    if (career) {
+      grouping <- "name, season"
+    } else {
+      grouping <- "name"
+    }
+    
     indexQuery(
-      query = "
+      query = paste0("
         SELECT
           `name`, `club`, `apps`, `minutes played`, `average rating`,
-          `player of the match`, SUM(won)   AS won,
-          SUM(lost)  AS lost, SUM(drawn)     AS drawn,
+          `player of the match`, won, lost, drawn,
           `clean sheets`, conceded,
           `saves parried`, `saves held`, `saves tipped`,
           (1 - (conceded / (
@@ -556,13 +576,14 @@ getLeagueIndex <- function(outfield = TRUE, season, league = "ALL") {
               ( {league} = 'ALL' OR s.MatchType = {league} )
               AND
               ( {season} = 'ALL' OR s.season    = {season} )
+              AND
+              ( {name} = 'ALL' OR gd.name       = {name} )
           ) AS q01
-          GROUP BY `name`
-        ) AS q02
-        GROUP BY `name`;
-      ",
+          GROUP BY ", grouping, "
+        ) AS q02;"),
       league = league,
-      season = season
+      season = season,
+      name = name
     ) |>
       suppressWarnings()
   }

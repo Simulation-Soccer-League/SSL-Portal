@@ -20,8 +20,18 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/api[readAPI],
-  app/logic/db/get[getPlayer, getTpeHistory, getBankHistory, getUpdateHistory],
-  app/logic/ui/reactableHelper[attributeReactable, recordReactable],
+  app/logic/db/get[
+    getBankHistory,
+    getLeagueIndex,
+    getPlayer, 
+    getTpeHistory, 
+    getUpdateHistory
+  ],
+  app/logic/ui/reactableHelper[
+    attributeReactable, 
+    indexReactable, 
+    recordReactable
+  ],
   app/logic/ui/spinner[withSpinnerCustom],
 )
 
@@ -51,11 +61,19 @@ ui <- function(id) {
       ),
       bslib$card(
         bslib$card_header(
-          shiny$h3("Recent Match Statistics")
+          shiny$h3("Match Statistics")
         ),
         bslib$card_body(
-          reactableOutput(ns("matchStatistics")) |>
-            withSpinnerCustom(height = 60)
+          shiny$tabsetPanel(
+            shiny$tabPanel(
+              title = "Last 10 games",
+              reactableOutput(ns("matchStatistics"))
+            ),
+            shiny$tabPanel(
+              title = "Career Statistics",
+              reactableOutput(ns("careerStatistics"))
+            )
+          )
         )
       )
     ),
@@ -279,6 +297,31 @@ server <- function(id, pid = NULL, updated) {
       if (!(matches |> is_empty())) {
         matches |>
           recordReactable()
+      } else {
+        NULL
+      }
+    }) |>
+      shiny$bindCache(query())
+    
+    output$careerStatistics <- renderReactable({
+      data <- playerData()
+      
+      if (data$pos_gk == 20) {
+        matches <-
+          getLeagueIndex(outfield = FALSE, season = "ALL", league = "ALL",
+                         name = data$name, career = TRUE)
+      } else {
+        matches <-
+          getLeagueIndex(outfield = TRUE, season = "ALL", league = "ALL",
+                         name = data$name, career = TRUE)
+      }
+      
+      if (!(matches |> is_empty())) {
+        matches |>
+          dplyr$relocate(season = max_season) |> 
+          dplyr$arrange(dplyr$desc(season)) |> 
+          dplyr$select(!name) |> 
+          indexReactable(search = FALSE, club = TRUE)
       } else {
         NULL
       }
