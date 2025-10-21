@@ -98,7 +98,7 @@ server <- function(id) {
 
         getLeagueIndex(season = season, league = league)
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague)
+        shiny$bindCache("outIndex", input$selectedSeason, input$selectedLeague)
 
       keeperData <- shiny$reactive({
         shiny$req(input$selectedLeague)
@@ -107,13 +107,13 @@ server <- function(id) {
 
         getLeagueIndex(season = season, league = league, outfield = FALSE)
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague)
+        shiny$bindCache("gkIndex", input$selectedSeason, input$selectedLeague)
 
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
         leagueSelectInput(season = input$selectedSeason, session = session)
       }) |>
-        shiny$bindCache(input$selectedSeason)
+        shiny$bindCache("index", input$selectedSeason)
 
       outstatistics <- c(
         "goals",
@@ -223,7 +223,7 @@ server <- function(id) {
           dplyr$select(!max_season) |> 
           indexReactable()
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
+        shiny$bindCache("outBasic", input$selectedSeason, input$selectedLeague, input$retired)
 
       output$outfieldAdvanced <- renderReactable({
         data <- outfieldData()
@@ -245,7 +245,7 @@ server <- function(id) {
           dplyr$select(!max_season) |> 
           indexReactable()
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
+        shiny$bindCache("outAdv", input$selectedSeason, input$selectedLeague, input$retired)
 
       output$keeperBasic <- renderReactable({
         data <- keeperData()
@@ -263,7 +263,7 @@ server <- function(id) {
           dplyr$select(!max_season) |> 
           indexReactable()
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
+        shiny$bindCache("gkBasic", input$selectedSeason, input$selectedLeague, input$retired)
 
       output$keeperAdvanced <- renderReactable({
         data <- keeperData()
@@ -282,7 +282,7 @@ server <- function(id) {
           dplyr$select(!max_season) |> 
           indexReactable()
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague, input$retired)
+        shiny$bindCache("gkAdv", input$selectedSeason, input$selectedLeague, input$retired)
     }
   )
 }

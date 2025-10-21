@@ -70,7 +70,7 @@ server <- function(id, updated) {
       output$leagueSelector <- shiny$renderUI({
         leagueSelectInput(season = input$selectedSeason, session = session)
       }) |>
-        shiny$bindCache(input$selectedSeason)
+        shiny$bindCache("schedule", input$selectedSeason)
 
       output$schedule <- shiny$renderUI({
         season <- input$selectedSeason
@@ -185,7 +185,7 @@ server <- function(id, updated) {
             )
         }
       }) |>
-        shiny$bindCache(input$selectedSeason, input$selectedLeague)
+        shiny$bindCache("schedule", input$selectedSeason, input$selectedLeague)
     }
   )
 }
