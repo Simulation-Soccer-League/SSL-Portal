@@ -239,15 +239,24 @@ verifyBuild <- function(input, bankedTPE, session){
     }
   }
   
-  # Add attributes variables for each position
+  # Add attributes variables and their value
   for (att in (constant$attributes$attribute)) {
-    if (!input[[att |> str_remove_all(" ")]] |> is.na()) {
-      summary <- summary  |> 
+    value <- input[[att |> str_remove_all(" ")]]
+    
+    if (value |> is.null()) {
+      summary <- summary |> 
         dplyr$mutate(
           !!str_to_lower(att) := 
-            input[[att |> str_remove_all(" ")]]
-        )  
+            5
+        )
+    } else {
+      summary <- summary |> 
+        dplyr$mutate(
+          !!str_to_lower(att) := 
+            value
+        )
     }
+    
   }
   
   shiny$showModal(
@@ -348,15 +357,24 @@ submitBuild <- function(input, bankedTPE, userinfo){
       summary$traits <- "NO TRAITS"
     }
     
-    # Add attributes variables for each position
+    # Add attributes variables and their value
     for (att in (constant$attributes$attribute)) {
-      if (!input[[att |> str_remove_all(" ")]] |> is.na()) {
-        summary <- summary  |> 
+      value <- input[[att |> str_remove_all(" ")]]
+      
+      if (value |> is.null()) {
+        summary <- summary |> 
           dplyr$mutate(
             !!str_to_lower(att) := 
-              input[[att |> str_remove_all(" ")]]
-          )  
+              5
+          )
+      } else {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!str_to_lower(att) := 
+              value
+          )
       }
+      
     }
     
     # helper: fetch df[[col]] if it exists, otherwise emit SQL NULL
