@@ -265,13 +265,15 @@ server <- function(id, auth, updated) {
       shiny$showModal(
         shiny$modalDialog(
           "Are you sure you want to retire? This is a permanent decision and 
-          you may not un-retire after going through with the retirement.",
-          title = "Retirement",
+          you may not un-retire after going through with the retirement. NOTE
+          THAT IF YOU RETIRE PRIOR TO THE CHANGE OF SEASON YOU WILL RETIRE AT 
+          THE END OF THE CURRENT SEASON.",
+          title = "Really?",
           footer = shiny$tagList(
             shiny$modalButton("No, go back"),
             shiny$actionButton(
               inputId = ns("confirmRetirement1"),
-              label = "Yes, I am fully aware of the results of this decision and want to continue!"
+              label = "Yes, I am fully aware of the results of this decision!"
             )
           ),
           easyClose = FALSE
@@ -286,14 +288,15 @@ server <- function(id, auth, updated) {
       shiny$showModal(
         shiny$modalDialog(
           "Are you really sure? This is your final warning, you cannot 
-          revert your decision if you continue.",
-          title = "Retirement",
+          revert your decision if you continue. IF IT'S NOT THE NEW SEASON
+          AND YOU WANT A CORPSE SEASON FOR YOUR PLAYER, TURN BACK NOW!",
+          title = "Really really?",
           footer = shiny$tagList(
-            shiny$modalButton("No, go back"),
             shiny$actionButton(
               inputId = session$ns("confirmRetirement2"),
               label = "Yes, I want to permanently retire!"
-            )
+            ),
+            shiny$modalButton("No, go back")
           ),
           easyClose = FALSE
         )
