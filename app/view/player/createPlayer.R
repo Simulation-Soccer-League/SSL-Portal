@@ -865,6 +865,10 @@ server <- function(id, auth, updated) {
         tryCatch({
           submitBuild(input, bankedTPE, auth)
           
+          updated(updated() + 1)
+          
+          change_page("/")
+          
           showToast(
             .options = constant$sslToastOptions,
             "success", 
@@ -873,10 +877,6 @@ server <- function(id, auth, updated) {
           member of the BoD when the approval has been completed 
           or if there are any issues."
           )
-          
-          updated(updated() + 1)
-          
-          change_page("/")
         }, error = function(e) {
           showToast(
             .options = constant$sslToastOptions,
