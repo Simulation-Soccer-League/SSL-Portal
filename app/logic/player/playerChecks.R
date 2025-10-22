@@ -190,7 +190,7 @@ verifyBuild <- function(input, bankedTPE, session){
     tibble(
       first = str_trim(input$firstName), # Remember to add replace ' with \\\\' before SQL
       last = str_trim(input$lastName),
-      tpe = 350,
+      tpe = constant$startingTPE,
       tpebank = bankedTPE(),
       birthplace = input$birthplace,
       nationality = input$nationality,
@@ -305,7 +305,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
         status_p = -1,
         first = str_trim(input$firstName),
         last = str_trim(input$lastName),
-        tpe = 350,
+        tpe = constant$startingTPE,
         tpebank = bankedTPE(),
         birthplace = input$birthplace,
         nationality = input$nationality,

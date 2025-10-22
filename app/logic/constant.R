@@ -30,6 +30,9 @@ importantColor <- green
 traitSep <- ", "
 
 #' @export
+startingTPE <- 250
+
+#' @export
 positionalCoord <-
   tibble$tibble(
     x = c(375, 130, 375, 620, 130, 375, 620, 130, 375, 620, 130, 375, 620, 375),

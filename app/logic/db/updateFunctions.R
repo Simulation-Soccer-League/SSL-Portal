@@ -304,11 +304,12 @@ approvePlayer <- function(data, uid) {
     ## Adding initial TPE to history
     portalQuery(
       query = "INSERT INTO tpehistory (time, uid, pid, source, tpe)
-               SELECT {currentTime}, 1, pid, 'Initial TPE', 350
+               SELECT {currentTime}, 1, pid, 'Initial TPE', {startTPE}
                FROM playerdata
                WHERE pid = {pid};",
       currentTime = currentTime,
       pid = data$pid,
+      startTPE = constant$startingTPE,
       type = "set"
     )
     
