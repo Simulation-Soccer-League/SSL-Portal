@@ -13,9 +13,8 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
-  app/logic/db/discord[sendRetiredPlayer],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/db/updateFunctions[updateTPE],
+  app/logic/db/updateFunctions[retirePlayer, updateTPE],
   app/logic/player/playerChecks[
     completedAC,
     completedTC, 
@@ -305,31 +304,27 @@ server <- function(id, auth, updated) {
     shiny$observe({
       shiny$removeModal()
       
-      tryCatch({
-        # Begin the transaction
-        portalQuery(
-          query = "START TRANSACTION;",
-          type = "set"
-        )
-        
-        portalQuery(
-          query = "UPDATE playerdata 
-          SET status_p = 2 
-          WHERE pid = {pid};",
-          pid = getActivePlayer(auth$uid),
-          type = "set"
-        )
-        
-        sendRetiredPlayer(playerData())
-      }, error = function(e) {
-        # Rollback the transaction if any error occurs
-        portalQuery(
-          query = "ROLLBACK;",
-          type = "set"
-        )
-        
-        message("Error updating banktransactions, transaction rolled back: ", e$message)
-      })
+      result <- 
+        tryCatch({
+          retirePlayer(data = playerData(), uid = auth$uid)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "success",
+            "You have successfully retired your player. We hope to see you recreate in the near future!"
+          )
+          
+          change_page("")
+        }, error = function(e) {
+          message("Error executing query: ", e)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            paste("Something is wrong, please notify the BoD with the following error message: \n",
+                  e$message)
+          )
+        })
       
     }) |> 
       shiny$bindEvent(

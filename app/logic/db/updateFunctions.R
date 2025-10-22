@@ -13,7 +13,8 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
-  app/logic/db/discord[sendApprovedCreate],
+  app/logic/db/discord[sendApprovedCreate, sendRetiredPlayer],
+  app/logic/db/get[getActivePlayer,],
   app/logic/db/logFunctions[logBankTransaction],
   app/logic/db/updateFunctions[updateTPE],
 )
@@ -444,4 +445,52 @@ approvePlayer <- function(data, uid) {
     stop()
   })
   
+}
+
+#' @export
+retirePlayer <- function(data, uid) {
+  
+  result <- tryCatch({
+    # Begin the transaction
+    portalQuery(
+      query = "START TRANSACTION;",
+      type = "set"
+    )
+    
+    portalQuery(
+      query = "
+              INSERT INTO updatehistory (time, uid, pid, attribute, old, new)
+              VALUES (UNIX_TIMESTAMP(), {uid}, {pid}, 'Player Status', 'Active', 'Retiring');
+            ",
+      uid = uid,
+      pid = getActivePlayer(uid),
+      type = "set"
+    )
+    
+    portalQuery(
+      query = "UPDATE playerdata 
+            SET status_p = 2 
+            WHERE pid = {pid};",
+      pid = getActivePlayer(uid),
+      type = "set"
+    )
+    
+    sendRetiredPlayer(data)
+    
+    TRUE  # Indicate success if all insertions succeed.
+  }, error = function(e) {
+    # If any error occurs, rollback the transaction and show an error message.
+    portalQuery(query = "ROLLBACK;", type = "set")
+    
+    message("Error executing query: ", e)
+    
+    FALSE
+  })
+
+  # If the tryCatch block completed successfully, commit the transaction.
+  if (result) {
+    portalQuery(query = "COMMIT;", type = "set")
+  } else {
+    stop()
+  }
 }
