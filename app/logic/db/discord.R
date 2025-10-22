@@ -325,7 +325,7 @@ sendRetiredPlayer <- function(data){
   jscode <- paste0("
     function sendMessage() {
       const request = new XMLHttpRequest();
-      request.open('POST', '", approved, "');
+      request.open('POST', '", approve, "');
 
       request.setRequestHeader('Content-type', 'application/json');
 
