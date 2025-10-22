@@ -292,11 +292,11 @@ server <- function(id, auth, updated) {
           AND YOU WANT A CORPSE SEASON FOR YOUR PLAYER, TURN BACK NOW!",
           title = "Really really?",
           footer = shiny$tagList(
+            shiny$modalButton("No, go back"),
             shiny$actionButton(
               inputId = session$ns("confirmRetirement2"),
               label = "Yes, I want to permanently retire!"
-            ),
-            shiny$modalButton("No, go back")
+            )
           ),
           easyClose = FALSE
         )
