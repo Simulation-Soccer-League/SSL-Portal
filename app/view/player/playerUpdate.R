@@ -49,7 +49,12 @@ server <- function(id, auth, updated, type, player = NULL) {
     #### OUTPUT UI ####
     output$ui <- shiny$renderUI({
       shiny$tagList(
-        if(type %in% c("reroll", "redistribution")){
+        if (type %in% c("reroll", "redistribution")) {
+          if (type == "reroll") {
+            shiny$p("Some fields are currently disabled. If you want to change 
+            your name or render as part of your re-roll, 
+            please reach out to a member of the BoD")  
+          },
           shiny$uiOutput(ns("playerInfo"))
         },
         shiny$uiOutput(ns("roleSelector")),
