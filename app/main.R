@@ -17,7 +17,12 @@ box::use(
     isManager,
     isPT,
   ],
-  app/logic/player/playerChecks[navigationCheck],
+  app/logic/db/get[getActivePlayer, getPlayer],
+  app/logic/player/playerChecks[
+    eligibleRedist,
+    eligibleReroll,
+    navigationCheck,
+  ],
   app/view/bank/myBank,
   app/view/index/academyIndex,
   app/view/index/careerRecords,
@@ -278,33 +283,53 @@ server <- function(id) {
         
       } else if (current == "myPlayer/reroll") {
         
-        if (navigationCheck(authOutput())) {
-          if (!loadedServer$playerReroll) {
-            playerUpdate$server(
-              "reroll",
-              auth    = authOutput(),
-              updated = updated,
-              type    = "reroll"
-            )
-            loadedServer$playerReroll <- TRUE
+        if (getActivePlayer(authOutput()$uid) |> 
+            getPlayer() |> 
+            eligibleReroll()){
+          if (navigationCheck(authOutput())) {
+            if (!loadedServer$playerReroll) {
+              playerUpdate$server(
+                "reroll",
+                auth    = authOutput(),
+                updated = updated,
+                type    = "reroll"
+              )
+              loadedServer$playerReroll <- TRUE
+            }
           }
         } else {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "You do not have access to this page."
+          )
+          
           change_page("")
         }
         
       } else if (current == "myPlayer/redistribute") {
         
-        if (navigationCheck(authOutput())) {
-          if (!loadedServer$playerRedist) {
-            playerUpdate$server(
-              "redist",
-              auth    = authOutput(),
-              updated = updated,
-              type    = "redistribution"
-            )
-            loadedServer$playerRedist <- TRUE
+        if (getActivePlayer(authOutput()$uid) |> 
+            getPlayer() |> 
+            eligibleRedist()) {
+          if (navigationCheck(authOutput())) {
+            if (!loadedServer$playerRedist) {
+              playerUpdate$server(
+                "redist",
+                auth    = authOutput(),
+                updated = updated,
+                type    = "redistribution"
+              )
+              loadedServer$playerRedist <- TRUE
+            }
           }
         } else {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "You do not have access to this page."
+          )
+          
           change_page("")
         }
         
