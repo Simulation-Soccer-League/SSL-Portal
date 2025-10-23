@@ -291,19 +291,33 @@ server <- function(id, auth, updated, type, player = NULL) {
           "Enter a first name:", 
           value = playerData()$first,
           placeholder = "First Name"
-        ),
+        ) |> 
+          (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
         shiny$textInput(
           ns("lastName"), 
           "*Enter a last name:", 
           value = playerData()$last,
           placeholder = "Last Name"
+        ) |> 
+          (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
+        shiny$selectInput(
+          ns("pronouns"), 
+          tippy(
+            "*Select your player's pronouns",
+            "This is used by commentators to correctly gender your player. Multiple selections are allowed",
+            theme = "ssl"
+          ),
+          choices = c("He/Him", "She/Her", "They/Them"),
+          selected = playerData()$pronouns |> str_split(constant$traitSep),
+          multiple = TRUE
         ),
         shiny$textInput(
           ns("birthplace"), 
           tippy("Enter a place of birth:", "Only thematic", theme = "ssl"), 
           value = playerData()$birthplace,
           placeholder = "City"
-        ),
+        ) |> 
+          (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
         shiny$selectInput(
           ns("nationality"), 
           tippy("Select a nationality:", "Cannot be changed with a reroll or redistribution.", theme = "ssl"),
@@ -655,6 +669,7 @@ server <- function(id, auth, updated, type, player = NULL) {
             input$hairColor, input$hairLength, input$skinColor), 
           FUN = function(x) x == "", simplify = TRUE
         ) |> any()) | 
+        is.null(input$pronouns) | 
         (
           input$playerType == "Outfield" & 
           (input$traits |> length() != max(length(currentTraits), 2) | 
@@ -677,6 +692,7 @@ server <- function(id, auth, updated, type, player = NULL) {
           feedbackDanger("hairColor", input$hairColor == "", "Please enter the hair color for your player.")
           feedbackDanger("hairLength", input$hairLength == "", "Please enter the hair length for your player.")
           feedbackDanger("skinColor", input$skinColor == "", "Please enter the skin tone for your player.")
+          feedbackDanger("pronouns", is.null(input$pronouns), "Please enter at least one pronoun for your player.")
           
           if(input$traits |> length() != max(length(currentTraits), 2)){
             showToast(
@@ -870,8 +886,6 @@ server <- function(id, auth, updated, type, player = NULL) {
               inputId = att,
               value = adjustedVal
             )
-            
-            
             
             feedbackWarning(
               session = session,

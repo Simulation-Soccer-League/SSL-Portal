@@ -54,8 +54,9 @@ updateSummary <- function(current, input, type = "update"){
   if(type %in% c("redistribution", "reroll")){
     summary <- 
       tibble(
-        first = str_trim(input$firstName), # Remember to add replace ' with \\\\' before SQL
+        first = str_trim(input$firstName), 
         last = str_trim(input$lastName),
+        name = paste(first, last),
         birthplace = input$birthplace,
         nationality = input$nationality,
         height = input$height,
@@ -67,14 +68,15 @@ updateSummary <- function(current, input, type = "update"){
         `left foot` = 
           dplyr$if_else(
             input$footedness == "Right", 
-            max(current$`left foot`, 10), 
+            max(current$`right foot`, 10), 
             20
           ),
         `right foot` = dplyr$if_else(
           input$footedness == "Right", 
           20, 
-          max(current$`right foot`, 10)
+          max(current$`left foot`, 10)
         ),
+        pronouns = input$pronouns |> sort() |> paste0(collapse = constant$traitSep)
       )
     
     if(input$playerType == "Outfield"){
@@ -188,7 +190,7 @@ checkDuplicatedNames <- function(first, last){
 verifyBuild <- function(input, bankedTPE, session){
   summary <- 
     tibble(
-      first = str_trim(input$firstName), # Remember to add replace ' with \\\\' before SQL
+      first = str_trim(input$firstName), 
       last = str_trim(input$lastName),
       tpe = constant$startingTPE,
       tpebank = bankedTPE(),
@@ -317,7 +319,7 @@ submitBuild <- function(input, bankedTPE, userinfo){
         render = input$render,
         `left foot` = dplyr$if_else(input$footedness == "Right", 10, 20),
         `right foot` = dplyr$if_else(input$footedness == "Right", 20, 10),
-        pronouns = input$pronouns |> paste0(collapse = constant$traitSep)
+        pronouns = input$pronouns |> sort() |> paste0(collapse = constant$traitSep)
       )
     
     if(input$playerType == "Outfield"){
