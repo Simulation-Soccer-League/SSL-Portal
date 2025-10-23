@@ -90,7 +90,7 @@ server <- function(id, auth, updated) {
       showToast(
         .options = constant$sslToastOptions,
         "success",
-        "The manager assignments has been updated"
+        "The selected player has been approved."
       )
       
       updated(updated() + 1)
@@ -102,7 +102,7 @@ server <- function(id, auth, updated) {
           "Something went wrong, contact Canadice"
         )
         
-        message("Error updating the manager assignments: ", e)
+        message("Error approving player: ", e)
         
       }, finally = enable("goApprove"))
         
