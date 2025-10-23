@@ -291,15 +291,19 @@ server <- function(id, auth, updated, type, player = NULL) {
           "Enter a first name:", 
           value = playerData()$first,
           placeholder = "First Name"
+          # ) |> 
+          #   (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
         ) |> 
-          (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
+          shinyjs$disabled(),
         shiny$textInput(
           ns("lastName"), 
           "*Enter a last name:", 
           value = playerData()$last,
           placeholder = "Last Name"
+        # ) |> 
+        #   (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
         ) |> 
-          (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
+          shinyjs$disabled(),
         shiny$selectInput(
           ns("pronouns"), 
           tippy(
@@ -308,7 +312,7 @@ server <- function(id, auth, updated, type, player = NULL) {
             theme = "ssl"
           ),
           choices = c("He/Him", "She/Her", "They/Them"),
-          selected = playerData()$pronouns |> str_split(constant$traitSep),
+          selected = playerData()$pronouns |> str_split(constant$traitSep) |> unlist(),
           multiple = TRUE
         ),
         shiny$textInput(
