@@ -44,9 +44,9 @@ getTpeHistory <- function(pid) {
 #' @export
 getBankHistory <- function(pid) {
   portalQuery(
-    "SELECT Time, Player, Username, Source, Transaction, Status
+    "SELECT Time, Player, Username, Source, Transaction
     FROM bankhistoryview
-    WHERE pid = {pid}
+    WHERE pid = {pid} AND Status = 1
     ORDER BY Time DESC;",
     pid = pid
   ) |>
