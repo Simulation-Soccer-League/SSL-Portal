@@ -73,7 +73,7 @@ server <- function(id, auth, updated, type, player = NULL) {
               dplyr$if_else(
                 type == "update", "Update",
                 dplyr$if_else(
-                  type == "regress", "Regress",
+                  type == "regression", "Regress",
                   dplyr$if_else(
                     type == "reroll", "Reroll", "Redistribute"
                   )
@@ -103,7 +103,7 @@ server <- function(id, auth, updated, type, player = NULL) {
         .x = groups,
         .f = function(chosengroup){
           output[[chosengroup]] <- shiny$renderUI({
-            if(type %in% c("update", "regress")){
+            if(type %in% c("update", "regression")){
               temp <- 
                 processedData() |> 
                 dplyr$filter(
