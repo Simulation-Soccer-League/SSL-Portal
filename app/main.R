@@ -2,13 +2,14 @@ box::use(
   cachem,
   shiny,
   shiny.router[change_page, route, router_server, router_ui],
-  shinyFeedback[useShinyFeedback],
+  shinyFeedback[showToast, useShinyFeedback],
   shinyjs[useShinyjs],
   stringr[str_detect, str_remove],
   utils[head, installed.packages, sessionInfo],
 )
 
 box::use(
+  app/logic/constant,
   app/logic/db/login[
     isBankerAccountant,
     isBoD,

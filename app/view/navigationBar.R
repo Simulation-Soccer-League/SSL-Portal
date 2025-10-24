@@ -9,7 +9,7 @@ box::use(
         verbatimTextOutput, renderText, reactive,
         actionLink],
   shiny.router[change_page, route_link],
-  shinyFeedback[feedbackWarning],
+  shinyFeedback[feedbackWarning, showToast],
   stringr[str_split],
 )
 
