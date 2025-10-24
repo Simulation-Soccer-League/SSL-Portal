@@ -263,6 +263,10 @@ server <- function(id, auth, updated) {
             pid = playerData()$pid
           )
         
+        if (recentPurchase |> nrow() == 0) {
+          recentPurchase$time <- 0
+        }
+        
         if ((now() |> as.numeric()) - recentPurchase$time < 60) {
           showToast(
             .options = constant$sslToastOptions,
