@@ -256,10 +256,11 @@ server <- function(id, auth, updated) {
           portalQuery(
             "SELECT time
             FROM banktransactions
-            WHERE uid = {uid}
+            WHERE uid = {uid} AND pid = {pid} AND status = 1
             ORDER BY time DESC
             LIMIT 1;",
-            uid = auth$uid
+            uid = auth$uid,
+            pid = playerData()$pid
           )
         
         if ((now() |> as.numeric()) - recentPurchase$time < 60) {
@@ -288,17 +289,17 @@ server <- function(id, auth, updated) {
                 attribute =
                   c(
                     "traits", "left foot", "right foot",
-                    dplyr$if_else(
+                    ifelse(
                       inputPos$primary |> is.null(),
                       NA,
                       paste("pos_", inputPos$primary |> str_to_lower(), sep = "")
                     ),
-                    dplyr$if_else(
+                    ifelse(
                       inputPos$secondary |> is.null(),
                       NA,
                       paste("pos_", inputPos$secondary |> str_to_lower(), sep = "")
                     ),
-                    dplyr$if_else(
+                    ifelse(
                       inputPos$unusedPositions |> is.null(),
                       NA,
                       paste("pos_", inputPos$unusedPositions |> str_to_lower(), sep = "")
