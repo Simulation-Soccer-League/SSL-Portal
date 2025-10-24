@@ -801,6 +801,14 @@ server <- function(id, auth, updated, type, player = NULL) {
             "error",
             "You have spent too much TPE on your attributes! Reduce some of your attributes and try again."
           )
+        } else if (type == "regression" & bankedTPE() > 24) {
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            "You cannot regress more than 24 TPE over your required TPE."
+          )
+          
         } else {
           updates <- updateSummary(playerData(), input, type)
           
