@@ -50,7 +50,7 @@ sendGradedTPE <- function(data){
       data |> 
         dplyr$select(username, tpe, source), 
       1, 
-      function(row) paste(row, collapse = ": ")
+      function(row) paste(row, collapse = " - ")
     ) |> 
     paste(collapse = "\\n")
   
@@ -60,7 +60,7 @@ sendGradedTPE <- function(data){
         tpe |> 
           dplyr$select(username, tpe, source), 
         1, 
-        function(row) paste(row, collapse = ": ")
+        function(row) paste(row, collapse = " - ")
       )
     
     splits <- nchar(gradedString) %/% 1024 + 1
@@ -79,7 +79,7 @@ sendGradedTPE <- function(data){
       request.setRequestHeader('Content-type', 'application/json');
       var myEmbed = {
         author: {name: 'A new PT has been graded!'},
-        title: 'User: TPE: Source',
+        title: 'User - TPE - Source',
         fields: [", 
                      paste0(
                        "{name: '', 
@@ -112,7 +112,7 @@ sendGradedTPE <- function(data){
       request.setRequestHeader('Content-type', 'application/json');
       var myEmbed = {
         author: {name: 'A new PT has been graded!'},
-        title: 'User: TPE: Source',
+        title: 'User - TPE - Source',
         fields: [ 
           {name: '', 
            value: '", sprintf("```%s```", gradedString), "'}
