@@ -61,7 +61,8 @@ server <- function(id, auth, updated) {
                 ),
                 shiny$actionButton(
                   ns("update"),
-                  "Update Player"
+                  "Update Player",
+                  style = paste0("background: ", constant$green)
                 )
               ),
               shiny$div(
