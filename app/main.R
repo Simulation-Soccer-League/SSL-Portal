@@ -19,8 +19,10 @@ box::use(
   ],
   app/logic/db/get[getActivePlayer, getPlayer],
   app/logic/player/playerChecks[
+    checkApprovingPlayer,
     eligibleRedist,
     eligibleReroll,
+    hasActivePlayer,
     navigationCheck,
   ],
   app/view/bank/myBank,
@@ -351,13 +353,23 @@ server <- function(id) {
         
       } else if (current == "createPlayer" & !loadedServer$create) { 
         
-        createPlayer$server(
-          "create", 
-          auth = authOutput(), 
-          updated = updated
-        ) 
-        
-        loadedServer$create <- TRUE 
+        if (!(checkApprovingPlayer(authOutput()$uid) | hasActivePlayer(authOutput()$uid))) {
+          createPlayer$server(
+            "create", 
+            auth = authOutput(), 
+            updated = updated
+          ) 
+          
+          loadedServer$create <- TRUE   
+        } else {
+          change_page("")
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            "You already have a created player."
+          )
+        }
         
       } else if (current == "bank/deposit") {
         
