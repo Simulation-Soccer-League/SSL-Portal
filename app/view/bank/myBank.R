@@ -285,6 +285,7 @@ server <- function(id, auth, updated) {
                 values_to = "xp"
               ) |> 
               dplyr$mutate(
+                positionFull = position,
                 position = str_remove(position, "pos_") |> str_to_upper()
               )
             
@@ -293,21 +294,9 @@ server <- function(id, auth, updated) {
                 attribute =
                   c(
                     "traits", "left foot", "right foot",
-                    ifelse(
-                      inputPos$primary |> is.null(),
-                      NA,
-                      paste("pos_", inputPos$primary |> str_to_lower(), sep = "")
-                    ),
-                    ifelse(
-                      inputPos$secondary |> is.null(),
-                      NA,
-                      paste("pos_", inputPos$secondary |> str_to_lower(), sep = "")
-                    ),
-                    ifelse(
-                      inputPos$unusedPositions |> is.null(),
-                      NA,
-                      paste("pos_", inputPos$unusedPositions |> str_to_lower(), sep = "")
-                    ),
+                    currentPos$positionFull[currentPos$position %in% inputPos$primary],
+                    currentPos$positionFull[currentPos$position %in% inputPos$secondary],
+                    currentPos$positionFull[currentPos$position %in% inputPos$unusedPositions],
                     "tpe"
                   ) |> 
                   na.omit(),
