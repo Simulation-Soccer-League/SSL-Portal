@@ -19,7 +19,7 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/get[
-    getPlayersFromOrganization,
+    getManagedPlayers,
   ],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/player/playerChecks[
@@ -78,7 +78,7 @@ server <- function(id, auth, updated) {
     
     #### REACTIVES ####
     players <- shiny$reactive({
-      getPlayersFromOrganization(auth$uid) |> 
+      getManagedPlayers(auth$uid) |> 
         dplyr$select(
           pid,
           username,
