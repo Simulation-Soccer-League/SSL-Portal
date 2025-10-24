@@ -138,20 +138,29 @@ server <- function(id, auth, updated) {
           portalQuery(
             "SELECT pid, name, username
               FROM allplayersview
-              WHERE status_p = 1 AND username IN ({usernames*});",
-            usernames = data$username
+              WHERE status_p = 1 AND LOWER(username) IN ({usernames*});",
+            usernames = str_to_lower(data$username)
           )
         
         enable("confirmDeposit")
         
         data |> 
+          dplyr$mutate(
+            userLower = str_to_lower(username)
+          ) |> 
+          dplyr$select(!username) |> 
           dplyr$left_join(
-            pids,
-            by = "username"
+            pids |> 
+              dplyr$mutate(
+                userLower = str_to_lower(username)
+              ),
+            by = "userLower"
           ) |> 
           dplyr$mutate(
             pid = dplyr$if_else(is.na(pid), -99, pid)
-          )
+          ) |> 
+          dplyr$select(!userLower) |> 
+          dplyr$relocate(c(username, name, pid))
         
       } else {
         showToast(
