@@ -22,6 +22,7 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
+  app/logic/db/discord[sendGradedTPE],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updateTPE],
   app/logic/player/playerChecks[
@@ -280,6 +281,8 @@ server <- function(id, auth, updated) {
             "success",
             "You have successfully made a deposit!"
           )
+          
+          sendGradedTPE(data = processed)
         }, error = function(e) {
           showToast(
             .options = constant$sslToastOptions,

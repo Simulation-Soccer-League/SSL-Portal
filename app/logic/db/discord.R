@@ -43,12 +43,12 @@ sendTest <- function(){
 }
 
 #' @export
-sendGradedTPE <- function(source, tpe){
+sendGradedTPE <- function(data){
   
   gradedString <- 
     apply(
-      tpe |> 
-        dplyr$select(username, tpe), 
+      data |> 
+        dplyr$select(username, tpe, source), 
       1, 
       function(row) paste(row, collapse = ": ")
     ) |> 
@@ -58,7 +58,7 @@ sendGradedTPE <- function(source, tpe){
     result <- 
       apply(
         tpe |> 
-          dplyr$select(username, tpe), 
+          dplyr$select(username, tpe, source), 
         1, 
         function(row) paste(row, collapse = ": ")
       )
@@ -79,7 +79,7 @@ sendGradedTPE <- function(source, tpe){
       request.setRequestHeader('Content-type', 'application/json');
       var myEmbed = {
         author: {name: 'A new PT has been graded!'},
-        title: '", source, "',
+        title: 'User: TPE: Source',
         fields: [", 
                      paste0(
                        "{name: '', 
@@ -112,7 +112,7 @@ sendGradedTPE <- function(source, tpe){
       request.setRequestHeader('Content-type', 'application/json');
       var myEmbed = {
         author: {name: 'A new PT has been graded!'},
-        title: '", source, "',
+        title: 'User: TPE: Source',
         fields: [ 
           {name: '', 
            value: '", sprintf("```%s```", gradedString), "'}
