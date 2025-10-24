@@ -264,7 +264,7 @@ server <- function(id, auth, updated) {
           )
         
         if (recentPurchase |> nrow() == 0) {
-          recentPurchase$time <- 0
+          recentPurchase <- tibble(time = 0)
         }
         
         if ((now() |> as.numeric()) - recentPurchase$time < 60) {
