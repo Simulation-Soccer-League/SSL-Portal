@@ -161,7 +161,7 @@ server <- function(id, auth, updated) {
           paste0("attributes_", selection$pid),
           auth = auth,
           updated = updated,
-          type = "regress",
+          type = "regression",
           player = selection
         )
       } else {
