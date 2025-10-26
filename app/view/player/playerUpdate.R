@@ -99,18 +99,19 @@ server <- function(id, auth, updated, type, player = NULL) {
         groups <- processedData()$group |> unique() |> sort()
         attributes <- processedData()$Attribute
       }
+      
       map(
         .x = groups,
         .f = function(chosengroup){
           output[[chosengroup]] <- shiny$renderUI({
-            if(type %in% c("update", "regression")){
+            if (type %in% c("update", "regression")) {
               temp <- 
                 processedData() |> 
                 dplyr$filter(
                   group == chosengroup
                 ) |> 
                 dplyr$select(Attribute, Value)
-            } else if(type == "redistribution"){
+            } else if (type == "redistribution" & !gkReroll()) {
               temp <- 
                 constant$attributes |> 
                 dplyr$filter(
@@ -128,6 +129,7 @@ server <- function(id, auth, updated, type, player = NULL) {
                 dplyr$mutate(
                   Value = dplyr$if_else(Value |> is.na(), 5, Value)
                 )
+              
             } else {
               temp <- 
                 constant$attributes |> 
@@ -141,7 +143,7 @@ server <- function(id, auth, updated, type, player = NULL) {
                 dplyr$select(Attribute = attribute) |> 
                 dplyr$mutate(Value = 5)
             }
-
+            
             flexCol(
               style = "gap: 12px;",
               lapply(
@@ -367,12 +369,15 @@ server <- function(id, auth, updated, type, player = NULL) {
           placeholder = "ex. Lionel Messi"
         ) |> 
           shinyjs$disabled(),
-        if(playerData()$pos_gk == 20 | type == "reroll"){
+        "",
+        if(type == "reroll"){
           shiny$radioButtons(
             ns("playerType"), 
             "Outfield or Goalkeeper", 
             choices = c("Outfield", "Goalkeeper"), 
-            selected = "Goalkeeper", 
+            selected = dplyr$if_else(playerData()$pos_gk == 20,
+                                     "Goalkeeper",
+                                     "Outfield"), 
             inline = TRUE
           )
         } else {
@@ -380,12 +385,26 @@ server <- function(id, auth, updated, type, player = NULL) {
             ns("playerType"), 
             "Outfield or Goalkeeper", 
             choices = c("Outfield", "Goalkeeper"), 
-            selected = "Outfield", 
+            selected = dplyr$if_else(playerData()$pos_gk == 20,
+                                     "Goalkeeper",
+                                     "Outfield"), 
             inline = TRUE
           ) |> 
             shinyjs$disabled()
+        },
+        if (type == "redistribution" & 
+            playerData()$pos_gk == 20) {
+          shiny$radioButtons(
+            ns("gkReroll"),
+            "Do you want to reroll to an outfielder as part of your
+            redistribution?",
+            choices = c("Yes" = TRUE, "No" = FALSE),
+            selected = FALSE,
+            inline = TRUE
+          )
+        } else {
+          ""  
         }
-        
       )
     })
     
@@ -546,6 +565,14 @@ server <- function(id, auth, updated, type, player = NULL) {
       }
     })
     
+    gkReroll <- shiny$reactive({
+      if (input$gkReroll |> is.null()) {
+        FALSE
+      } else {
+        input$gkReroll == "TRUE"
+      }
+    })
+    
     # Based attributes on the input$playerType
     attributeGroups <- shiny$reactive({
       shiny$req(input$playerType)
@@ -643,6 +670,19 @@ server <- function(id, auth, updated, type, player = NULL) {
       }
     }) |> 
       shiny$bindEvent(input$back)
+    
+    shiny$observe({
+      if (gkReroll()) {
+        shinyjs$enable(
+          id = "playerType"
+        )
+      } else {
+        shinyjs$disable(
+          id = "playerType"
+        )
+      }
+    }) |> 
+      shiny$bindEvent(input$gkReroll)
     
     ## Verify the update
     shiny$observe({
@@ -766,13 +806,18 @@ server <- function(id, auth, updated, type, player = NULL) {
             dplyr$filter(diff > 0) |> 
             dplyr$summarize(sum = sum(diff))
           
-          if(attributes$sum > 100 & type == "redistribution"){
+          
+          ## Limits the removed tpe changes to 100 if you are only redistributing
+          ## Reroll from GK to outfield removes this limit
+          if (attributes$sum > 100 & 
+             type == "redistribution" & 
+             (input$playerType == "Goalkeeper" & gkReroll())) {
             showToast(
               .options = constant$sslToastOptions,
               "error",
               "You have removed more than the allowed 100 TPE in the redistribution."
             )
-          } else if(updates |> nrow() == 0){
+          } else if (updates |> nrow() == 0) {
             showToast(
               .options = constant$sslToastOptions,
               "warning",
