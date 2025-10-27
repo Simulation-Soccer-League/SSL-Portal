@@ -1,5 +1,6 @@
 box::use(
-  dplyr[rename_with, select],
+  bslib,
+  dplyr[arrange, desc, rename_with, select],
   reactable[colDef, reactable, reactableOutput, renderReactable],
   shiny,
   shiny.router[route_link],
@@ -14,7 +15,18 @@ box::use(
 ui <- function(id) {
   ns <- shiny$NS(id)
   shiny$tagList(
-    shiny$h2("Player Search"),
+    bslib$layout_column_wrap(
+      width = NULL,
+      style = bslib$css(grid_template_columns = "2fr 3fr"),
+      shiny$h2("Player Search"),
+      shiny$radioButtons(
+        ns("retired"),
+        "Include Retired?",
+        choices = c("Yes", "No"),
+        selected = "No",
+        inline = TRUE
+      )
+    ),
     reactableOutput(ns("players"))
   )
 }
@@ -23,9 +35,10 @@ ui <- function(id) {
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     output$players <- renderReactable({
-      data <- getPlayers(active = TRUE) |>
+      data <- getPlayers(active = (input$retired == "No")) |>
         select(name, username, pid, team, position, tpe, 
-               tpebank, class, playerStatus, userStatus)
+               tpebank, class, playerStatus, userStatus) |> 
+        arrange(desc(tpe))
 
       data |>
         rename_with(str_to_upper) |> 
@@ -46,7 +59,12 @@ server <- function(id) {
               }
             ),
             PID = colDef(show = FALSE)
-          )
+          ),
+          rowStyle = function(index) {
+            if (data[index, "team"] == "Retired") {
+              list(fontStyle = "italic")
+            }
+          }
         )
     })
   })
