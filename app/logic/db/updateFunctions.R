@@ -328,7 +328,7 @@ approvePlayer <- function(data, uid) {
           `command of area`, communication, eccentricity, handling, kicking, 
           `one on ones`, reflexes, `tendency to rush`, `tendency to punch`, throwing, 
           traits, `left foot`, `right foot`
-        FROM playerdata
+        FROM allplayersview
         WHERE pid = {pid};",
       pid = data$pid
     )
@@ -337,8 +337,12 @@ approvePlayer <- function(data, uid) {
       pivot_longer(!pid, values_transform = as.character)
     
     pwalk(
+      .l = list(
+        attribute = attrLong$name,
+        new       = attrLong$value
+      ),
       .f = 
-        function(attribute, old, new) {
+        function(attribute, new) {
           portalQuery(
             query = 
               "INSERT INTO updatehistory (
@@ -361,7 +365,7 @@ approvePlayer <- function(data, uid) {
             attribute = attribute |> str_to_upper(),
             old       = 
               dplyr$if_else(
-                str_detect(attribute, "pos"),
+                str_detect(attribute, "pos_"),
                 "0",
                 dplyr$if_else(
                   attribute == "traits",
@@ -372,9 +376,7 @@ approvePlayer <- function(data, uid) {
             new       = new,
             type = "set"
           )
-        },
-      .l = list(attribute = attributes$name,
-                new       = attributes$value)
+        }
     )
     
     ## Adding Academy Contract to bank history
