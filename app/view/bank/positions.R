@@ -7,6 +7,7 @@ box::use(
   sortable[add_rank_list, bucket_list],
   stringr[str_detect, str_remove, str_to_upper],
   tidyr[pivot_longer],
+  utils[combn],
 )
 
 box::use(
@@ -53,6 +54,34 @@ ui <- function(id) {
 server <- function(id, cost, playerData, parentSession) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
+    
+    findSmallestZeroSubset <- function(summary) {
+      n <- nrow(summary)
+      
+      for (k in 1:n) {
+        idxs <- combn(n, k, simplify = FALSE)
+        for (idx in idxs) {
+          if (sum(summary$difference[idx]) == 0) {
+            subset <- summary |> 
+              dplyr$slice(idx)
+            
+            remainder <- summary |> 
+              dplyr$slice(-idx)
+            
+            return(list(subset = subset, 
+                        remainder = remainder))
+          } 
+        }
+      }
+      
+      subset <- summary |> 
+        dplyr$slice(0)
+      
+      remainder <- summary
+      
+      return(list(subset = subset, 
+                  remainder = remainder))
+    }
     
     #### Server ####
     output$positionBucket <- shiny$renderUI({
@@ -145,74 +174,12 @@ server <- function(id, cost, playerData, parentSession) {
                            str_to_upper()),
           by = "name",
           suffix = c(".new", ".old")
-        ) |> 
-        dplyr$mutate(
-          change = dplyr$case_when(
-            value.old == 0  & value.new == 20 ~ "Addition + Upgrade",
-            value.old == 0  & value.new == 15 ~ "Addition",
-            value.old >= 5  & value.old <  20 & value.new == 20 ~ "Upgrade",
-            value.old == 20 & value.new == 15 ~ "Downgrade",
-            value.old == 20 & value.new == 0  ~ "Downgrade + Remove",
-            value.old >= 5  & value.old <  20 & value.new == 0  ~ "Remove",
-            TRUE ~ "No Change"
-          )
-        ) |> 
-        dplyr$group_by(change) |> 
-        dplyr$summarize(n = dplyr$n()) |> 
-        dplyr$mutate(
-          cost = dplyr$case_when(
-            change == "Addition + Upgrade" ~ n * 20000000,
-            change == "Upgrade" ~ n * 7500000,
-            change == "Addition" ~ n * 12500000,
-            change == "Downgrade + Remove" ~ -n * 20000000,
-            change == "Downgrade" ~ -n * 7500000,
-            change == "Remove" ~ -n * 12500000,
-            TRUE ~ 0
-          )
-        ) |> 
-        dplyr$ungroup()
+        ) 
       
-      ## Calculates number of swaps
-      swaps <- 
-        summary |>
-        dplyr$summarize(
-          Addition = dplyr$if_else(str_detect(change, "^Addition$"), n, 0),
-          Remove = dplyr$if_else(str_detect(change, "^Remove$"), n, 0),
-          Upgrade = dplyr$if_else(str_detect(change, "^Upgrade$"), n, 0),
-          Downgrade = dplyr$if_else(str_detect(change, "^Downgrade$"), n, 0),
-          AdditionPlus = dplyr$if_else(str_detect(change, "Addition +"), n, 0),
-          RemovePlus = dplyr$if_else(str_detect(change, "Downgrade +"), n, 0)
-        ) |> 
-        dplyr$summarize(
-          Addition = sum(Addition),
-          Remove = sum(Remove),
-          Upgrade = sum(Upgrade),
-          Downgrade = sum(Downgrade),
-          AdditionPlus = sum(AdditionPlus),
-          RemovePlus = sum(RemovePlus)
-        ) |> 
-        dplyr$summarize(
-          swaps = floor((Addition + Remove) / 2) + floor((Upgrade + Downgrade) / 2) + 
-            floor((AdditionPlus + RemovePlus) / 2)
-        )
+      xpOld <- sum(summary$value.old)
+      xpNew <- sum(summary$value.new)
       
-      summary <-
-        summary |> 
-        dplyr$mutate(
-          cost = 
-            dplyr$if_else(
-              change == "No Change", 
-              cost + dplyr$if_else(swaps$swaps > 0, swaps$swaps, 0) * 5000000, 
-              cost
-            )
-        )
-      
-      ## Only calculate cost if all 13 positions are accounted for
-      if (summary$n |> sum() == 13) {
-        cost(sum(summary$cost))
-      }
-      
-      if (summary$cost |> sum() < 0) {
+      if (xpOld > xpNew) {
         showToast(
           .options = constant$myToastOptions,
           "error",
@@ -226,12 +193,57 @@ server <- function(id, cost, playerData, parentSession) {
           label = "You cannot only remove positions!"
         )
       } else {
+        summary <- 
+          summary |> 
+          dplyr$filter(value.old != value.new)
+        
+        ## If you've only swapped positions
+        if (xpOld == xpNew) {
+          (nrow(summary) / 2) |> 
+            ceiling() |> 
+            prod(5E6) |> 
+            cost()
+        } else {
+          difference <- xpNew - xpOld
+          
+          summary <- 
+            summary |> 
+            dplyr$mutate(
+              difference = value.new - value.old
+            )
+          
+          result <- findSmallestZeroSubset(summary)
+          
+          swapCost <- 
+            (nrow(result$subset) / 2) |> 
+            ceiling() |> 
+            prod(5E6)
+          
+          standardCost <- 
+            result$remainder |> 
+            dplyr$mutate(
+              cost = 
+                dplyr$case_when(
+                  difference == 20 ~ 2E7,
+                  difference == 15 ~ 1.25E7,
+                  difference == -5 ~ -2.5E6,
+                  TRUE ~ 7.5E6 
+                )
+            )
+          
+          # print(result$subset)
+          # print(result$remainder)
+          
+          cost(swapCost + sum(standardCost$cost))
+        }
+        
         shiny$updateActionButton(
           session = parentSession,
           inputId = "verifyPurchase", 
           label = "Verify purchase"
         )
       }
+      
     }) |> 
       shiny$bindEvent(input$pos, ignoreInit = TRUE)
     
