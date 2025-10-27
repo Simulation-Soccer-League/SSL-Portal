@@ -56,27 +56,42 @@ server <- function(id, cost, playerData, parentSession) {
     ns <- session$ns
     
     findSmallestZeroSubset <- function(summary) {
-      n <- nrow(summary)
+      # separate negatives and non-negatives
+      negIdx <- which(summary$difference < 0)
+      posIdx <- which(summary$difference >= 0)
       
-      for (k in 1:n) {
-        idxs <- combn(n, k, simplify = FALSE)
-        for (idx in idxs) {
-          if (sum(summary$difference[idx]) == 0) {
-            subset <- summary |> 
-              dplyr$slice(idx)
-            
-            remainder <- summary |> 
-              dplyr$slice(-idx)
-            
-            return(list(subset = subset, 
-                        remainder = remainder))
-          } 
+      negSum <- sum(summary$difference[negIdx])
+      
+      # if there are no negatives, nothing to do
+      if (length(negIdx) == 0) {
+        return(list(
+          subset    = summary |> dplyr$slice(0),
+          remainder = summary
+        ))
+      }
+      
+      # otherwise, search for a subset of positives that balances the negatives
+      needed <- -negSum
+      nPos <- length(posIdx)
+      
+      for (k in 1:nPos) {
+        idxs <- combn(posIdx, k, simplify = FALSE)
+        zeroSets <- Filter(function(idx) sum(summary$difference[idx]) == needed, idxs)
+        
+        if (length(zeroSets) > 0) {
+          bestIdx <- zeroSets[[1]]  # first match; could add tie-breakers
+          subset <- summary |> dplyr$slice(c(negIdx, bestIdx))
+          remainder <- summary |> dplyr$slice(-c(negIdx, bestIdx))
+          
+          return(list(
+            subset    = subset,
+            remainder = remainder
+          ))
         }
       }
       
-      subset <- summary |> 
-        dplyr$slice(0)
-      
+      # if no balancing subset found, return just the negatives
+      subset <- summary |> dplyr$slice(0)
       remainder <- summary
       
       return(list(subset = subset, 
@@ -231,8 +246,8 @@ server <- function(id, cost, playerData, parentSession) {
                 )
             )
           
-          # print(result$subset)
-          # print(result$remainder)
+          print(result$subset)
+          print(result$remainder)
           
           cost(swapCost + sum(standardCost$cost))
         }
