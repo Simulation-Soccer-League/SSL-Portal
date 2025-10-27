@@ -153,7 +153,8 @@ server <- function(id) {
 
           data |>
             dplyr$select(
-              name, club, dplyr$all_of(stat)
+              name, club, dplyr$all_of(stat),
+              pid
             ) |>
             dplyr$arrange(
               dplyr$across(
@@ -193,7 +194,8 @@ server <- function(id) {
 
           data |>
             dplyr$select(
-              name, club, dplyr$all_of(stat)
+              name, club, dplyr$all_of(stat),
+              pid
             ) |>
             dplyr$arrange(
               dplyr$across(
@@ -214,7 +216,8 @@ server <- function(id) {
           data |>
           dplyr$select(
             name:assists, `shots on target`:offsides, blocks, `shots blocked`, `average rating`,
-            max_season
+            max_season,
+            pid
           ) |> 
           dplyr$filter(input$retired == FALSE | 
                          max_season == max(max_season, na.rm = FALSE))
@@ -236,7 +239,8 @@ server <- function(id) {
             xa:`fk shots`,
             `open play key passes`:`goals outside box`,
             `press%`:`pen adj xG`,
-            max_season
+            max_season,
+            pid
           ) |> 
           dplyr$filter(input$retired == FALSE | 
                          max_season == max(max_season, na.rm = FALSE))
@@ -254,7 +258,8 @@ server <- function(id) {
           data |>
           dplyr$select(
             name:`save%`,
-            max_season
+            max_season,
+            pid
           ) |> 
           dplyr$filter(input$retired == FALSE | 
                          max_season == max(max_season, na.rm = FALSE))
@@ -273,7 +278,8 @@ server <- function(id) {
           dplyr$select(
             name:club,
             `penalties faced`:`xg prevented`,
-            max_season
+            max_season,
+            pid
           ) |> 
           dplyr$filter(input$retired == FALSE | 
                          max_season == max(max_season, na.rm = FALSE))

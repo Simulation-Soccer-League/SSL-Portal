@@ -158,15 +158,16 @@ server <- function(id) {
           dplyr$filter(
             dplyr$if_all(
               dplyr$all_of(stat),
-              ~ .x == max(.x)
+              ~ .x == max(.x, na.rm = TRUE)
             )
           ) |>
           dplyr$slice_head(n = 1)
-
+        
         selectedStat <- selected
         # Remove parenthesis from distance stat to make its label shorter
         trimmedStatTitle <- gsub("\\s\\(.+\\)", "", stat)
-
+        
+        
         shiny$tags$button(
           flexRow(
             shiny$tagList(
@@ -237,7 +238,8 @@ server <- function(id) {
       top20Reactable <- function(data, stat) {
         data |>
           dplyr$select(
-            name, club, apps, dplyr$all_of(stat)
+            name, club, apps, dplyr$all_of(stat),
+            pid
           ) |>
           dplyr$arrange(
             dplyr$across(

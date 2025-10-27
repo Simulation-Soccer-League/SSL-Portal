@@ -17,11 +17,12 @@ box::use(
 #' @export
 clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
   clubData <- currentData |>
-    dplyr$select(club) |>
+    dplyr$select(club, pid) |>
     dplyr$slice(index)
-
+  
+  pid <- clubData$pid
   clubData <- clubData$club
-
+  
   if (clubData |> str_detect(",")) {
     clubs <- str_split(clubData, pattern = ",", simplify = TRUE) |>
       c() |>
@@ -46,13 +47,6 @@ clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
         )
       )
     
-    tagList(
-      div(
-        class = "table-club-name",
-        if (!onlyLogo) span(value),
-        div(list)
-      )
-    )
   } else {
     image <- img(
       src = sprintf("static/logo/%s (Custom).png", clubData),
@@ -66,11 +60,18 @@ clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
         div(style = "display: inline-block; width: 25px;", image)
       )
   }
-
+  
   tagList(
     div(
       class = "tableClubName",
-      if (!onlyLogo) span(value),
+      if (!onlyLogo & !is.na(pid)) {
+        a(
+          href = route_link(paste0("tracker/player?pid=", pid)),
+          value # Display the name as the link text
+        )
+      } else {
+        value
+      },
       div(list)
     )
   )
@@ -130,7 +131,7 @@ draftClassReactable <- function(data) {
             list <-
               tagList(
                 div(
-                  class = "table-club-name",
+                  class = "tableClubName",
                   div(style = "display: inline-block; width: 30px;", image),
                   span(value)
                 )
@@ -170,11 +171,8 @@ recordReactable <- function(currentData) {
           ),
           club = colDef(show = FALSE, searchable = TRUE),
           RANK = colDef(width = 60),
-          matchday =
-          colDef(
-            header = "MATCHDAY",
-            width = 100
-          )
+          matchday = colDef(header = "MATCHDAY",width = 100),
+          pid = colDef(show = FALSE)
         ) |>
         append(
           pmap(statisticsTooltips, ~ {
@@ -223,15 +221,16 @@ indexReactable <- function(currentData, search = TRUE, club = FALSE) {
             }
           ),
           club =
-          colDef(
-            name = "CLUB",
-            width = 60,
-            show = club,
-            searchable = TRUE,
-            cell = function(value, index) {
-              clubLogos(value, index, currentData, onlyLogo = TRUE)
-            }
-          )
+            colDef(
+              name = "CLUB",
+              width = 60,
+              show = club,
+              searchable = TRUE,
+              cell = function(value, index) {
+                clubLogos(value, index, currentData, onlyLogo = TRUE)
+              }
+            ),
+          pid = colDef(show = FALSE)
         ) |>
         append(
           pmap(statisticsTooltips, ~ {

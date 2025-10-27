@@ -373,37 +373,104 @@ getAcademyIndex <- function(outfield = TRUE, season) {
   if (outfield) {
     indexQuery(
       "SELECT
-          `name`, `club`, `position`, `apps`, `minutes played`,`player of the match`,`distance run (km)`,
-          `goals`,`assists`,`xg`,`shots on target`,`shots`,`penalties taken`,`penalties scored`,`successfull passes` AS `successful passes`,
-          `attempted passes`,`successfull passes` / `attempted passes` * 100 AS `pass%`,`key passes`,
-          `successful crosses`,`attempted crosses`,`successful crosses` / `attempted crosses` * 100 AS `cross%`,
-          `chances created`,`successful headers`,`attempted headers`,`successful headers` / `attempted headers` * 100 AS `header%`,
-          `key headers`,`dribbles`,`tackles won`,`attempted tackles`,`tackles won` / `attempted tackles` * 100 AS `tackle%`,
-          `key tackles`,`interceptions`,`clearances`,`mistakes leading to goals`,`yellow cards`,`red cards`,
-          `fouls`,`fouls against`,`offsides`,`xa`,`xg overperformance`,`fk shots`,`blocks`,`open play key passes`,
-          `successful open play crosses`,`attempted open play crosses`,`shots blocked`,`progressive passes`,
-          `successful presses`,`attempted presses`,`goals outside box`,`average rating`,
-          CASE
-              WHEN IFNULL(`attempted presses`, 0) = 0 THEN 0
-              ELSE (`successful presses` / `attempted presses`) * 100
-      	  END AS `press%`,
-            CASE
-              WHEN IFNULL(`attempted open play crosses`, 0) = 0 THEN 0
-              ELSE (`successful open play crosses` / `attempted open play crosses`) * 100
-          END AS `open play crosses%`,
-          `shots on target` / `shots` * 100 AS `shot accuracy%`,
-          `xG` - 0.83*`penalties taken` AS `pen adj xG`
-      FROM academyoutfield WHERE season = {season};",
+          ao.`name`,
+          ao.`club`,
+          ao.`position`,
+          ao.`apps`,
+          ao.`minutes played`,
+          ao.`player of the match`,
+          ao.`distance run (km)`,
+          ao.`goals`,
+          ao.`assists`,
+          ao.`xg`,
+          ao.`shots on target`,
+          ao.`shots`,
+          ao.`penalties taken`,
+          ao.`penalties scored`,
+          ao.`successfull passes` AS `successful passes`,
+          ao.`attempted passes`,
+          CASE WHEN IFNULL(ao.`attempted passes`,0)=0 THEN 0
+               ELSE ao.`successfull passes` / ao.`attempted passes` * 100 END AS `pass%`,
+          ao.`key passes`,
+          ao.`successful crosses`,
+          ao.`attempted crosses`,
+          CASE WHEN IFNULL(ao.`attempted crosses`,0)=0 THEN 0
+               ELSE ao.`successful crosses` / ao.`attempted crosses` * 100 END AS `cross%`,
+          ao.`chances created`,
+          ao.`successful headers`,
+          ao.`attempted headers`,
+          CASE WHEN IFNULL(ao.`attempted headers`,0)=0 THEN 0
+               ELSE ao.`successful headers` / ao.`attempted headers` * 100 END AS `header%`,
+          ao.`key headers`,
+          ao.`dribbles`,
+          ao.`tackles won`,
+          ao.`attempted tackles`,
+          CASE WHEN IFNULL(ao.`attempted tackles`,0)=0 THEN 0
+               ELSE ao.`tackles won` / ao.`attempted tackles` * 100 END AS `tackle%`,
+          ao.`key tackles`,
+          ao.`interceptions`,
+          ao.`clearances`,
+          ao.`mistakes leading to goals`,
+          ao.`yellow cards`,
+          ao.`red cards`,
+          ao.`fouls`,
+          ao.`fouls against`,
+          ao.`offsides`,
+          ao.`xa`,
+          ao.`xg overperformance`,
+          ao.`fk shots`,
+          ao.`blocks`,
+          ao.`open play key passes`,
+          ao.`successful open play crosses`,
+          ao.`attempted open play crosses`,
+          ao.`shots blocked`,
+          ao.`progressive passes`,
+          ao.`successful presses`,
+          ao.`attempted presses`,
+          ao.`goals outside box`,
+          ao.`average rating`,
+          CASE WHEN IFNULL(ao.`attempted presses`,0)=0 THEN 0
+               ELSE ao.`successful presses` / ao.`attempted presses` * 100 END AS `press%`,
+          CASE WHEN IFNULL(ao.`attempted open play crosses`,0)=0 THEN 0
+               ELSE ao.`successful open play crosses` / ao.`attempted open play crosses` * 100 END AS `open play crosses%`,
+          CASE WHEN IFNULL(ao.`shots`,0)=0 THEN 0
+               ELSE ao.`shots on target` / ao.`shots` * 100 END AS `shot accuracy%`,
+          ao.`xg` - 0.83*ao.`penalties taken` AS `pen adj xG`,
+          pd.pid
+      FROM academyoutfield AS ao
+      LEFT JOIN portaldb.playerdata AS pd
+        ON ao.name = pd.name
+      WHERE ao.season = {season};",
       season = season
     ) |>
       suppressWarnings()
   } else {
     indexQuery(
       "SELECT
-          `name`, `club`, `apps`, `minutes played`, `average rating`, `player of the match`, won, lost, draw, `clean sheets`, conceded, `saves parried`, `saves held`,
-          `saves tipped`, (1 - (conceded / (conceded + `saves parried` + `saves held` + `saves tipped`))) * 100 AS `save%`,
-          `penalties faced`, `penalties saved`, `xsave%`, `xg prevented`
-      FROM academykeeper WHERE season = {season};",
+          ao.`name`,
+          ao.`club`,
+          ao.`apps`,
+          ao.`minutes played`,
+          ao.`average rating`,
+          ao.`player of the match`,
+          ao.won,
+          ao.lost,
+          ao.draw,
+          ao.`clean sheets`,
+          ao.`conceded`,
+          ao.`saves parried`,
+          ao.`saves held`,
+          ao.`saves tipped`,
+          (1 - (ao.`conceded` / (ao.`conceded` + ao.`saves parried` + ao.`saves held` + ao.`saves tipped`))) * 100 AS `save%`,
+          ao.`penalties faced`,
+          ao.`penalties saved`,
+          ao.`xsave%`,
+          ao.`xg prevented`,
+          pd.pid
+      FROM academykeeper AS ao
+      LEFT JOIN portaldb.playerdata AS pd
+        ON ao.name = pd.name
+      WHERE ao.season = {season};",
       season = season
     ) |>
       suppressWarnings()
@@ -446,7 +513,7 @@ getLeagueIndex <- function(
           CASE WHEN IFNULL(`attempted open play crosses`,0)=0 THEN 0
                ELSE `successful open play crosses`/`attempted open play crosses`*100 END AS `open play crosses%`,
           `shots on target`/`shots`*100 AS `shot accuracy%`,
-          `xG` - 0.83*`penalties taken` AS `pen adj xG`, max_season
+          `xG` - 0.83*`penalties taken` AS `pen adj xG`, max_season, pid
         FROM (
           SELECT
             name,
@@ -497,7 +564,8 @@ getLeagueIndex <- function(
             SUM(`goals outside box`)                     AS `goals outside box`,
             SUM(`player of the match`)                   AS `player of the match`,
             AVG(`average rating`)                        AS `average rating`,
-            MAX(season)                                  AS `max_season`
+            MAX(season)                                  AS `max_season`,
+            MAX(pid)                                     AS `pid`
           FROM (
             SELECT
               gd.`name`, gd.`club`, gd.`position`, gd.`apps`, gd.`minutes played`,
@@ -514,9 +582,11 @@ getLeagueIndex <- function(
               gd.`open play key passes`, gd.`successful open play crosses`,
               gd.`attempted open play crosses`, gd.`shots blocked`,
               gd.`progressive passes`, gd.`successful presses`, gd.`attempted presses`,
-              gd.`goals outside box`, s.season
+              gd.`goals outside box`, s.season, pd.pid
             FROM `gamedataoutfield` AS gd
             JOIN schedule AS s ON gd.gid = s.gid
+            LEFT JOIN portaldb.playerdata AS pd 
+              ON gd.name = pd.name
             WHERE
               ( {league} = 'ALL' OR s.MatchType = {league} )
               AND
@@ -549,7 +619,7 @@ getLeagueIndex <- function(
              conceded + `saves parried` + `saves held` + `saves tipped`))
           ) * 100                     AS `save%`,
           `penalties faced`, `penalties saved`,
-          `xsave%`, `xg prevented`, max_season
+          `xsave%`, `xg prevented`, max_season, pid
         FROM (
           SELECT
             `name`,
@@ -581,7 +651,8 @@ getLeagueIndex <- function(
             SUM(`penalties saved`)                  AS `penalties saved`,
             AVG(`xsave%`)                           AS `xsave%`,
             SUM(`xg prevented`)                     AS `xg prevented`,
-            MAX(season)                             AS `max_season`
+            MAX(season)                             AS `max_season`,
+            MAX(pid)                                AS `pid`
           FROM (
             SELECT
               gd.`name`, gd.`club`, gd.`apps`, gd.`minutes played`,
@@ -590,10 +661,12 @@ getLeagueIndex <- function(
               gd.`saves held`, gd.`saves tipped`, gd.`save%`,
               gd.`penalties faced`, gd.`penalties saved`,
               gd.`xsave%`, gd.`xg prevented`, s.Home, s.Away,
-              s.HomeScore, s.AwayScore, s.season
+              s.HomeScore, s.AwayScore, s.season, pd.pid
             FROM `gamedatakeeper` AS gd
             JOIN schedule AS s
               ON gd.gid = s.gid
+            LEFT JOIN portaldb.playerdata AS pd 
+              ON gd.name = pd.name
             WHERE
               ( {league} = 'ALL' OR s.MatchType = {league} )
               AND

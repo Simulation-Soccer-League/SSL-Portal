@@ -809,23 +809,24 @@ $navbar-items-width: 112px;
 }
 
 /* Index Tables */
-.table-club-name {
+.tableClubName {
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-align: end;
 }
 
-.leader-table .table-club-name {
+.leader-table .tableClubName {
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-align: left;
 }
 
-.table-club-name span {
+.tableClubName span, .tableClubName a {
   padding-left: 10px;
   text-wrap: pretty;
+  text-align: left;
 }
 
 /* Edit Schedule selects */

@@ -45,11 +45,11 @@ ui <- function(id) {
             "Adv. Statistics",
             reactableOutput(ns("outfieldAdvanced")) |>
               withSpinnerCustom(height = 80)
-          ),
-          shiny$tabPanel(
-            "Leaders",
-            shiny$uiOutput(ns("outfieldLeaders")) |>
-              withSpinnerCustom(height = 80)
+          # ),
+          # shiny$tabPanel(
+          #   "Leaders",
+          #   shiny$uiOutput(ns("outfieldLeaders")) |>
+          #     withSpinnerCustom(height = 80)
           )
         ),
         shiny$tabsetPanel(
@@ -63,11 +63,11 @@ ui <- function(id) {
             "Adv. Statistics",
             reactableOutput(ns("keeperAdvanced")) |>
               withSpinnerCustom(height = 80)
-          ),
-          shiny$tabPanel(
-            "Leaders",
-            shiny$uiOutput(ns("keeperLeaders")) |>
-              withSpinnerCustom(height = 80)
+          # ),
+          # shiny$tabPanel(
+          #   "Leaders",
+          #   shiny$uiOutput(ns("keeperLeaders")) |>
+          #     withSpinnerCustom(height = 80)
           )
         )
       )
@@ -100,7 +100,7 @@ server <- function(id) {
         currentData <-
           outfieldData() |>
           dplyr$select(
-            name:assists, `shots on target`:offsides, blocks, `shots blocked`, `average rating`
+            name:assists, `shots on target`:offsides, blocks, `shots blocked`, `average rating`, pid
           )
 
         currentData |>
@@ -116,7 +116,8 @@ server <- function(id) {
             xg,
             xa:`fk shots`,
             `open play key passes`:`goals outside box`,
-            `press%`:`pen adj xG`
+            `press%`:`pen adj xG`,
+            pid
           )
 
         currentData |>
@@ -128,7 +129,7 @@ server <- function(id) {
         currentData <-
           keeperData() |>
           dplyr$select(
-            name:`save%`
+            name:`save%`, pid
           )
 
         currentData |>
@@ -141,7 +142,7 @@ server <- function(id) {
           keeperData() |>
           dplyr$select(
             name:club,
-            `penalties faced`:`xg prevented`
+            `penalties faced`:`xg prevented`, pid
           )
 
         currentData |>
