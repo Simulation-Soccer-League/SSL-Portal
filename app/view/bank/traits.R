@@ -145,8 +145,7 @@ server <- function(id, cost, playerData) {
                          "Likes To Try To Beat Offside Trap")
       }
       if ("Gets Forward Whenever Possible" %in% selected) {
-        disableList <- c(disableList, "Comes Deep To Get Ball", "Stays Back At All Times", 
-                         "Hugs Line")
+        disableList <- c(disableList, "Comes Deep To Get Ball", "Stays Back At All Times")
       }
       if ("Likes To Try To Beat Offside Trap" %in% selected) {
         disableList <- c(disableList, "Comes Deep To Get Ball", "Does Not Move Into Channels", 

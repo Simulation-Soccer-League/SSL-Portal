@@ -643,7 +643,7 @@ server <- function(id, auth, updated) {
           disable_list <- c(disable_list, "Gets Forward Whenever Possible", "Likes To Try To Beat Offside Trap")
         }
         if ("Gets Forward Whenever Possible" %in% selected) {
-          disable_list <- c(disable_list, "Comes Deep To Get Ball", "Stays Back At All Times", "Hugs Line")
+          disable_list <- c(disable_list, "Comes Deep To Get Ball", "Stays Back At All Times")
         }
         if ("Likes To Try To Beat Offside Trap" %in% selected) {
           disable_list <- c(disable_list, "Comes Deep To Get Ball", "Does Not Move Into Channels", "Plays With Back To Goal")
