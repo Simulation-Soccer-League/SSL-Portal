@@ -50,6 +50,7 @@ box::use(
   app/view/tracker/organization,
   app/view/tracker/player,
   app/view/tracker/playerSearch,
+  app/view/tracker/position,
   app/view/tracker/wsfc,
   app/view/welcome,
 )
@@ -73,6 +74,7 @@ ui <- function(id) {
       route("index/standings", standings$ui(ns("standings"))),
       route("tracker/draftclass", draftclass$ui(ns("draftclass"))),
       route("tracker/player", player$ui(ns("player"))),
+      route("tracker/position", position$ui(ns("position"))),
       route("tracker/organization", organization$ui(ns("organization"))),
       route("tracker/wsfc", wsfc$ui(ns("wsfc"))),
       route("search", playerSearch$ui(ns("search"))),
@@ -139,7 +141,7 @@ server <- function(id) {
         rosterOverview = FALSE, 
         export = FALSE, organization = FALSE, draftclass = FALSE, 
         nationTracker = FALSE,
-        positionTracker = FALSE, main = FALSE,
+        position = FALSE, main = FALSE,
         wsfc = FALSE
       )
     
@@ -199,6 +201,11 @@ server <- function(id) {
         player$server("player", updated = updated)
         loadedServer$player <- TRUE
       
+      } else if (current |> str_detect("tracker/position") & !loadedServer$position) {
+        
+        position$server("position")
+        loadedServer$position <- TRUE
+        
       } else if (current == "myPlayer/") {
         
         if (navigationCheck(authOutput())) {

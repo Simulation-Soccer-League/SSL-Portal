@@ -44,6 +44,7 @@ getNavItems <- function(ns, suffix) {
             a("Search", href = route_link("search")),
             a("Organizations", href = route_link("tracker/organization")),
             a("Draft Class", href = route_link("tracker/draftclass")),
+            a("Position Tracker", href = route_link("tracker/position")),
             a("WSFC Regions", href = route_link("tracker/wsfc"))
           )
         ),

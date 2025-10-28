@@ -1,5 +1,5 @@
 box::use(
-  # magick,
+  magick,
   dplyr[mutate],
   tibble,
 )
@@ -43,16 +43,16 @@ positionalCoord <-
     )
   )
 
-#' #' @export
-#' pitch <-
-#'   try(
-#'     magick$image_read_svg(
-#'       path = "https://raw.githubusercontent.com/canadice/ssl-index/main/graphics/pitch.svg",
-#'       width = 750
-#'     ),
-#'     silent = TRUE
-#'   )
-#'   
+#' @export
+pitch <-
+  try(
+    magick$image_read_svg(
+      path = "https://raw.githubusercontent.com/canadice/ssl-index/main/graphics/pitch.svg",
+      width = 750
+    ),
+    silent = TRUE
+  )
+
 
 #' @export
 myToastOptions <- list(
