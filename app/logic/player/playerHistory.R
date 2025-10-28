@@ -35,7 +35,7 @@ server <- function(id, updated, playerData) {
       playerData()$pid |> 
         getTpeHistory()
     }) |> 
-      shiny$bindCache(updated()) |> 
+      shiny$bindCache(playerData()$pid, updated()) |> 
       shiny$bindEvent(updated())
     
     output$tpe <- renderReactable({
@@ -55,7 +55,7 @@ server <- function(id, updated, playerData) {
           )
       }
     }) |> 
-      shiny$bindCache(updated())
+      shiny$bindCache(playerData()$pid, updated())
     
     output$update <- renderReactable({
       data <- playerData()
@@ -73,7 +73,7 @@ server <- function(id, updated, playerData) {
           )
       }
     }) |> 
-      shiny$bindCache(updated())
+      shiny$bindCache(playerData()$pid, updated())
     
     output$bank <- renderReactable({
       data <- playerData()
@@ -98,6 +98,6 @@ server <- function(id, updated, playerData) {
           )
       }
     }) |> 
-      shiny$bindCache(updated())
+      shiny$bindCache(playerData()$pid, updated())
   })
 }
