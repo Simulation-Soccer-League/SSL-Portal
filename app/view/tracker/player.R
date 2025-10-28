@@ -168,7 +168,7 @@ server <- function(id, pid = NULL, updated) {
         shiny$h3(paste0("@", data$username))
       )
     }) |> 
-      shiny$bindCache(query(), updated())
+      shiny$bindCache(playerData(), updated())
     
     output$clubLogo <- shiny$renderUI({
       data <- playerData()
@@ -180,7 +180,7 @@ server <- function(id, pid = NULL, updated) {
         title = data$team
       )
     }) |>
-      shiny$bindCache(query())
+      shiny$bindCache(playerData())
 
     output$playerInfo <- shiny$renderUI({
       data <- playerData()
@@ -275,7 +275,7 @@ server <- function(id, pid = NULL, updated) {
         )
       )
     }) |> 
-      shiny$bindCache(query(), updated())
+      shiny$bindCache(playerData(), updated())
     
     output$matchStatistics <- renderReactable({
       data <- playerData()
@@ -301,7 +301,7 @@ server <- function(id, pid = NULL, updated) {
         NULL
       }
     }) |>
-      shiny$bindCache(query())
+      shiny$bindCache(playerData())
     
     output$careerStatistics <- renderReactable({
       data <- playerData()
@@ -326,14 +326,14 @@ server <- function(id, pid = NULL, updated) {
         NULL
       }
     }) |>
-      shiny$bindCache(query())
+      shiny$bindCache(playerData())
 
     output$playerAttributes <- shiny$renderUI({
       data <- playerData()
 
       attributeReactable(data, session, output)
     }) |> 
-      shiny$bindCache(query(), updated())
+      shiny$bindCache(playerData(), updated())
     
     output$tpeProgression <- plotly$renderPlotly({
       tpe <- historyTPE()
@@ -454,7 +454,7 @@ server <- function(id, pid = NULL, updated) {
           )
       }
     }) |> 
-      shiny$bindCache(query(), updated())
+      shiny$bindCache(playerData(), updated())
     
     output$tpe <- renderReactable({
       data <- playerData()
@@ -473,7 +473,7 @@ server <- function(id, pid = NULL, updated) {
           )
       }
     }) |> 
-      shiny$bindCache(query(), updated())
+      shiny$bindCache(playerData(), updated())
     
     output$update <- renderReactable({
       data <- playerData()
@@ -491,7 +491,7 @@ server <- function(id, pid = NULL, updated) {
           )
       }
     }) |> 
-      shiny$bindCache(query(), updated())
+      shiny$bindCache(playerData(), updated())
     
     output$bank <- renderReactable({
       data <- playerData()
@@ -516,6 +516,6 @@ server <- function(id, pid = NULL, updated) {
           )
       }
     }) |> 
-      shiny$bindCache(query(), updated())
+      shiny$bindCache(playerData(), updated())
   })
 }
