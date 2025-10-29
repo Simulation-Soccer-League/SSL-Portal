@@ -31,16 +31,9 @@ ui <- function(id) {
 #' @export
 server <- function(id, updated, playerData) {
   shiny$moduleServer(id, function(input, output, session) {
-    historyTPE <- shiny$reactive({
-      playerData()$pid |> 
-        getTpeHistory()
-    }) |> 
-      shiny$bindCache(playerData()$pid, updated()) |> 
-      shiny$bindEvent(updated())
-    
     output$tpe <- renderReactable({
       data <- playerData()
-      tpe <- historyTPE()
+      tpe <- getTpeHistory(playerData()$pid)
       
       if (tpe |> is_empty()) {
         NULL
@@ -54,8 +47,7 @@ server <- function(id, updated, playerData) {
               )
           )
       }
-    }) |> 
-      shiny$bindCache(playerData()$pid, updated())
+    })
     
     output$update <- renderReactable({
       data <- playerData()
@@ -72,8 +64,7 @@ server <- function(id, updated, playerData) {
               )
           )
       }
-    }) |> 
-      shiny$bindCache(playerData()$pid, updated())
+    })
     
     output$bank <- renderReactable({
       data <- playerData()
@@ -97,7 +88,6 @@ server <- function(id, updated, playerData) {
               )
           )
       }
-    }) |> 
-      shiny$bindCache(playerData()$pid, updated())
+    })
   })
 }

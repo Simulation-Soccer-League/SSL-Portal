@@ -106,7 +106,8 @@ server <- function(id) {
 
         getLeagueIndex(league = league, season = "ALL")
       }) |>
-        shiny$bindCache(input$selectedLeague)
+        shiny$bindCache(id, "outfield", input$selectedLeague) |> 
+        shiny$bindEvent(input$selectedLeague)
 
       keeperData <- shiny$reactive({
         shiny$req(input$selectedLeague)
@@ -114,7 +115,8 @@ server <- function(id) {
 
         getLeagueIndex(league = league, season = "ALL", outfield = FALSE)
       }) |>
-        shiny$bindCache(input$selectedLeague)
+        shiny$bindCache(id, "keeper", input$selectedLeague) |> 
+        shiny$bindEvent(input$selectedLeague)
 
       currentStatistic <- shiny$reactiveVal("goals")
       currentStatisticKeeper <- shiny$reactiveVal("won")

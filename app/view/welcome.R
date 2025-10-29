@@ -257,7 +257,7 @@ server <- function(id, usergroup) {
           )
         }
       }) |>
-        shiny$bindCache(input$selectedLeague)
+        shiny$bindCache(id, input$selectedLeague)
 
       #### Weekly TPE Leaders ####
       output$weeklyLeaders <- renderReactable({

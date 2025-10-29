@@ -45,7 +45,7 @@ server <- function(id, updated, playerData) {
         shiny$h2(paste(data$name, sprintf("(%s)", data$class))),
         shiny$h3(paste0("@", data$username))
       )
-    }) |> shiny$bindCache(id, playerData()$pid, updated())
+    }) 
     
     ## Club logo
     output$clubLogo <- shiny$renderUI({
@@ -54,7 +54,7 @@ server <- function(id, updated, playerData) {
         src   = sprintf("static/logo/%s.png", data$team),
         style = "height:100px", alt = data$team, title = data$team
       )
-    }) |> shiny$bindCache(id, playerData()$pid, updated())
+    }) 
     
     ## Detailed info
     output$playerInfo <- shiny$renderUI({
@@ -126,8 +126,7 @@ server <- function(id, updated, playerData) {
           ))
         )
       )
-    }) |> 
-      shiny$bindCache(id, playerData()$pid, updated())
+    }) 
     
     ## Cost placeholder (will be updated by store module)
     output$cost <- shiny$renderText("0")

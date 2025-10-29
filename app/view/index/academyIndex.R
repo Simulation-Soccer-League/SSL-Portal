@@ -86,6 +86,7 @@ server <- function(id) {
 
         getAcademyIndex(season = season)
       }) |>
+        shiny$bindCache(id, "outfield", input$selectedSeason) |> 
         shiny$bindEvent(input$selectedSeason)
 
       keeperData <- shiny$reactive({
@@ -93,6 +94,7 @@ server <- function(id) {
 
         getAcademyIndex(season = season, outfield = FALSE)
       }) |>
+        shiny$bindCache(id, "keeper", input$selectedSeason) |> 
         shiny$bindEvent(input$selectedSeason)
 
       #### REACTABLE OUTPUT ####
@@ -105,8 +107,7 @@ server <- function(id) {
 
         currentData |>
           indexReactable()
-      }) |>
-        shiny$bindCache(input$selectedSeason)
+      }) 
 
       output$outfieldAdvanced <- renderReactable({
         currentData <-
@@ -122,8 +123,7 @@ server <- function(id) {
 
         currentData |>
           indexReactable()
-      }) |>
-        shiny$bindCache(input$selectedSeason)
+      })
 
       output$keeperBasic <- renderReactable({
         currentData <-
@@ -134,8 +134,7 @@ server <- function(id) {
 
         currentData |>
           indexReactable()
-      }) |>
-        shiny$bindCache(input$selectedSeason)
+      }) 
 
       output$keeperAdvanced <- renderReactable({
         currentData <-
@@ -147,8 +146,7 @@ server <- function(id) {
 
         currentData |>
           indexReactable()
-      }) |>
-        shiny$bindCache(input$selectedSeason)
+      }) 
     }
   )
 }

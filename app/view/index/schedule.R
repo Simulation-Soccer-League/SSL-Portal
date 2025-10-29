@@ -59,18 +59,21 @@ server <- function(id, updated) {
         getSchedule(season = season, league = league) |> 
           dplyr$select(!gid)
       }) |> 
+        shiny$bindCache(
+          id,
+          input$selectedSeason,
+          input$selectedLeague
+        ) |> 
         shiny$bindEvent(
           input$selectedSeason,
-          input$selectedLeague,
-          updated()
+          input$selectedLeague
         )
 
 
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
         leagueSelectInput(season = input$selectedSeason, session = session)
-      }) |>
-        shiny$bindCache("schedule", input$selectedSeason)
+      })
 
       output$schedule <- shiny$renderUI({
         season <- input$selectedSeason
@@ -184,8 +187,7 @@ server <- function(id, updated) {
                 )
             )
         }
-      }) |>
-        shiny$bindCache("schedule", input$selectedSeason, input$selectedLeague)
+      })
     }
   )
 }

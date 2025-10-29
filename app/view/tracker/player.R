@@ -147,7 +147,6 @@ server <- function(id, pid = NULL, updated) {
 
       getPlayer(query())
     }) |> 
-      shiny$bindCache(query(), updated()) |> 
       shiny$bindEvent(query(), updated())
     
     historyTPE <- shiny$reactive({
@@ -155,7 +154,6 @@ server <- function(id, pid = NULL, updated) {
 
       getTpeHistory(query())
     }) |> 
-      shiny$bindCache(query(), updated()) |> 
       shiny$bindEvent(query(), updated())
 
     #### Output ####
@@ -167,8 +165,7 @@ server <- function(id, pid = NULL, updated) {
         shiny$h5(paste0("(", data$pronouns, ")")),
         shiny$h3(paste0("@", data$username))
       )
-    }) |> 
-      shiny$bindCache(playerData(), updated())
+    }) 
     
     output$clubLogo <- shiny$renderUI({
       data <- playerData()
@@ -179,8 +176,7 @@ server <- function(id, pid = NULL, updated) {
         alt = data$team,
         title = data$team
       )
-    }) |>
-      shiny$bindCache(playerData())
+    })
 
     output$playerInfo <- shiny$renderUI({
       data <- playerData()
@@ -274,8 +270,7 @@ server <- function(id, pid = NULL, updated) {
           )
         )
       )
-    }) |> 
-      shiny$bindCache(playerData(), updated())
+    }) 
     
     output$matchStatistics <- renderReactable({
       data <- playerData()
@@ -300,8 +295,7 @@ server <- function(id, pid = NULL, updated) {
       } else {
         NULL
       }
-    }) |>
-      shiny$bindCache(playerData())
+    })
     
     output$careerStatistics <- renderReactable({
       data <- playerData()
@@ -325,15 +319,13 @@ server <- function(id, pid = NULL, updated) {
       } else {
         NULL
       }
-    }) |>
-      shiny$bindCache(playerData())
+    }) 
 
     output$playerAttributes <- shiny$renderUI({
       data <- playerData()
 
       attributeReactable(data, session, output)
-    }) |> 
-      shiny$bindCache(playerData(), updated())
+    })
     
     output$tpeProgression <- plotly$renderPlotly({
       tpe <- historyTPE()
@@ -453,8 +445,7 @@ server <- function(id, pid = NULL, updated) {
             displaylogo = FALSE # Remove Plotly logo
           )
       }
-    }) |> 
-      shiny$bindCache(playerData(), updated())
+    })
     
     output$tpe <- renderReactable({
       data <- playerData()
@@ -472,8 +463,7 @@ server <- function(id, pid = NULL, updated) {
               )
           )
       }
-    }) |> 
-      shiny$bindCache(playerData(), updated())
+    }) 
     
     output$update <- renderReactable({
       data <- playerData()
@@ -490,8 +480,7 @@ server <- function(id, pid = NULL, updated) {
               )
           )
       }
-    }) |> 
-      shiny$bindCache(playerData(), updated())
+    }) 
     
     output$bank <- renderReactable({
       data <- playerData()
@@ -515,7 +504,6 @@ server <- function(id, pid = NULL, updated) {
               )
           )
       }
-    }) |> 
-      shiny$bindCache(playerData(), updated())
+    })
   })
 }
