@@ -169,6 +169,9 @@ logBankTransaction <- function(uid, pid, source, transaction, status = 1) {
       query = "ROLLBACK;",
       type = "set"
     )
+    
+    stop(e$message)
+    
     message("Transaction failed, rolling back: ", e$message)
   })
   

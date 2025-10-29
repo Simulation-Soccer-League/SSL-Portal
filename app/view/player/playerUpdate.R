@@ -919,8 +919,11 @@ server <- function(id, auth, updated, type, player = NULL) {
         showToast(
           .options = constant$sslToastOptions,
           "error",
-          paste("Something is wrong, please notify the BoD with the following error message: \n",
-                e$message)
+          paste(
+            "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+            e$message
+          )
         )
       })
     }) |> 

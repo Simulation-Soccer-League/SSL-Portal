@@ -164,7 +164,11 @@ server <- function(id, auth, updated) {
         showToast(
           .options = constant$sslToastOptions,
           "error",
-          "Something went wrong, please reach out to Canadice"
+          paste(
+            "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+            e$message
+          )
         )
         
         message("Transaction failed, rolling back: ", e$message)
@@ -192,7 +196,11 @@ server <- function(id, auth, updated) {
         showToast(
           .options = constant$sslToastOptions,
           "error",
-          "Something went wrong, please reach out to Canadice"
+          paste(
+            "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+            e$message
+          )
         )
       })
     }) |> 

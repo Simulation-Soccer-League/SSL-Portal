@@ -881,7 +881,11 @@ server <- function(id, auth, updated) {
           showToast(
             .options = constant$sslToastOptions,
             "error",
-            "Something has gone wrong, contact Canadice."
+            paste(
+              "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+              e$message
+            )
           )
           
           message("Create a player error: ", e)
