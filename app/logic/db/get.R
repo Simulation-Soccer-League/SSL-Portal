@@ -220,10 +220,14 @@ getChangedBuilds <- function() {
   
   portalQuery(
     query = 
-      "SELECT t.name AS teamName, wb.*, uh.attribute as Attribute, uh.old, uh.new
+      "SELECT t.name AS teamName, wb.*, uh.attribute as Attribute, uh.old, uh.new, 
+      nat.fmID AS nationalityID
         FROM playerdata pd
         LEFT JOIN weeklybuilds wb ON pd.pid = wb.pid
         JOIN updatehistory uh ON pd.pid = uh.pid
+        LEFT JOIN nationality nat ON 
+          (pd.nationality = nat.abbreviation) OR 
+          (pd.nationality = nat.name)
         LEFT JOIN teams t ON pd.team = t.orgID AND pd.affiliate = t.affiliate
         WHERE uh.Time < {weekEnd} AND uh.Time > {weekStart} AND uh.uid <> 1;",
     weekEnd = weekEnd,
