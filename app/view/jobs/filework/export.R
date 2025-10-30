@@ -92,6 +92,9 @@ server <- function(id, auth, updated) {
           Previous = old,
           New = new
         ) |>
+        filter(
+          !(Attribute %in% c("Player Status", "Team"))
+        ) |> 
         reactable(
           groupBy = c("Team", "Name")
         )
