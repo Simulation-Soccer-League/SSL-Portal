@@ -147,6 +147,16 @@ updateSummary <- function(current, input, type = "update"){
       current |> 
         dplyr$select(colnames(summary))
     ) |> 
+    dplyr$mutate(
+      dplyr$across(
+        dplyr$where(is.numeric),
+        ~ replace_na(.x, 5)
+      ),
+      dplyr$across(
+        dplyr$where(is.character),
+        ~ replace_na(.x, "")
+      )
+    ) |> 
     dplyr$mutate(source = c("new", "old")) |> 
     pivot_longer(
       cols = !source,
@@ -156,12 +166,12 @@ updateSummary <- function(current, input, type = "update"){
       names_from = source,
       values_from = value
     ) |>  
-    dplyr$mutate(
-      dplyr$across(
-        dplyr$everything(),
-        ~ replace_na(.x, 5)
-      )
-    ) |> 
+    # dplyr$mutate(
+    #   dplyr$across(
+    #     dplyr$everything(),
+    #     ~ replace_na(.x, "5")
+    #   )
+    # ) |> 
     dplyr$filter(old != new) |> 
     dplyr$select(attribute = name, old, new)
 }
