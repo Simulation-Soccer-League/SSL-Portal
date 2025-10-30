@@ -66,16 +66,21 @@ updateSummary <- function(current, input, type = "update"){
         skintone = input$skintone,
         render = input$render,
         `left foot` = 
-          dplyr$if_else(
-            input$footedness == "Right", 
-            max(current$`right foot`, 10), 
-            20
+          dplyr$case_when(
+            input$footedness == "Right" & current$`right foot` == 20 ~ 
+              max(current$`left foot`, 10),
+            input$footedness == "Right" & current$`right foot` != 20 ~
+              max(current$`right foot`, 10),
+            TRUE ~ 20
           ),
-        `right foot` = dplyr$if_else(
-          input$footedness == "Right", 
-          20, 
-          max(current$`left foot`, 10)
-        ),
+        `right foot` = 
+          dplyr$case_when(
+            input$footedness == "Left" & current$`left foot` == 20 ~ 
+              max(current$`right foot`, 10),
+            input$footedness == "Left" & current$`left foot` != 20 ~
+              max(current$`left foot`, 10),
+            TRUE ~ 20
+          ),
         pronouns = input$pronouns |> sort() |> paste0(collapse = constant$traitSep)
       )
     
