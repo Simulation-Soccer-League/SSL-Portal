@@ -139,12 +139,30 @@ downloadPlayer <- function(temp){
     ),
     ',"PreferredMoves":', traits,
     ', "Nation.Id":', temp$nationalityID,
-    ',"Born":"', 
+    ',"Born":', 
     ## OLD
     # ("2004-07-01" |> as_date()) - years(currentSeason$season - (temp$class |> str_extract(pattern = "[0-9]+") |> as.numeric())) ,
     ## NEW: Changed to give all players the same age
-    "2000-01-01",
-    '","DocumentType":"Player"}',
+    '"2000-01-01",
+    "PersonalityAttributes": {
+      "Adaptability": 20,
+      "Ambition": 20,
+      "Loyalty": 20,
+      "Pressure": 15,
+      "Professional": 15,
+      "Sportsmanship": 15,
+      "Temperament": 5,
+      "Controversy": 5
+    },
+    "HiddenAttributes": {
+      "Consistency": 15,
+      "Dirtiness": 5,
+      "ImportantMatches": 15,
+      "InjuryProness": 1,
+      "Versatility": 10
+    },
+    "PA": 200,',
+    '"DocumentType":"Player"}',
     sep = ""
   )
 }
