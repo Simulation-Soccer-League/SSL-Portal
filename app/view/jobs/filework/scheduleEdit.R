@@ -45,9 +45,13 @@ server <- function(id, auth, updated) {
           ),
           bslib$card_body(
             shiny$uiOutput(ns("schedule")),
-            shiny$br(),
-            shiny$br(),
-            shiny$actionButton(ns("saveGame"), "Save edits")
+            shiny$actionButton(
+              ns("saveGame"), 
+              "Save edits",
+              width = "20%"
+            ) |> 
+              shiny$div(class = "frozen-bottom"),
+            shiny$div(style = "min-height:100px;")
           )
         )
       )
@@ -102,14 +106,11 @@ server <- function(id, auth, updated) {
               shiny$h5(
                 sprintf(
                   "%s MD%s",
-                  dplyr$if_else(
-                    game$MatchType == 0, 
-                    "CUP",
-                    dplyr$if_else(
-                      game$MatchType == 1, 
-                      "MAJOR", 
-                      "MINOR"
-                    )
+                  dplyr$case_when(
+                    game$MatchType == -1 ~ "Friendlies",
+                    game$MatchType == 0 ~ "CUP",
+                    game$MatchType == 1 ~ "MAJOR",
+                    TRUE ~ "MINOR"
                   ),
                   game$MatchDay
                 )
