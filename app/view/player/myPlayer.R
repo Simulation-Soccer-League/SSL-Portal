@@ -1,6 +1,9 @@
 box::use(
   bslib,
   dplyr,
+  lubridate[
+    now,
+  ],
   purrr[is_empty],
   shiny,
   shiny.router[change_page],
@@ -183,21 +186,45 @@ server <- function(id, auth, updated) {
       tryCatch({
         disable(ns("AC"))
         
-        tpe <- 
-          dplyr$tibble(
-            source = "Activity Check",
-            tpe = 6
+        recentPost <- 
+          portalQuery(
+            "SELECT time
+            FROM tpehistory
+            WHERE uid = {uid} AND pid = {pid} AND source = 'Activity Check'
+            ORDER BY time DESC
+            LIMIT 1;",
+            uid = auth$uid,
+            pid = playerData()$pid
           )
         
-        updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
+        if (recentPost |> nrow() == 0) {
+          recentPost <- dplyr$tibble(time = 0)
+        }
         
-        updated(updated() + 1)
-        
-        showToast(
-          .options = constant$sslToastOptions,
-          "success",
-          "You have successfully claimed your Activity Check for the week!"
-        )
+        if ((now() |> as.numeric()) - recentPost$time < 240) {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "You have (accidentally we hope) clicked the AC button more times than allowed.
+            You have already claimed your Activity Check for this week."
+          )
+        } else {
+          tpe <- 
+            dplyr$tibble(
+              source = "Activity Check",
+              tpe = 6
+            )
+          
+          updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
+          
+          updated(updated() + 1)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "success",
+            "You have successfully claimed your Activity Check for the week!"
+          )
+        }
       }, error = function(e) {
         message("Error executing query: ", e)
         
@@ -219,32 +246,56 @@ server <- function(id, auth, updated) {
       tryCatch({
         disable(ns("TC"))
         
-        class <- playerData()$class |> 
-          str_extract_all(pattern = "[0-9]+") |> 
-          as.numeric()
-        
-        age <- constant$currentSeason$season - class
-        
-        tpe <- 
-          dplyr$tibble(
-            source = paste0("S", constant$currentSeason$season, " Training Camp"),
-            tpe = dplyr$case_when(
-              age <= 1 ~ 24,
-              age <= 4 ~ 18,
-              age <= 7 ~ 12,
-              TRUE     ~  6
-            )
+        recentPost <- 
+          portalQuery(
+            "SELECT time
+            FROM tpehistory
+            WHERE uid = {uid} AND pid = {pid} AND source LIKE '%Training Camp'
+            ORDER BY time DESC
+            LIMIT 1;",
+            uid = auth$uid,
+            pid = playerData()$pid
           )
         
-        updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
+        if (recentPost |> nrow() == 0) {
+          recentPost <- dplyr$tibble(time = 0)
+        }
         
-        updated(updated() + 1)
-        
-        showToast(
-          .options = constant$sslToastOptions,
-          "success",
-          "You have successfully claimed your Training Camp for the season!"
-        )
+        if ((now() |> as.numeric()) - recentPost$time < 240) {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "You have (accidentally we hope) clicked the TC button more times than allowed.
+            You have already claimed your Training Camp for this season."
+          )
+        } else {
+          class <- playerData()$class |> 
+            str_extract_all(pattern = "[0-9]+") |> 
+            as.numeric()
+          
+          age <- constant$currentSeason$season - class
+          
+          tpe <- 
+            dplyr$tibble(
+              source = paste0("S", constant$currentSeason$season, " Training Camp"),
+              tpe = dplyr$case_when(
+                age <= 1 ~ 24,
+                age <= 4 ~ 18,
+                age <= 7 ~ 12,
+                TRUE     ~  6
+              )
+            )
+          
+          updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
+          
+          updated(updated() + 1)
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "success",
+            "You have successfully claimed your Training Camp for the season!"
+          )
+        }
       }, error = function(e) {
         message("Error executing query: ", e)
         
