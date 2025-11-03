@@ -14,7 +14,7 @@ box::use(
   ],
   shiny,
   shinyFeedback[showToast],
-  shinyjs[click, disable, enable, reset],
+  shinyjs[click, disable, disabled, enable, reset],
   stringr[
     str_to_lower, 
   ],
@@ -57,7 +57,10 @@ server <- function(id, auth, updated) {
                 shiny$p(
                   paste0(
                     "The .csv file should contain the player name ('player'), the 
-                    money gained ('amount') and the source ('source'). 
+                    money gained ('amount') and the source ('source'). The source column
+                    does not need to be filled out as you will be able to manually
+                    enter one single source for all empty rows in this tool.
+                    
                     The encoding of the file should be UTF-8. If you are not sure how 
                     to check this, follow the instructions in this ", 
                     shiny$a(
@@ -97,8 +100,9 @@ server <- function(id, auth, updated) {
                 shiny$div(id = ns("fileInput")),
               shiny$textInput(
                 inputId = ns("depositSource"),
-                label = "If no source is given in the file, enter it here:"
-              )
+                label = "If no source value is given for specific entries in the file, enter it here:"
+              ) |> 
+                disabled()
             ),
             shiny$h4("Check the processed deposit"),
             shiny$p("The processed file is shown below. Red highlighted rows
@@ -114,6 +118,7 @@ server <- function(id, auth, updated) {
           label = "Confirm deposit",
           class = "primary-button"
         ) |> 
+          disabled() |> 
           shiny$div(class = "frozen-bottom"),
         shiny$div(style = "min-height:100px;")
       )
@@ -145,6 +150,7 @@ server <- function(id, auth, updated) {
             playerList = data$player
           )
         
+        enable("depositSource")
         enable("confirmDeposit")
         
         data |> 
