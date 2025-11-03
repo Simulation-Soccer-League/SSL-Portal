@@ -7,12 +7,13 @@ box::use(
     renderReactable,
   ],
   readr[
+    problems,
     read_csv,
     write_csv,
   ],
   shiny,
   shinyFeedback[showToast],
-  shinyjs[click, disable, enable, reset],
+  shinyjs[click, disable, disabled, enable, reset],
   stringr[
     str_to_lower, 
   ],
@@ -56,7 +57,9 @@ server <- function(id, auth, updated) {
                 shiny$p(
                   paste0(
                     "The .csv file should contain the username ('user'), the 
-                    tpe gained ('tpe') and the source ('source'). 
+                    tpe gained ('tpe') and the source ('source'). The source column
+                    does not need to be filled out as you will be able to manually
+                    enter one single source for all empty rows in this tool.
                     The encoding of the file should be UTF-8. If you are not sure how 
                     to check this, follow the instructions in this ", 
                     shiny$a(
@@ -96,8 +99,9 @@ server <- function(id, auth, updated) {
                 shiny$div(id = ns("fileInput")),
               shiny$textInput(
                 inputId = ns("depositSource"),
-                label = "If no source is given in the file, enter it here:"
-              )
+                label = "If no source value is given for specific entries in the file, enter it here:"
+              ) |> 
+                disabled()
             ),
             shiny$h4("Check the processed deposit"),
             shiny$p("The processed file is shown below. Red highlighted rows
@@ -112,6 +116,7 @@ server <- function(id, auth, updated) {
           label = "Confirm deposit",
           class = "primary-button"
         ) |> 
+          disabled() |> 
           shiny$div(class = "frozen-bottom"),
         shiny$div(style = "min-height:100px;")
       )
@@ -126,10 +131,20 @@ server <- function(id, auth, updated) {
       
       data <- read_csv(
         file = file$datapath,
-        show_col_types = FALSE
+        show_col_types = FALSE,
+        col_types = "cdc"
       )
       
-      if (all(c("username", "tpe", "source") %in% 
+      if (problems(data) |> nrow() != 0) {
+        showToast(
+          .options = constant$sslToastOptions,
+          "error",
+          "Something is wrong with the submitted file. Please check it against the
+          instructions and try again."
+        )
+        
+        NULL
+      } else if (all(c("username", "tpe", "source") %in% 
           (colnames(data) |> str_to_lower()))) {
         
         colnames(data) <- colnames(data) |> str_to_lower()
@@ -143,6 +158,7 @@ server <- function(id, auth, updated) {
             usernames = str_to_lower(data$username)
           )
         
+        enable("depositSource")
         enable("confirmDeposit")
         
         data |> 
@@ -179,24 +195,29 @@ server <- function(id, auth, updated) {
       if (ptDeposit() |> is.null()) {
         NULL
       } else {
-        ptDeposit() |> 
+        
+        data <- ptDeposit() |> 
           dplyr$mutate(
             source = dplyr$if_else(
               is.na(source),
               input$depositSource,
               source
-            )
-          ) |> 
+            ),
+            logic = 
+              (pid < 0) |
+              (source |> nchar() > 255) |
+              (
+                (source |> is.na()) &
+                  (input$depositSource |> nchar() > 255)
+              )
+          )
+        
+        data |> 
+          dplyr$select(!logic) |> 
           reactable(
             pagination = FALSE,
             rowStyle = function(index) {
-              if (ptDeposit()[index, "pid"] < 0 | 
-                  (ptDeposit()[index, "source"] |> nchar() > 255) |
-                  (
-                    (ptDeposit()[index, "source"] |> is.na()) & 
-                    (input$depositSource |> nchar() > 255)
-                  )
-              ) {
+              if (data[index, "logic"] == TRUE) {
                 list(background = constant$red, color = "white")
               }
             }
@@ -265,7 +286,6 @@ server <- function(id, auth, updated) {
           "You have no deposits that can be processed."
         )
       } else {
-        
         
         tryCatch({
           updateTPE(
