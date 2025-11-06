@@ -141,7 +141,7 @@ sendAcademyIndexUpdate <- function(season){
   jscode <- paste0("
     function sendMessage() {
       const request = new XMLHttpRequest();
-      request.open('POST', '", indexUpdate, "');
+      request.open('POST', '", index, "');
 
       request.setRequestHeader('Content-type', 'application/json');
 
@@ -170,7 +170,7 @@ sendIndexUpdate <- function(season){
   jscode <- paste0("
     function sendMessage() {
       const request = new XMLHttpRequest();
-      request.open('POST', '", indexUpdate, "');
+      request.open('POST', '", index, "');
 
       request.setRequestHeader('Content-type', 'application/json');
 

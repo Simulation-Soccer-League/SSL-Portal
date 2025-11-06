@@ -32,9 +32,11 @@ box::use(
 
 box::use(
   app/logic/constant,
+  app/logic/db/database[indexQuery],
+  app/logic/db/discord[sendAcademyIndexUpdate, sendIndexUpdate,],
   app/logic/db/get[getNextGameID, getSeasonalTotal],
   app/logic/db/login[isBoD, isFileworker],
-  app/logic/import[importGameData, parseFMdata],
+  app/logic/import[importAcademyData, importGameData, parseFMdata],
 )
 
 #' @export
@@ -50,69 +52,140 @@ server <- function(id, auth, updated) {
 
     #### OUTPUT UI ####
     output$ui <- shiny$renderUI({
-      shiny$tagList(
-        shiny$h4("Upload and Update Game Statistics"),
-        shiny$p(
-          paste(
-            "Export the Player Statistics for Export view from the
+      shiny$tabsetPanel(
+        id = ns("tabs"),
+        selected = input$tabs,
+        shiny$tabPanel(
+          "SSL League",
+          shiny$tagList(
+            shiny$h4("Upload and Update Game Statistics"),
+            shiny$p(
+              paste(
+                "Export the Player Statistics for Export view from the
             League Observer Manager shortlist after the matchday you
             want to upload.",
-            "In case you do not have the view for the League Observer
+                "In case you do not have the view for the League Observer
             Manager, download and import the view via",
-            shiny$tags$a("this link.",
-              href = "https://drive.google.com/open?id=1b4yz5gkXN6BFSvDBigL3Tp2pUBbu-PJ3&usp=drive_fs",
-              target = "_blank"
-            ),
-            "The view should be exported as an .HTML file and make
+                shiny$tags$a("this link.",
+                             href = "https://drive.google.com/open?id=1b4yz5gkXN6BFSvDBigL3Tp2pUBbu-PJ3&usp=drive_fs",
+                             target = "_blank"
+                ),
+                "The view should be exported as an .HTML file and make
             sure to scroll through every player in the shortlist as
             FM only exports players it has 'seen'."
-          ) |>
-            shiny$HTML()
-        ),
-        bslib$layout_column_wrap(
-          width = NULL,
-          style = bslib$css(grid_template_columns = "1fr 2fr"),
-          shiny$div(
-            shiny$fileInput(
-              inputId = ns("fm"),
-              label = "Upload the exported view ",
-              accept = ".html"
+              ) |>
+                shiny$HTML()
             ),
-            shiny$selectInput(
-              inputId = ns("season"),
-              label = "Which season is the view from?",
-              choices = 1:constant$currentSeason$season,
-              selected = constant$currentSeason$season
-            )
-          ),
-          shiny$div(
-            if (filePath() |> is.null()) {
-              NULL
-            } else {
-              shiny$req(input$fm)
-              shiny$actionButton(
-                ns("uploadData"),
-                label = "Upload game data"
+            bslib$layout_column_wrap(
+              width = NULL,
+              style = bslib$css(grid_template_columns = "1fr 2fr"),
+              shiny$div(
+                shiny$fileInput(
+                  inputId = ns("fm"),
+                  label = "Upload the exported view ",
+                  accept = ".html"
+                ),
+                shiny$selectInput(
+                  inputId = ns("season"),
+                  label = "Which season is the view from?",
+                  choices = 1:constant$currentSeason$season,
+                  selected = constant$currentSeason$season
+                )
+              ),
+              shiny$div(
+                if (filePath() |> is.null()) {
+                  NULL
+                } else {
+                  shiny$req(input$fm)
+                  shiny$actionButton(
+                    ns("uploadData"),
+                    label = "Upload game data"
+                  )
+                }
               )
-            }
+            ),
+            bslib$layout_column_wrap(
+              width = NULL,
+              style = bslib$css(grid_template_columns = "2fr 1fr"),
+              shiny$div(
+                shiny$p("If the data is correctly imported, the table should show
+                  90 minutes played on average for outfield and goalkeepers."),
+                shiny$h5("Checking data"),
+                reactableOutput(ns("outputMinutes")),
+                shiny$h5("Players per team"),
+                reactableOutput(ns("outputPlayers")),
+                shiny$h5("Keeper Data"),
+                reactableOutput(ns("keeperCheck")),
+                shiny$h5("Outfield Data"),
+                reactableOutput(ns("outfieldCheck"))
+              ),
+              ""
+            )
           )
         ),
-        bslib$layout_column_wrap(
-          width = NULL,
-          style = bslib$css(grid_template_columns = "2fr 1fr"),
-          shiny$div(
-            shiny$p("If the data is correctly imported, the table should show
+        shiny$tabPanel(
+          "SSL Academy",
+          shiny$tagList(
+            shiny$h4("Upload and Update Academy Season Statistics"),
+            shiny$p(
+              paste(
+                "Export the Player Statistics for Export view from the
+            League Observer Manager shortlist after the matchday you
+            want to upload.",
+                "In case you do not have the view for the League Observer
+            Manager, download and import the view via",
+                shiny$tags$a("this link.",
+                             href = "https://drive.google.com/open?id=1b4yz5gkXN6BFSvDBigL3Tp2pUBbu-PJ3&usp=drive_fs",
+                             target = "_blank"
+                ),
+                "The view should be exported as an .HTML file and make
+            sure to scroll through every player in the shortlist as
+            FM only exports players it has 'seen'."
+              ) |>
+                shiny$HTML()
+            ),
+            bslib$layout_column_wrap(
+              width = NULL,
+              style = bslib$css(grid_template_columns = "1fr 2fr"),
+              shiny$div(
+                shiny$fileInput(
+                  inputId = ns("fmAcademy"),
+                  label = "Upload the exported view ",
+                  accept = ".html"
+                ),
+                shiny$selectInput(
+                  inputId = ns("seasonAcademy"),
+                  label = "Which season is the view from?",
+                  choices = 1:constant$currentSeason$season,
+                  selected = constant$currentSeason$season
+                )
+              ),
+              shiny$div(
+                if (filePathAcademy() |> is.null()) {
+                  NULL
+                } else {
+                  shiny$req(input$fmAcademy)
+                  shiny$actionButton(
+                    ns("uploadDataAcademy"),
+                    label = "Upload game data"
+                  )
+                }
+              )
+            ),
+            bslib$layout_column_wrap(
+              width = NULL,
+              style = bslib$css(grid_template_columns = "2fr 1fr"),
+              shiny$div(
+                shiny$p("If the data is correctly imported, the table should show
                   90 minutes played on average for outfield and goalkeepers."),
-            shiny$h5("Checking data"),
-            reactableOutput(ns("outputMinutes")),
-            shiny$h5("Players per team"),
-            reactableOutput(ns("outputPlayers")),
-            shiny$h5("Keeper Data"),
-            reactableOutput(ns("keeperCheck")),
-            shiny$h5("Outfield Data"),
-            reactableOutput(ns("outfieldCheck"))
-          ),
-          ""
+                shiny$h5("Keeper Data"),
+                reactableOutput(ns("keeperCheckAcademy")),
+                shiny$h5("Outfield Data"),
+                reactableOutput(ns("outfieldCheckAcademy"))
+              ),
+              ""
+            )
+          )
         )
       )
     })
@@ -125,6 +198,14 @@ server <- function(id, auth, updated) {
 
       enable("uploadData")
 
+      file$datapath
+    })
+    
+    filePathAcademy <- shiny$reactive({
+      file <- input$fmAcademy
+      
+      enable("uploadDataAcademy")
+      
       file$datapath
     })
 
@@ -339,6 +420,45 @@ server <- function(id, auth, updated) {
       )
     }) |>
       shiny$bindEvent(input$fm)
+    
+    processedGameAcademy <- shiny$reactive({
+      shiny$req(filePathAcademy())
+      
+      current <- parseFMdata(filePathAcademy()) |> 
+        rename_with(str_to_lower)
+      
+      splitKeeper <- 
+        current |>
+        filter(position == "GK", !is.na(`minutes played`)) |> 
+        select(name:`minutes played`, `average rating`:`player of the match`, won:`xg prevented`, `save%`) |> 
+        mutate(season = input$seasonAcademy) |> 
+        relocate(season) |> 
+        mutate(
+          across(
+            !(name:position),
+            ~ replace_na(.x, 0)
+          )
+        )
+      
+      splitOutfield <- 
+        current |> 
+        filter(!is.na(`minutes played`)) |> 
+        select(name:`attempted presses`, `pass%`:`cross%`) |> 
+        mutate(season = input$season) |> 
+        relocate(season) |> 
+        mutate(
+          across(
+            !(name:position),
+            ~ replace_na(.x, 0)
+          )
+        )
+      
+      list(
+        k = splitKeeper,
+        o = splitOutfield
+      )
+    }) |> 
+      shiny$bindEvent(input$fmAcademy)
 
     ## OUTPUT
     output$outputMinutes <- renderReactable({
@@ -358,6 +478,11 @@ server <- function(id, auth, updated) {
         arrange(gid) |>
         reactable()
     })
+    
+    output$outfieldCheckAcademy <- renderReactable({
+      processedGameAcademy()$o |>
+        reactable()
+    })
 
     output$keeperCheck <- renderReactable({
       processedGame()$k |>
@@ -365,23 +490,94 @@ server <- function(id, auth, updated) {
         arrange(gid) |>
         reactable()
     })
+    
+    output$keeperCheckAcademy <- renderReactable({
+      processedGameAcademy()$k |>
+        reactable()
+    })
 
     #### OBSERVER ####
     shiny$observe({
       shiny$req(input$fm)
-
-      # sendIndexUpdate(input$season)
-
-      importGameData(processedGame())
-
-      disable("uploadData")
-
-      showToast(
-        .options = constant$myToastOptions,
-        "success",
-        "You have successfully uploaded the recent matchday!"
-      )
+      
+      tryCatch({
+        disable("uploadData")
+        
+        importGameData(processedGame())
+        
+        sendIndexUpdate(input$season)
+        
+        showToast(
+          .options = constant$myToastOptions,
+          "success",
+          "You have successfully uploaded the recent matchday!"
+        )
+      }, , error = function(e) {
+        # If any error occurs, rollback the transaction and show an error message.
+        portalQuery(query = "ROLLBACK;", type = "set")
+        
+        message("Error executing query: ", e)
+        
+        FALSE
+      }, error = function(e) {
+        showToast(
+          .options = constant$sslToastOptions,
+          "error",
+          paste(
+            "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+            e$message
+          )
+        )
+        
+        message("Transaction failed, rolling back: ", e$message)
+      })
+      
     }) |>
       shiny$bindEvent(input$uploadData)
+    
+    shiny$observe({
+      shiny$req(filePathAcademy())
+      
+      tryCatch({
+        
+        disable("uploadDataAcademy")
+        
+        indexQuery(
+          query = "DELETE FROM academyoutfield WHERE season = {season};",
+          season = input$seasonAcademy,
+          type   = "set"
+        )
+        
+        indexQuery(
+          query = "DELETE FROM academykeeper WHERE season = {season};",
+          season = input$seasonAcademy,
+          type   = "set"
+        )
+        
+        importAcademyData(processedGameAcademy())
+        
+        sendAcademyIndexUpdate(input$season)
+        
+        showToast(
+          .options = constant$myToastOptions,
+          "success",
+          "You have successfully uploaded the recent matchday!"
+        )
+      }, error = function(e) {
+        showToast(
+          .options = constant$sslToastOptions,
+          "error",
+          paste(
+            "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+            e$message
+          )
+        )
+        
+        message("Transaction failed, rolling back: ", e$message)
+      })
+    }) |>
+      shiny$bindEvent(input$uploadDataAcademy)
   })
 }

@@ -9,7 +9,9 @@ box::use(
     rename, 
     relocate
   ],
+  purrr[pmap],
   rvest[read_html, html_elements, html_table],
+  stats[setNames],
   stringr[
     str_detect,
     str_remove_all,
@@ -20,7 +22,8 @@ box::use(
     str_to_lower, 
     str_to_title,
     str_to_upper,
-  ]
+  ],
+  
 )
 
 box::use(
@@ -204,21 +207,146 @@ parseFMdata <- function(path){
     suppressWarnings()
 }
 
-
-bulkInsert <- function(table, df) {
-  # Build a "(?, ?, …)" placeholder for each row
-  ph <- paste0("(", paste(rep("?", ncol(df)), collapse = ", "), ")")
-  sql <- sprintf("INSERT INTO %s VALUES %s;", table, ph)
-  
-  # Send one parameterized insert per row
-  apply(df, 1, function(row) {
-    portalQuery(c(list(query = sql), as.list(row)), type = "set")
-  })
-  invisible(TRUE)
-}
-
 #' @export
 importGameData <- function(data) {
   bulkInsert("gamedataoutfield", data$o)
   bulkInsert("gamedatakeeper",   data$k)
+}
+
+#' @export
+importAcademyData <- function(data) {
+  outfield <- data$o
+  keeper <- data$k
+  
+  for (i in seq_len(nrow(outfield))) {
+    indexQuery(
+      query = "
+    INSERT INTO academyoutfield (
+      season, name, club, position, apps, `minutes played`, `distance run (km)`,
+      `average rating`, `player of the match`, goals, assists, xg, xa, 
+      `xg overperformance`, `goals outside box`, `shots on target`, shots, 
+      `fk shots`, blocks, `penalties taken`, `penalties scored`, 
+      `successfull passes`, `attempted passes`, `pass%`, `key passes`, 
+      `open play key passes`, `successful open play crosses`, 
+      `attempted open play crosses`, `successful crosses`, `attempted crosses`, 
+      `cross%`, `chances created`, `successful headers`, `attempted headers`, 
+      `header%`, `key headers`, dribbles, `tackles won`, `attempted tackles`, 
+      `tackle%`, `key tackles`, interceptions, `shots blocked`, clearances, 
+      `mistakes leading to goals`, `yellow cards`, `red cards`, fouls, 
+      `fouls against`, offsides, `progressive passes`, `successful presses`, 
+      `attempted presses`
+    )
+    VALUES (
+      {season}, {name}, {club}, {position}, {apps}, {minutes_played}, {distance_run_km},
+      {average_rating}, {player_of_the_match}, {goals}, {assists}, {xg}, {xa}, 
+      {xg_overperformance}, {goals_outside_box}, {shots_on_target}, {shots}, 
+      {fk_shots}, {blocks}, {penalties_taken}, {penalties_scored}, 
+      {successful_passes}, {attempted_passes}, {pass_pct}, {key_passes}, 
+      {open_play_key_passes}, {successful_open_play_crosses}, 
+      {attempted_open_play_crosses}, {successful_crosses}, {attempted_crosses}, 
+      {cross_pct}, {chances_created}, {successful_headers}, {attempted_headers}, 
+      {header_pct}, {key_headers}, {dribbles}, {tackles_won}, {attempted_tackles}, 
+      {tackle_pct}, {key_tackles}, {interceptions}, {shots_blocked}, {clearances}, 
+      {mistakes_leading_to_goals}, {yellow_cards}, {red_cards}, {fouls}, 
+      {fouls_against}, {offsides}, {progressive_passes}, {successful_presses}, 
+      {attempted_presses}
+    );",
+      season                   = outfield$season[i],
+      name                     = outfield$name[i],
+      club                     = outfield$club[i],
+      position                 = outfield$position[i],
+      apps                     = outfield$apps[i],
+      minutes_played           = outfield$`minutes played`[i],
+      distance_run_km          = outfield$`distance run (km)`[i],
+      average_rating           = outfield$`average rating`[i],
+      player_of_the_match      = outfield$`player of the match`[i],
+      goals                    = outfield$goals[i],
+      assists                  = outfield$assists[i],
+      xg                       = outfield$xg[i],
+      xa                       = outfield$xa[i],
+      xg_overperformance       = outfield$`xg overperformance`[i],
+      goals_outside_box        = outfield$`goals outside box`[i],
+      shots_on_target          = outfield$`shots on target`[i],
+      shots                    = outfield$shots[i],
+      fk_shots                 = outfield$`fk shots`[i],
+      blocks                   = outfield$blocks[i],
+      penalties_taken          = outfield$`penalties taken`[i],
+      penalties_scored         = outfield$`penalties scored`[i],
+      successful_passes        = outfield$`successful passes`[i],
+      attempted_passes         = outfield$`attempted passes`[i],
+      pass_pct                 = outfield$`pass%`[i],
+      key_passes               = outfield$`key passes`[i],
+      open_play_key_passes     = outfield$`open play key passes`[i],
+      successful_open_play_crosses = outfield$`successful open play crosses`[i],
+      attempted_open_play_crosses  = outfield$`attempted open play crosses`[i],
+      successful_crosses       = outfield$`successful crosses`[i],
+      attempted_crosses        = outfield$`attempted crosses`[i],
+      cross_pct                = outfield$`cross%`[i],
+      chances_created          = outfield$`chances created`[i],
+      successful_headers       = outfield$`successful headers`[i],
+      attempted_headers        = outfield$`attempted headers`[i],
+      header_pct               = outfield$`header%`[i],
+      key_headers              = outfield$`key headers`[i],
+      dribbles                 = outfield$dribbles[i],
+      tackles_won              = outfield$`tackles won`[i],
+      attempted_tackles        = outfield$`attempted tackles`[i],
+      tackle_pct               = outfield$`tackle%`[i],
+      key_tackles              = outfield$`key tackles`[i],
+      interceptions            = outfield$interceptions[i],
+      shots_blocked            = outfield$`shots blocked`[i],
+      clearances               = outfield$clearances[i],
+      mistakes_leading_to_goals = outfield$`mistakes leading to goals`[i],
+      yellow_cards             = outfield$`yellow cards`[i],
+      red_cards                = outfield$`red cards`[i],
+      fouls                    = outfield$fouls[i],
+      fouls_against            = outfield$`fouls against`[i],
+      offsides                 = outfield$offsides[i],
+      progressive_passes       = outfield$`progressive passes`[i],
+      successful_presses       = outfield$`successful presses`[i],
+      attempted_presses        = outfield$`attempted presses`[i],
+      type                     = "set"
+    )
+  }
+ 
+  for (i in seq_len(nrow(keeper))) {
+    indexQuery(
+      query = "
+    INSERT INTO academykeeper (
+      season, name, club, position, apps, `minutes played`, 
+      `average rating`, `player of the match`, won, lost, draw, 
+      `clean sheets`, conceded, `saves parried`, `saves held`, 
+      `saves tipped`, `save%`, `penalties faced`, `penalties saved`, 
+      `xsave%`, `xg prevented`
+    )
+    VALUES (
+      {season}, {name}, {club}, {position}, {apps}, {minutes_played}, 
+      {average_rating}, {player_of_the_match}, {won}, {lost}, {draw}, 
+      {clean_sheets}, {conceded}, {saves_parried}, {saves_held}, 
+      {saves_tipped}, {save_pct}, {penalties_faced}, {penalties_saved}, 
+      {xsave_pct}, {xg_prevented}
+    );",
+      season              = keeper$season[i],
+      name                = keeper$name[i],
+      club                = keeper$club[i],
+      position            = keeper$position[i],
+      apps                = keeper$apps[i],
+      minutes_played      = keeper$`minutes played`[i],
+      average_rating      = keeper$`average rating`[i],
+      player_of_the_match = keeper$`player of the match`[i],
+      won                 = keeper$won[i],
+      lost                = keeper$lost[i],
+      draw                = keeper$drawn[i],
+      clean_sheets        = keeper$`clean sheets`[i],
+      conceded            = keeper$conceded[i],
+      saves_parried       = keeper$`saves parried`[i],
+      saves_held          = keeper$`saves held`[i],
+      saves_tipped        = keeper$`saves tipped`[i],
+      save_pct            = keeper$`save%`[i],
+      penalties_faced     = keeper$`penalties faced`[i],
+      penalties_saved     = keeper$`penalties saved`[i],
+      xsave_pct           = keeper$`xsave%`[i],
+      xg_prevented        = keeper$`xg prevented`[i],
+      type                = "set"
+    )
+  }
 }
