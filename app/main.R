@@ -32,6 +32,7 @@ box::use(
   app/view/index/leagueIndex,
   app/view/index/schedule,
   app/view/index/standings,
+  app/view/index/academyStandings,
   app/view/jobs/bank/bankDeposit,
   app/view/jobs/bank/bankProcess,
   app/view/jobs/bod/approvePlayer,
@@ -72,6 +73,7 @@ ui <- function(id) {
       route("index/records", careerRecords$ui(ns("records"))),
       route("index/schedule", schedule$ui(ns("schedule"))),
       route("index/standings", standings$ui(ns("standings"))),
+      route("index/academyStandings", academyStandings$ui(ns("academyStandings"))),
       route("tracker/draftclass", draftclass$ui(ns("draftclass"))),
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/position", position$ui(ns("position"))),
@@ -131,7 +133,7 @@ server <- function(id) {
         create = FALSE, player = FALSE, index = FALSE, playerUpdate = FALSE,
         playerReroll = FALSE, playerRedist = FALSE, playerRegress = FALSE,
         myPlayer = FALSE, import = FALSE, standings = FALSE, 
-        schedule = FALSE, academy = FALSE, 
+        schedule = FALSE, academy = FALSE, academyStandings = FALSE, 
         myBank = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
         tradeProcess = FALSE, ptDeposit = FALSE,
@@ -180,6 +182,11 @@ server <- function(id) {
        
         academyIndex$server("academy")
         loadedServer$academy <- TRUE
+        
+      } else if (current == "index/academyStandings" & !loadedServer$academyStandings) {
+          
+        academyStandings$server("academyStandings")
+        loadedServer$academyStandings <- TRUE
         
       } else if (current == "tracker/organization" & !loadedServer$organization) {
         
