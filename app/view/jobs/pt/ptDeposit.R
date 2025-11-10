@@ -145,7 +145,7 @@ server <- function(id, auth, updated) {
         
         NULL
       } else if (all(c("username", "tpe", "source") %in% 
-          (colnames(data) |> str_to_lower()))) {
+                     (colnames(data) |> str_to_lower()))) {
         
         colnames(data) <- colnames(data) |> str_to_lower()
         
@@ -165,12 +165,12 @@ server <- function(id, auth, updated) {
           dplyr$mutate(
             userLower = str_to_lower(username)
           ) |> 
-          dplyr$select(!username) |> 
           dplyr$left_join(
             pids |> 
               dplyr$mutate(
                 userLower = str_to_lower(username)
-              ),
+              ) |> 
+              dplyr$select(!username),
             by = "userLower"
           ) |> 
           dplyr$mutate(
@@ -266,6 +266,13 @@ server <- function(id, auth, updated) {
       
       unProcessed <- 
         ptDeposit() |> 
+        dplyr$mutate(
+          source = dplyr$if_else(
+            is.na(source),
+            input$depositSource,
+            source
+          )
+        ) |>
         dplyr$filter(pid == -99)
       
       if (nrow(unProcessed) > 0) {
@@ -294,7 +301,7 @@ server <- function(id, auth, updated) {
             tpe = processed |> dplyr$select(source, tpe)
           )
           
-          updated(updated() + 1)
+          sendGradedTPE(data = processed)
           
           showToast(
             .options = constant$sslToastOptions,
@@ -302,7 +309,7 @@ server <- function(id, auth, updated) {
             "You have successfully made a deposit!"
           )
           
-          sendGradedTPE(data = processed)
+          updated(updated() + 1)
         }, error = function(e) {
           showToast(
             .options = constant$sslToastOptions,
@@ -320,11 +327,11 @@ server <- function(id, auth, updated) {
       }
       
       reset("fileInput")
-        
+      
     }) |> 
       shiny$bindEvent(
         input$confirmDeposit
       )
-      
+    
   })
 }

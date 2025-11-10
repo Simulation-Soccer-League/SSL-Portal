@@ -57,7 +57,7 @@ sendGradedTPE <- function(data){
   if(nchar(gradedString) > 1024){
     result <- 
       apply(
-        tpe |> 
+        data |> 
           dplyr$select(username, tpe, source), 
         1, 
         function(row) paste(row, collapse = " - ")
