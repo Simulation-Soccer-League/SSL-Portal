@@ -512,13 +512,6 @@ server <- function(id, auth, updated) {
           "success",
           "You have successfully uploaded the recent matchday!"
         )
-      }, , error = function(e) {
-        # If any error occurs, rollback the transaction and show an error message.
-        portalQuery(query = "ROLLBACK;", type = "set")
-        
-        message("Error executing query: ", e)
-        
-        FALSE
       }, error = function(e) {
         showToast(
           .options = constant$sslToastOptions,
