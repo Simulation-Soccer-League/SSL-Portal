@@ -23,12 +23,14 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery],
+  app/logic/db/database[
+    logBankTransaction, 
+    portalQuery,
+  ],
   app/logic/db/get[
     getActivePlayer, 
     getPlayer, 
   ],
-  app/logic/db/logFunctions[logBankTransaction],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updatePlayerData, updateTPE],
   app/logic/player/playerChecks[
@@ -361,9 +363,11 @@ server <- function(id, auth, updated) {
             
             logBankTransaction(
               uid = auth$uid,
-              pid = playerData()$pid,
-              source = "Store Purchase",
-              transaction = -totalCost()
+              data = dplyr$tibble(
+                pid = playerData()$pid,
+                source = "Store Purchase",
+                amount = -totalCost()
+              )
             )
             
             updated(updated() + 1)

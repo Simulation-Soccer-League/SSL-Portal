@@ -86,7 +86,6 @@ logReroll <- function(pid) {
   )
 }
 
-#' @export
 #' HAS BEEN MOVED TO updateTPE()
 logTPE <- function(uid, pid, tpe) {
   # one timestamp
@@ -119,7 +118,7 @@ logTPE <- function(uid, pid, tpe) {
   )
 }
 
-#' @export
+#' HAS BEEN MOVED TO database.R TO ALLOW FOR ONE CONNECTION AND TRANSACTION/COMMIT
 logBankTransaction <- function(uid, pid, source, transaction, status = 1) {
   ts <- 
     now() |>
@@ -139,8 +138,11 @@ logBankTransaction <- function(uid, pid, source, transaction, status = 1) {
     for (i in seq_len(n)) {
       res <- portalQuery(
         query = 
-          "INSERT INTO banktransactions (time, pid, `source`, `transaction`, `status`, uid) 
-         VALUES ({time}, {pid}, {source}, {transaction}, {status}, {uid});",
+          "INSERT INTO banktransactions (
+            time, pid, `source`, `transaction`, `status`, uid
+          ) VALUES (
+            {time}, {pid}, {source}, {transaction}, {status}, {uid}
+          );",
         time        = ts,
         pid         = pid[i],
         source      = source[i],

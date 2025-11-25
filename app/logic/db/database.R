@@ -1,7 +1,9 @@
 ## Function for queries to mybb
 box::use(
   DBI,
+  dplyr,
   glue,
+  lubridate[now, with_tz],
   RMySQL,
 )
 
@@ -10,17 +12,20 @@ dbPort <- Sys.getenv("PORT") |> as.integer()
 dbUser <- Sys.getenv("DBUSER")
 dbPassword <- Sys.getenv("DBPASSWORD")
 
+createConnection <- function(schema) {
+  DBI$dbConnect(
+    RMySQL$MySQL(),
+    dbname = Sys.getenv(schema),
+    host = dbHost,
+    port = dbPort,
+    user = dbUser,
+    password = dbPassword
+  )
+}
+
 getQuery <- function(query, ..., schema) {
   tryCatch({
-    con <-
-      DBI$dbConnect(
-        RMySQL$MySQL(),
-        dbname = Sys.getenv(schema),
-        host = dbHost,
-        port = dbPort,
-        user = dbUser,
-        password = dbPassword
-      )
+    con <- createConnection(schema)
     
     DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
@@ -54,15 +59,7 @@ getQuery <- function(query, ..., schema) {
 
 setQuery <- function(query, ..., schema) {
   tryCatch({
-    con <-
-      DBI$dbConnect(
-        RMySQL$MySQL(),
-        dbname = Sys.getenv(schema),
-        host = dbHost,
-        port = dbPort,
-        user = dbUser,
-        password = dbPassword
-      )
+    con <- createConnection(schema)
     
     DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
@@ -92,6 +89,65 @@ setQuery <- function(query, ..., schema) {
       DBI$dbDisconnect(con)
     }
   })
+}
+
+#' Function for logging (multiple) bank transactions
+#' @export
+logBankTransaction <- function(uid, data, status = 1) {
+  con <- createConnection("portal")
+  
+  timestamp <- now() |> 
+    with_tz("US/Pacific") |> 
+    as.numeric()
+  
+  DBI$dbExecute(con, "SET NAMES utf8mb4;")
+  DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
+  DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
+  
+  DBI$dbExecute(con, "START TRANSACTION;")
+  
+  tryCatch({
+
+    insert <- "INSERT INTO banktransactions (
+    time, pid, `source`, `transaction`, `status`, uid
+          ) VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "({time}, {pid}, {source}, {transaction}, {status}, {uid})",
+        .con = con,
+        time        = timestamp,
+        pid         = data$pid,
+        source      = data$source,
+        transaction = data$amount,
+        status      = status,
+        uid         = uid
+      ) |> 
+        glue$glue_sql_collapse(sep = ", ")
+      
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    # safeQuery <- DBI$sqlInterpolate(con, query, ...)
+    
+    DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
+    
+    DBI$dbExecute(con, "COMMIT;")
+    
+  }, error = function(e) {
+    DBI$dbExecute(con, "ROLLBACK;")
+    
+    # Log or handle the error
+    message("Error executing query: ", e$message)
+    
+    stop(e$message)
+  }, finally = {
+    # Ensure the connection is closed
+    DBI$dbDisconnect(con)
+  })
+  
 }
 
 #' Function for queries to mybb

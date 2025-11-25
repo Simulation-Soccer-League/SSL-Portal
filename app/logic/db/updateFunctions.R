@@ -12,10 +12,12 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery],
+  app/logic/db/database[
+    logBankTransaction, 
+    portalQuery,
+  ],
   app/logic/db/discord[sendApprovedCreate, sendRetiredPlayer],
   app/logic/db/get[getActivePlayer,],
-  app/logic/db/logFunctions[logBankTransaction],
   app/logic/db/updateFunctions[updateTPE],
 )
 
@@ -382,9 +384,11 @@ approvePlayer <- function(data, uid) {
     ## Adding Academy Contract to bank history
     logBankTransaction(
       uid = uid, 
-      pid = data$pid, 
-      source = "Academy Contract",
-      transaction = 3000000,
+      data = dplyr$tibble(
+        pid = data$pid,
+        source = "Academy Contract",
+        amount = 3E6
+      ),
       status = 1
     )
     
