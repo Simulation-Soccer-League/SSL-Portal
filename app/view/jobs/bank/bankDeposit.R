@@ -24,8 +24,10 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[
-    logBankTransaction, 
     portalQuery,
+  ],
+  app/logic/db/logFunctions[
+    logBankTransaction,
   ],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/player/playerChecks[

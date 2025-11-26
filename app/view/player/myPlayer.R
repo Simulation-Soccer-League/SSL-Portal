@@ -15,9 +15,12 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery, updateTPE],
+  app/logic/db/database[portalQuery],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/db/updateFunctions[retirePlayer],
+  app/logic/db/updateFunctions[
+    updateTPE,
+    retirePlayer,
+  ],
   app/logic/player/playerChecks[
     completedAC,
     completedTC, 

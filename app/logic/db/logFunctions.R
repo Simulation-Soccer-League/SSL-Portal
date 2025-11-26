@@ -1,4 +1,5 @@
 box::use(
+  DBI,
   dplyr,
   lubridate[now, with_tz],
   purrr[pwalk],
@@ -8,7 +9,10 @@ box::use(
 )
 
 box::use(
-  app/logic/db/database[portalQuery],
+  app/logic/db/database[
+    createConnection,
+    portalQuery,
+  ],
 )
 
 #' @export
@@ -118,63 +122,61 @@ logTPE <- function(uid, pid, tpe) {
   )
 }
 
-#' HAS BEEN MOVED TO database.R TO ALLOW FOR ONE CONNECTION AND TRANSACTION/COMMIT
-logBankTransaction <- function(uid, pid, source, transaction, status = 1) {
-  ts <- 
-    now() |>
+#' Function for logging (multiple) bank transactions
+#' @export
+logBankTransaction <- function(uid, data, status = 1) {
+  con <- createConnection("portal")
+  
+  timestamp <- now() |> 
     with_tz("US/Pacific") |> 
     as.numeric()
   
-  # Begin the transaction
-  portalQuery(
-    query = "START TRANSACTION;",
-    type = "set"
-  )
+  DBI$dbExecute(con, "SET NAMES utf8mb4;")
+  DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
+  DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
   
-  # Try executing all inserts; if an error occurs, rollback the transaction.
+  DBI$dbBegin(con)
+  
   tryCatch({
-    n <- length(pid)  # Assume all vectors have equal length
     
-    for (i in seq_len(n)) {
-      res <- portalQuery(
-        query = 
-          "INSERT INTO banktransactions (
-            time, pid, `source`, `transaction`, `status`, uid
-          ) VALUES (
-            {time}, {pid}, {source}, {transaction}, {status}, {uid}
-          );",
-        time        = ts,
-        pid         = pid[i],
-        source      = source[i],
-        transaction = transaction[i],
+    insert <- "INSERT INTO banktransactions (
+    time, pid, `source`, `transaction`, `status`, uid
+          ) VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "({time}, {pid}, {source}, {transaction}, {status}, {uid})",
+        .con = con,
+        time        = timestamp,
+        pid         = data$pid,
+        source      = data$source,
+        transaction = data$amount,
         status      = status,
-        uid         = uid,
-        type        = "set"
-      )
-      
-      # Optionally check if the insert failed (depends on how portalQuery returns errors)
-      # If portalQuery returns NULL or a specific error code, you could trigger an error:
-      if (is.null(res)) {
-        stop("Insert failed for row ", i)
-      }
-    }
+        uid         = uid
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
     
-    # All rows inserted successfully; commit the transaction
-    portalQuery(
-      query = "COMMIT;",
-      type = "set"
-    )
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    # safeQuery <- DBI$sqlInterpolate(con, query, ...)
+    
+    DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
+    
+    DBI$dbCommit(con)
     
   }, error = function(e) {
-    # An error occurred; rollback the transaction
-    portalQuery(
-      query = "ROLLBACK;",
-      type = "set"
-    )
+    DBI$dbRollback(con)
+    
+    # Log or handle the error
+    message("Error executing query: ", e$message)
     
     stop(e$message)
-    
-    message("Transaction failed, rolling back: ", e$message)
+  }, finally = {
+    # Ensure the connection is closed
+    DBI$dbDisconnect(con)
   })
   
 }

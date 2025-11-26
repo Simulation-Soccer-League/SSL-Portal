@@ -1,4 +1,5 @@
 box::use(
+  DBI,
   dplyr,
   lubridate[as_date, now, with_tz],
   purrr[pwalk],
@@ -13,12 +14,14 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[
-    logBankTransaction, 
+    createConnection,
     portalQuery,
-    updateTPE,
   ],
   app/logic/db/discord[sendApprovedCreate, sendRetiredPlayer],
   app/logic/db/get[getActivePlayer,],
+  app/logic/db/logFunctions[
+    logBankTransaction,
+  ]
 )
 
 
@@ -137,72 +140,92 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
   }
 }
 
-#' MOVED TO database.R 
-# updateTPE <- function(uid, pids, tpe) {
-#   
-#   result <- 
-#     tryCatch({
-#       # Start transaction to ensure all updates are applied atomically.
-#       portalQuery(query = "START TRANSACTION;", type = "set")
-#       
-#       # one timestamp
-#       ts <- 
-#         now() |>
-#         with_tz("US/Pacific") |> 
-#         as.numeric()
-#       
-#       # fire one parameterized INSERT per row
-#       pwalk(
-#         .l = list(pid = pids, source = tpe$source, tpeVal = tpe$tpe),
-#         .f = 
-#           function(pid, source, tpeVal) {
-#             portalQuery(
-#               query = 
-#                 "INSERT INTO tpehistory (
-#                     uid, pid, time, source, tpe
-#                   ) VALUES (
-#                     {uid}, {pid}, {time}, {source}, {tpe}
-#                   );",
-#               uid    = uid,
-#               pid    = pid,
-#               time   = ts,
-#               source = source,
-#               tpe    = tpeVal,
-#               type = "set"
-#             )
-#             
-#             portalQuery(
-#               query = 
-#                 "UPDATE playerdata
-#                   SET
-#                     tpe      = tpe + {tpe},
-#                     tpebank  = tpebank + {tpe}
-#                   WHERE pid = {pid};",
-#               tpe = tpe$tpe,
-#               pid = pid,
-#               type = "set"
-#             )
-#           }
-#       )
-#       
-#       TRUE  # Indicate success if all insertions succeed.
-#     }, error = function(e) {
-#       # If any error occurs, rollback the transaction and show an error message.
-#       portalQuery(query = "ROLLBACK;", type = "set")
-#       
-#       message("Error executing query: ", e)
-# 
-#       FALSE
-#     })
-#   
-#   # If the tryCatch block completed successfully, commit the transaction.
-#   if (result) {
-#     portalQuery(query = "COMMIT;", type = "set")
-#   } else {
-#     stop()
-#   }
-#   
-# }
+#' Function for updating and logging (multiple) TPE earnings
+#' @export
+updateTPE <- function(uid, tpeData) {
+  con <- createConnection("portal")
+  
+  timestamp <- now() |> 
+    with_tz("US/Pacific") |> 
+    as.numeric()
+  
+  DBI$dbExecute(con, "SET NAMES utf8mb4;")
+  DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
+  DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
+  
+  DBI$dbBegin(con)
+  
+  tryCatch({
+    
+    # Logs TPE history
+    insert <- "INSERT INTO tpehistory (
+      `uid`, `pid`, `time`, `source`, `tpe`
+          ) VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "({uid}, {pid}, {time}, {source}, {tpe})",
+        .con = con,
+        time        = timestamp,
+        pid         = tpeData$pid,
+        source      = tpeData$source,
+        tpe         = tpeData$tpe,
+        uid         = uid
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
+    
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
+    
+    # Updates TPE for players
+    DBI$dbExecute(con, "DROP TEMPORARY TABLE IF EXISTS temp_updates;")
+    DBI$dbExecute(con, "CREATE TEMPORARY TABLE temp_updates (pid INT NOT NULL, tpe INT NOT NULL);")
+    
+    
+    insert <- "INSERT INTO temp_updates (pid, tpe) VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "({pid}, {tpe})",
+        .con = con,
+        pid = tpeData$pid,
+        tpe = tpeData$tpe
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
+    
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    DBI$dbExecute(con, safeQuery)
+    
+    DBI$dbExecute(con, 
+                  "UPDATE playerdata p
+     JOIN temp_updates u ON p.pid = u.pid
+     SET 
+        p.tpe      = p.tpe + u.tpe,
+        p.tpebank  = p.tpebank + u.tpe;"
+    )
+    
+    DBI$dbCommit(con)
+    
+  }, error = function(e) {
+    DBI$dbRollback(con)
+    
+    # Log or handle the error
+    message("Error executing query: ", e$message)
+    
+    stop(e$message)
+  }, finally = {
+    # Ensure the connection is closed
+    DBI$dbDisconnect(con)
+  })
+  
+}
 
 #' @export
 approveTransaction <- function(data, uid) {

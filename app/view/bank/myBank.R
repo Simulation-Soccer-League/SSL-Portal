@@ -24,16 +24,20 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[
-    logBankTransaction, 
     portalQuery,
-    updateTPE,
   ],
   app/logic/db/get[
     getActivePlayer, 
     getPlayer, 
   ],
+  app/logic/db/logFunctions[
+    logBankTransaction,
+  ],
   app/logic/db/login[isNonActiveForumUser],
-  app/logic/db/updateFunctions[updatePlayerData],
+  app/logic/db/updateFunctions[
+    updatePlayerData,
+    updateTPE,
+  ],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],
