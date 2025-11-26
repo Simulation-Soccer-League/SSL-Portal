@@ -213,7 +213,8 @@ server <- function(id, auth, updated) {
       shiny$req(input$season)
 
       getNextGameID(input$season)
-    })
+    }) |> 
+      shiny$bindEvent(filePath())
 
     processedGame <- shiny$reactive({
       currentSave <- parseFMdata(filePath())
