@@ -12,11 +12,13 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery],
+  app/logic/db/database[
+    logBankTransaction, 
+    portalQuery,
+    updateTPE,
+  ],
   app/logic/db/discord[sendApprovedCreate, sendRetiredPlayer],
   app/logic/db/get[getActivePlayer,],
-  app/logic/db/logFunctions[logBankTransaction],
-  app/logic/db/updateFunctions[updateTPE],
 )
 
 
@@ -135,72 +137,72 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
   }
 }
 
-#' @export
-updateTPE <- function(uid, pids, tpe) {
-  
-  result <- 
-    tryCatch({
-      # Start transaction to ensure all updates are applied atomically.
-      portalQuery(query = "START TRANSACTION;", type = "set")
-      
-      # one timestamp
-      ts <- 
-        now() |>
-        with_tz("US/Pacific") |> 
-        as.numeric()
-      
-      # fire one parameterized INSERT per row
-      pwalk(
-        .l = list(pid = pids, source = tpe$source, tpeVal = tpe$tpe),
-        .f = 
-          function(pid, source, tpeVal) {
-            portalQuery(
-              query = 
-                "INSERT INTO tpehistory (
-                    uid, pid, time, source, tpe
-                  ) VALUES (
-                    {uid}, {pid}, {time}, {source}, {tpe}
-                  );",
-              uid    = uid,
-              pid    = pid,
-              time   = ts,
-              source = source,
-              tpe    = tpeVal,
-              type = "set"
-            )
-            
-            portalQuery(
-              query = 
-                "UPDATE playerdata
-                  SET
-                    tpe      = tpe + {tpe},
-                    tpebank  = tpebank + {tpe}
-                  WHERE pid = {pid};",
-              tpe = tpe$tpe,
-              pid = pid,
-              type = "set"
-            )
-          }
-      )
-      
-      TRUE  # Indicate success if all insertions succeed.
-    }, error = function(e) {
-      # If any error occurs, rollback the transaction and show an error message.
-      portalQuery(query = "ROLLBACK;", type = "set")
-      
-      message("Error executing query: ", e)
-
-      FALSE
-    })
-  
-  # If the tryCatch block completed successfully, commit the transaction.
-  if (result) {
-    portalQuery(query = "COMMIT;", type = "set")
-  } else {
-    stop()
-  }
-  
-}
+#' MOVED TO database.R 
+# updateTPE <- function(uid, pids, tpe) {
+#   
+#   result <- 
+#     tryCatch({
+#       # Start transaction to ensure all updates are applied atomically.
+#       portalQuery(query = "START TRANSACTION;", type = "set")
+#       
+#       # one timestamp
+#       ts <- 
+#         now() |>
+#         with_tz("US/Pacific") |> 
+#         as.numeric()
+#       
+#       # fire one parameterized INSERT per row
+#       pwalk(
+#         .l = list(pid = pids, source = tpe$source, tpeVal = tpe$tpe),
+#         .f = 
+#           function(pid, source, tpeVal) {
+#             portalQuery(
+#               query = 
+#                 "INSERT INTO tpehistory (
+#                     uid, pid, time, source, tpe
+#                   ) VALUES (
+#                     {uid}, {pid}, {time}, {source}, {tpe}
+#                   );",
+#               uid    = uid,
+#               pid    = pid,
+#               time   = ts,
+#               source = source,
+#               tpe    = tpeVal,
+#               type = "set"
+#             )
+#             
+#             portalQuery(
+#               query = 
+#                 "UPDATE playerdata
+#                   SET
+#                     tpe      = tpe + {tpe},
+#                     tpebank  = tpebank + {tpe}
+#                   WHERE pid = {pid};",
+#               tpe = tpe$tpe,
+#               pid = pid,
+#               type = "set"
+#             )
+#           }
+#       )
+#       
+#       TRUE  # Indicate success if all insertions succeed.
+#     }, error = function(e) {
+#       # If any error occurs, rollback the transaction and show an error message.
+#       portalQuery(query = "ROLLBACK;", type = "set")
+#       
+#       message("Error executing query: ", e)
+# 
+#       FALSE
+#     })
+#   
+#   # If the tryCatch block completed successfully, commit the transaction.
+#   if (result) {
+#     portalQuery(query = "COMMIT;", type = "set")
+#   } else {
+#     stop()
+#   }
+#   
+# }
 
 #' @export
 approveTransaction <- function(data, uid) {
@@ -382,9 +384,11 @@ approvePlayer <- function(data, uid) {
     ## Adding Academy Contract to bank history
     logBankTransaction(
       uid = uid, 
-      pid = data$pid, 
-      source = "Academy Contract",
-      transaction = 3000000,
+      data = dplyr$tibble(
+        pid = data$pid,
+        source = "Academy Contract",
+        amount = 3E6
+      ),
       status = 1
     )
     
@@ -400,12 +404,13 @@ approvePlayer <- function(data, uid) {
     
     tpe <- 
       dplyr$tibble(
+        pid = data$pid,
         source = "Catch-up TPE",
         tpe = floor((today - seasonStart) / 7) * 6
       )
     
     if (tpe$tpe > 0) {
-      updateTPE(uid = 1, pids = data$pid, tpe = tpe)
+      updateTPE(uid = 1, tpeData = tpe)
     }
     
     sendApprovedCreate(data = data)

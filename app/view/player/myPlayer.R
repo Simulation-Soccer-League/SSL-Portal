@@ -15,9 +15,9 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery],
+  app/logic/db/database[portalQuery, updateTPE],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/db/updateFunctions[retirePlayer, updateTPE],
+  app/logic/db/updateFunctions[retirePlayer],
   app/logic/player/playerChecks[
     completedAC,
     completedTC, 
@@ -95,6 +95,11 @@ server <- function(id, auth, updated) {
             style = paste0("background: ", constant$green)
           )
         },
+        shiny$actionButton(
+          ns("Retire"), 
+          label = "Retire", 
+          style = paste0("background: ", constant$red)
+        ),
         if (bankedTPE() < 0) {
           shiny$actionButton(
             ns("Regress"), 
@@ -108,11 +113,6 @@ server <- function(id, auth, updated) {
             disabled = TRUE
           )
         },
-        shiny$actionButton(
-          ns("Retire"), 
-          label = "Retire", 
-          style = paste0("background: ", constant$red)
-        ),
         if (eligibleRedist(playerData())) {
           shiny$actionButton(
             ns("Redistribute"), 
@@ -137,8 +137,14 @@ server <- function(id, auth, updated) {
       
       shiny$tagList(
         bslib$layout_column_wrap(
-          width = 1 / min(4, length(buttonList)),
-          !!!unname(buttonList)
+          width = NULL,
+          style = bslib$css(grid_template_columns = "1fr 8fr 1fr"),
+          "",
+          bslib$layout_column_wrap(
+            width = 1 / length(buttonList),
+            !!!unname(buttonList)
+          ),
+          ""
         ),
         shiny$br(),
         player$ui(ns("player"))
@@ -211,11 +217,12 @@ server <- function(id, auth, updated) {
         } else {
           tpe <- 
             dplyr$tibble(
+              pid = playerData()$pid,
               source = "Activity Check",
               tpe = 6
             )
           
-          updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
+          updateTPE(uid = auth$uid, tpeData = tpe)
           
           updated(updated() + 1)
           
@@ -277,6 +284,7 @@ server <- function(id, auth, updated) {
           
           tpe <- 
             dplyr$tibble(
+              pid = playerData()$pid,
               source = paste0("S", constant$currentSeason$season, " Training Camp"),
               tpe = dplyr$case_when(
                 age <= 1 ~ 24,
@@ -286,7 +294,7 @@ server <- function(id, auth, updated) {
               )
             )
           
-          updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
+          updateTPE(uid = auth$uid, tpeData = tpe)
           
           updated(updated() + 1)
           
@@ -343,12 +351,13 @@ server <- function(id, auth, updated) {
           AND YOU WANT A CORPSE SEASON FOR YOUR PLAYER, TURN BACK NOW!",
           title = "Really really?",
           footer = shiny$tagList(
-            shiny$modalButton("No, go back"),
             shiny$actionButton(
               inputId = session$ns("confirmRetirement2"),
               label = "Yes, I want to permanently retire!"
-            )
-          ),
+            ),
+            shiny$modalButton("No, go back")
+          ) |> 
+            shiny$div(align = "left"),
           easyClose = FALSE
         )
       )

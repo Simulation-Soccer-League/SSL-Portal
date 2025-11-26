@@ -23,8 +23,10 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery],
-  app/logic/db/logFunctions[logBankTransaction],
+  app/logic/db/database[
+    logBankTransaction, 
+    portalQuery,
+  ],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/player/playerChecks[
     hasActivePlayer,
@@ -285,13 +287,10 @@ server <- function(id, auth, updated) {
         )
       } else {
         
-        
         tryCatch({
           logBankTransaction(
             uid = auth$uid,
-            pid = processed$pid,
-            source = processed$source,
-            transaction = processed$amount,
+            data = processed,
             status = 0
           )
           
