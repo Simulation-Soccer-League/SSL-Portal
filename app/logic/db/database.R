@@ -104,7 +104,7 @@ logBankTransaction <- function(uid, data, status = 1) {
   DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
   DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
   
-  DBI$dbExecute(con, "START TRANSACTION;")
+  DBI$dbBegin(con)
   
   tryCatch({
 
@@ -134,10 +134,97 @@ logBankTransaction <- function(uid, data, status = 1) {
     DBI$dbExecute(con, safeQuery) |> 
       suppressWarnings()
     
-    DBI$dbExecute(con, "COMMIT;")
+    DBI$dbCommit(con)
     
   }, error = function(e) {
-    DBI$dbExecute(con, "ROLLBACK;")
+    DBI$dbRollback(con)
+    
+    # Log or handle the error
+    message("Error executing query: ", e$message)
+    
+    stop(e$message)
+  }, finally = {
+    # Ensure the connection is closed
+    DBI$dbDisconnect(con)
+  })
+  
+}
+
+#' Function for updating and logging (multiple) TPE earnings
+#' @export
+updateTPE <- function(uid, tpeData) {
+  con <- createConnection("portal")
+  
+  timestamp <- now() |> 
+    with_tz("US/Pacific") |> 
+    as.numeric()
+  
+  DBI$dbExecute(con, "SET NAMES utf8mb4;")
+  DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
+  DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
+  
+  DBI$dbBegin(con)
+    
+  tryCatch({
+    
+    # Logs TPE history
+    insert <- "INSERT INTO tpehistory (
+      `uid`, `pid`, `time`, `source`, `tpe`
+          ) VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "({uid}, {pid}, {time}, {source}, {tpe})",
+        .con = con,
+        time        = timestamp,
+        pid         = tpeData$pid,
+        source      = tpeData$source,
+        tpe         = tpeData$tpe,
+        uid         = uid
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
+    
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
+    
+    # Updates TPE for players
+    DBI$dbExecute(con, "DROP TEMPORARY TABLE IF EXISTS temp_updates;")
+    DBI$dbExecute(con, "CREATE TEMPORARY TABLE temp_updates (pid INT NOT NULL, tpe INT NOT NULL);")
+    
+    
+    insert <- "INSERT INTO temp_updates (pid, tpe) VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "({pid}, {tpe})",
+        .con = con,
+        pid = tpeData$pid,
+        tpe = tpeData$tpe
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
+    
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    DBI$dbExecute(con, safeQuery)
+  
+    DBI$dbExecute(con, 
+    "UPDATE playerdata p
+     JOIN temp_updates u ON p.pid = u.pid
+     SET 
+        p.tpe      = p.tpe + u.tpe,
+        p.tpebank  = p.tpebank + u.tpe;"
+    )
+    
+    DBI$dbCommit(con)
+    
+  }, error = function(e) {
+    DBI$dbRollback(con)
     
     # Log or handle the error
     message("Error executing query: ", e$message)

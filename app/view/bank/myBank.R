@@ -26,13 +26,14 @@ box::use(
   app/logic/db/database[
     logBankTransaction, 
     portalQuery,
+    updateTPE,
   ],
   app/logic/db/get[
     getActivePlayer, 
     getPlayer, 
   ],
   app/logic/db/login[isNonActiveForumUser],
-  app/logic/db/updateFunctions[updatePlayerData, updateTPE],
+  app/logic/db/updateFunctions[updatePlayerData],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],
@@ -342,8 +343,8 @@ server <- function(id, auth, updated) {
               ## Logs and updates the tpe
               updateTPE(
                 uid = auth$uid,
-                pid = playerData()$pid,
                 tpe = dplyr$tibble(
+                  pid = playerData()$pid,
                   source = "Individual Training",
                   tpe = inputTrain$individualTraining
                 )

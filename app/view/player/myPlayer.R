@@ -15,9 +15,9 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery],
+  app/logic/db/database[portalQuery, updateTPE],
   app/logic/db/get[getActivePlayer, getPlayer],
-  app/logic/db/updateFunctions[retirePlayer, updateTPE],
+  app/logic/db/updateFunctions[retirePlayer],
   app/logic/player/playerChecks[
     completedAC,
     completedTC, 
@@ -217,11 +217,12 @@ server <- function(id, auth, updated) {
         } else {
           tpe <- 
             dplyr$tibble(
+              pid = playerData()$pid,
               source = "Activity Check",
               tpe = 6
             )
           
-          updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
+          updateTPE(uid = auth$uid, tpeData = tpe)
           
           updated(updated() + 1)
           
@@ -283,6 +284,7 @@ server <- function(id, auth, updated) {
           
           tpe <- 
             dplyr$tibble(
+              pid = playerData()$pid,
               source = paste0("S", constant$currentSeason$season, " Training Camp"),
               tpe = dplyr$case_when(
                 age <= 1 ~ 24,
@@ -292,7 +294,7 @@ server <- function(id, auth, updated) {
               )
             )
           
-          updateTPE(uid = auth$uid, pids = playerData()$pid, tpe = tpe)
+          updateTPE(uid = auth$uid, tpeData = tpe)
           
           updated(updated() + 1)
           

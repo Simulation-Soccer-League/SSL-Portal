@@ -22,10 +22,9 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery],
+  app/logic/db/database[portalQuery, updateTPE],
   app/logic/db/discord[sendGradedTPE],
   app/logic/db/login[isNonActiveForumUser],
-  app/logic/db/updateFunctions[updateTPE],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],
@@ -285,13 +284,18 @@ server <- function(id, auth, updated) {
           "error",
           "You have no deposits that can be processed."
         )
+      } else if ( any(processed$source == "") ) {
+        showToast(
+          .options = constant$myToastOptions,
+          "error",
+          "You have no source listed on at least one transaction. Add a source and reconfirm."
+        )
       } else {
         
         tryCatch({
           updateTPE(
             uid = auth$uid,
-            pids = processed$pid,
-            tpe = processed |> dplyr$select(source, tpe)
+            tpe = processed |> dplyr$select(pid, source, tpe)
           )
           
           updated(updated() + 1)
@@ -303,6 +307,8 @@ server <- function(id, auth, updated) {
           )
           
           sendGradedTPE(data = processed)
+          
+          reset("fileInput")
         }, error = function(e) {
           showToast(
             .options = constant$sslToastOptions,
@@ -319,7 +325,7 @@ server <- function(id, auth, updated) {
         })
       }
       
-      reset("fileInput")
+      enable("confirmDeposit")
         
     }) |> 
       shiny$bindEvent(
