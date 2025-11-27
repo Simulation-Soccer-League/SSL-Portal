@@ -1,6 +1,7 @@
 box::use(
   DBI,
   dplyr,
+  glue,
   lubridate[as_date, now, with_tz],
   purrr[pwalk],
   stringr[
@@ -140,7 +141,7 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
   }
 }
 
-#' Function for updating and logging (multiple) TPE earnings
+#' Update and log (multiple) TPE earnings
 #' @export
 updateTPE <- function(uid, tpeData) {
   con <- createConnection("portal")
@@ -227,86 +228,49 @@ updateTPE <- function(uid, tpeData) {
   
 }
 
+#' Approve or reject (multiple) transactions
 #' @export
-approveTransaction <- function(data, uid) {
-  # Begin the transaction
-  portalQuery(
-    query = "START TRANSACTION;",
-    type = "set"
-  )
+updateTransaction <- function(data, uid, status = 1) {
+  con <- createConnection("portal")
+  
+  timestamp <- now() |> 
+    with_tz("US/Pacific") |> 
+    as.numeric()
+  
+  DBI$dbExecute(con, "SET NAMES utf8mb4;")
+  DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
+  DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
+  
+  DBI$dbBegin(con)
   
   tryCatch({
-    for (i in seq_len(nrow(data))) {
-      portalQuery(
-        query = "UPDATE banktransactions 
-               SET status = 1, approvedBy = {approvedBy}
-               WHERE status = 0 
-                 AND time = {time} 
-                 AND pid = {pid} 
-                 AND source = {source};",
-        approvedBy = uid,
-        time       = data[i, "Time"],
-        pid        = data[i, "pid"],
-        source     = data[i, "Source"],
-        type       = "set"
-      )
-    }
     
-    # Commit the transaction if all updates succeed
-    portalQuery(
-      query = "COMMIT;",
-      type = "set"
-    )
+    safeQuery <- 
+      glue$glue_sql(
+        .con = con, 
+        "UPDATE banktransactions
+        SET status = {status}, approvedBy = {approvedBy}
+        WHERE
+          ttid IN ({ttid*});",
+        approvedBy = uid,
+        status     = status,
+        ttid       = data$id
+      )
+    
+    DBI$dbExecute(con, safeQuery)
+    
+    DBI$dbCommit(con)
     
   }, error = function(e) {
-    # Rollback the transaction if any error occurs
-    portalQuery(
-      query = "ROLLBACK;",
-      type = "set"
-    )
-    message("Error updating banktransactions, transaction rolled back: ", e$message)
-  })
-  
-}
-
-#' @export
-rejectTransaction <- function(data, uid) {
-  # Begin the transaction
-  portalQuery(
-    query = "START TRANSACTION;",
-    type = "set"
-  )
-  
-  tryCatch({
-    for (i in seq_len(nrow(data))) {
-      portalQuery(
-        query = "UPDATE banktransactions 
-               SET status = -1, approvedBy = {approvedBy}
-               WHERE status = 0 
-                 AND time = {time} 
-                 AND pid = {pid} 
-                 AND source = {source};",
-        approvedBy = uid,
-        time       = data[i, "Time"],
-        pid        = data[i, "pid"],
-        source     = data[i, "Source"],
-        type       = "set"
-      )
-    }
+    DBI$dbRollback(con)
     
-    # Commit the transaction if all updates succeed
-    portalQuery(
-      query = "COMMIT;",
-      type = "set"
-    )
+    # Log or handle the error
+    message("Error executing query: ", e$message)
     
-  }, error = function(e) {
-    # Rollback the transaction if any error occurs
-    portalQuery(
-      query = "ROLLBACK;",
-      type = "set"
-    )
-    message("Error updating banktransactions, transaction rolled back: ", e$message)
+    stop(e$message)
+  }, finally = {
+    # Ensure the connection is closed
+    DBI$dbDisconnect(con)
   })
   
 }

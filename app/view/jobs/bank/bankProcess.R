@@ -19,7 +19,7 @@ box::use(
   app/logic/constant,
   app/logic/db/get[getBankTransactions],
   app/logic/db/login[isNonActiveForumUser],
-  app/logic/db/updateFunctions[approveTransaction, rejectTransaction],
+  app/logic/db/updateFunctions[updateTransaction],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],
@@ -104,6 +104,7 @@ server <- function(id, auth, updated) {
             pagination = FALSE,
             columns = 
               list(
+                id = colDef(show = FALSE),
                 pid = colDef(show = FALSE),
                 Time = 
                   colDef(format = colFormat(datetime = TRUE)),
@@ -128,6 +129,7 @@ server <- function(id, auth, updated) {
           searchable = TRUE,
           columns = 
             list(
+              id = colDef(show = FALSE),
               pid = colDef(show = FALSE),
               Time = 
                 colDef(format = colFormat(datetime = TRUE)),
@@ -148,10 +150,12 @@ server <- function(id, auth, updated) {
       selected <- getReactableState("needApproval", "selected")
       shiny$req(selected)
       
-      
-      
       tryCatch({
-        approveTransaction(unapprovedTransactions()[selected, ], uid = auth$uid)
+        updateTransaction(
+          unapprovedTransactions()[selected, ], 
+          uid = auth$uid,
+          status = 1
+        )
         
         showToast(
           .options = constant$sslToastOptions,
@@ -183,7 +187,11 @@ server <- function(id, auth, updated) {
       shiny$req(selected)
       
       tryCatch({
-        rejectTransaction(unapprovedTransactions()[selected, ], uid = auth$uid)
+        updateTransaction(
+          unapprovedTransactions()[selected, ], 
+          uid = auth$uid,
+          status = -1
+        )
         
         showToast(
           .options = constant$sslToastOptions,
