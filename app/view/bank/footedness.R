@@ -13,7 +13,7 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        shiny$h4("Player Traits")
+        shiny$h4("Player Footedness")
       ),
       bslib$card_body(
         shiny$tagList(
