@@ -27,7 +27,7 @@ box::use(
 
 
 #' @export
-updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
+updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL, con = NULL) {
   # uid        : user id
   # pid        : player id
   # updates    : data.frame/tibble with columns 'attribute' and 'new'
@@ -141,9 +141,9 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL) {
   }
 }
 
-#' Update and log (multiple) TPE earnings
+#' Bank update
 #' @export
-updateTPE <- function(uid, tpeData) {
+updateFromBank <- function(uid, pid, updates, tpe, totalCost){
   con <- createConnection("portal")
   
   timestamp <- now() |> 
@@ -156,6 +156,130 @@ updateTPE <- function(uid, tpeData) {
   
   DBI$dbBegin(con)
   
+  tryCatch({
+    
+    if (nrow(updates) > 0) {
+      # Log update history
+      insert <- "INSERT INTO updatehistory (uid,pid,time,attribute,old,new) VALUES"
+      
+      values <- 
+        glue$glue_sql(
+          "({uid},{pid},{time},{attribute},{old},{new})",
+          .con = con,
+          time        = timestamp,
+          uid         = uid,
+          pid         = pid,
+          attribute   = updates$attribute |> str_to_upper(),
+          old         = updates$old,
+          new         = updates$new
+        ) |> 
+        glue$glue_sql_collapse(sep = ", ")
+      
+      safeQuery <- 
+        c(insert, values, ";") |> 
+        glue$glue_sql_collapse()
+      
+      DBI$dbExecute(con, safeQuery) |> 
+        suppressWarnings()
+      
+      # Update player builds
+      insert <- "UPDATE playerdata SET "
+      
+      values <- 
+        glue$glue_sql(
+          "{`attribute`} = {newValue}",
+          .con = con,
+          attribute = updates$attribute |> str_to_lower(),
+          newValue  = updates$new
+        ) |> 
+        glue$glue_sql_collapse(sep = ", ")
+      
+      safeQuery <- 
+        c(insert, values, 
+          glue$glue_sql(
+            .con = con,
+            " WHERE pid = {pid};",
+            pid = pid
+          )
+        ) |> 
+        glue$glue_sql_collapse()
+      
+      DBI$dbExecute(con, safeQuery) |> 
+        suppressWarnings()
+    }
+    
+    ## Update TPE if purchased
+    if (tpe > 0) {
+      updateTPE(
+        uid = uid, 
+        tpeData = dplyr$tibble(
+          pid = pid,
+          source = "Individual Training",
+          tpe = tpe
+        ),
+        con = con
+      )
+      
+      glue$glue_sql(
+        .con = con,
+        "UPDATE playerdata
+        SET purchasedTPE = purchasedTPE + {tpe}
+        WHERE pid = {pid};",
+        tpe = tpe,
+        pid = pid
+      ) |> 
+        DBI$dbExecute(conn = con, statement = _)
+    }
+    
+    logBankTransaction(
+      uid = uid,
+      data = dplyr$tibble(
+        pid = pid,
+        source = "Store Purchase",
+        amount = totalCost
+      ),
+      con = con
+    )
+      
+    DBI$dbCommit(con)
+    
+  }, error = function(e) {
+    DBI$dbRollback(con)
+    
+    # Log or handle the error
+    message("Error executing query: ", e$message)
+    
+    stop(e$message)
+  }, finally = {
+    # Ensure the connection is closed
+    DBI$dbDisconnect(con)
+  })
+}
+
+
+#' Update and log (multiple) TPE earnings
+#' @export
+updateTPE <- function(uid, tpeData, con = NULL) {
+  
+  # Allows use of same connection if used as an argument  
+  if (con |> is.null()) {
+    con <- createConnection("portal")  
+    new <- TRUE
+  } else {
+    new <- FALSE
+  }
+  
+  timestamp <- now() |> 
+    with_tz("US/Pacific") |> 
+    as.numeric()
+  
+  DBI$dbExecute(con, "SET NAMES utf8mb4;")
+  DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
+  DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
+  
+  if (new) {
+    DBI$dbBegin(con)  
+  }
   tryCatch({
     
     # Logs TPE history
@@ -212,18 +336,24 @@ updateTPE <- function(uid, tpeData) {
         p.tpebank  = p.tpebank + u.tpe;"
     )
     
-    DBI$dbCommit(con)
+    if (new) {
+      DBI$dbCommit(con)  
+    }
     
   }, error = function(e) {
-    DBI$dbRollback(con)
-    
+    if (new) {
+      DBI$dbRollback(con)  
+    }
+
     # Log or handle the error
     message("Error executing query: ", e$message)
     
     stop(e$message)
   }, finally = {
     # Ensure the connection is closed
-    DBI$dbDisconnect(con)
+    if (new) {
+      DBI$dbDisconnect(con)
+    }
   })
   
 }

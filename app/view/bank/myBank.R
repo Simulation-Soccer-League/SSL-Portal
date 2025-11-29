@@ -31,17 +31,9 @@ box::use(
     getActivePlayer, 
     getPlayer, 
   ],
-  app/logic/db/logFunctions[
-    logBankTransaction,
-  ],
   app/logic/db/login[isNonActiveForumUser],
-  app/logic/db/updateFunctions[
-    updatePlayerData,
-    updateTPE,
-  ],
-  app/logic/player/playerChecks[
-    hasActivePlayer,
-  ],
+  app/logic/db/updateFunctions[updateFromBank],
+  app/logic/player/playerChecks[hasActivePlayer,],
   app/logic/player/playerHistory,
   app/logic/player/playerInfo,
   app/view/bank/footedness,
@@ -373,47 +365,14 @@ server <- function(id, auth, updated) {
               ) |> 
               dplyr$filter(new != old & attribute != "tpe")
             
-            if (purchaseSummary |> nrow() > 0) {
-              updatePlayerData(
-                uid = auth$uid,
-                pid = playerData()$pid,
-                updates = purchaseSummary
-              )  
-            }
-            
-            if (inputTrain$individualTraining > 0) {
-              
-              ## Logs and updates the tpe
-              updateTPE(
-                uid = auth$uid,
-                tpe = dplyr$tibble(
-                  pid = playerData()$pid,
-                  source = "Individual Training",
-                  tpe = inputTrain$individualTraining
-                )
-              )
-              
-              ## Logs and updates the purchased TPE
-              portalQuery(
-                query = 
-                  "UPDATE playerdata 
-                  SET purchasedTPE = purchasedTPE + {tpe} 
-                  WHERE pid = {pid};",
-                tpe = inputTrain$individualTraining,
-                pid = playerData()$pid,
-                type = "set"
-              )
-            }
-            
-            logBankTransaction(
+            updateFromBank(
               uid = auth$uid,
-              data = dplyr$tibble(
-                pid = playerData()$pid,
-                source = "Store Purchase",
-                amount = -totalCost()
-              )
+              pid = playerData()$pid,
+              updates = purchaseSummary,
+              tpe = inputTrain$individualTraining,
+              totalCost = -totalCost()
             )
-            
+          
             updated(updated() + 1)
             
             showToast(

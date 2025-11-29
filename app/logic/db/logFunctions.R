@@ -125,8 +125,15 @@ logTPE <- function(uid, pid, tpe) {
 
 #' Function for logging (multiple) bank transactions
 #' @export
-logBankTransaction <- function(uid, data, status = 1) {
-  con <- createConnection("portal")
+logBankTransaction <- function(uid, data, status = 1, con = NULL) {
+  # Allows use of same connection if used as an argument  
+  if (con |> is.null()) {
+    con <- createConnection("portal")  
+    new <- TRUE
+  } else {
+    new <- FALSE
+  }
+  
   
   timestamp <- now() |> 
     with_tz("US/Pacific") |> 
@@ -136,7 +143,9 @@ logBankTransaction <- function(uid, data, status = 1) {
   DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
   DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
   
-  DBI$dbBegin(con)
+  if (new) {
+    DBI$dbBegin(con)  
+  }
   
   tryCatch({
     
@@ -166,10 +175,14 @@ logBankTransaction <- function(uid, data, status = 1) {
     DBI$dbExecute(con, safeQuery) |> 
       suppressWarnings()
     
-    DBI$dbCommit(con)
+    if (new) {
+      DBI$dbCommit(con)  
+    }
     
   }, error = function(e) {
-    DBI$dbRollback(con)
+    if (new) {
+      DBI$dbRollback(con)  
+    }
     
     # Log or handle the error
     message("Error executing query: ", e$message)
@@ -177,7 +190,9 @@ logBankTransaction <- function(uid, data, status = 1) {
     stop(e$message)
   }, finally = {
     # Ensure the connection is closed
-    DBI$dbDisconnect(con)
+    if (new) {
+      DBI$dbDisconnect(con)
+    }
   })
   
 }
