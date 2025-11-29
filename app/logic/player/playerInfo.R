@@ -71,8 +71,8 @@ server <- function(id, updated, playerData) {
         shiny$tagList(
           shiny$h4(paste("TPE:", data$tpe)),
           shiny$h4(paste("Banked TPE:", data$tpebank)),
-          shiny$h4("Player Status:", data$playerStatus, class = data$playerStatus),
-          shiny$h4("User Status:",   data$userStatus,   class = data$userStatus),
+          shiny$h4("Player Status:", data$playerStatus, class = data$playerStatus |> stringr$str_to_lower()),
+          shiny$h4("User Status:",   data$userStatus,   class = data$userStatus |> stringr$str_to_lower()),
           shiny$h5("Nationality:",    data$nationality),
           shiny$h5("Render:",         data$render),
           shiny$h5(paste("Footedness "),
@@ -123,7 +123,8 @@ server <- function(id, updated, playerData) {
           shiny$HTML(paste(
             posTbl |> dplyr$filter(value<20, value>=10) |> dplyr$pull(name),
             collapse=", "
-          ))
+          )),
+          shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
         )
       )
     }) 
