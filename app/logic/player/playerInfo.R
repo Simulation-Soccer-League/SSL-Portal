@@ -1,7 +1,7 @@
 box::use(
   bslib,
   dplyr,
-  scales[label_comma,],
+  scales[comma,],
   shiny,
   stringr,
   tidyr,
@@ -125,7 +125,7 @@ server <- function(id, updated, playerData) {
             posTbl |> dplyr$filter(value<20, value>=10) |> dplyr$pull(name),
             collapse=", "
           )),
-          shiny$h5("Bank balance:", paste0("$", label_comma(data$bankBalance)))
+          shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
         )
       )
     }) 

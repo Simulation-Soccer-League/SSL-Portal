@@ -5,7 +5,7 @@ box::use(
   plotly,
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
-  scales[label_comma],
+  scales[comma],
   shiny,
   shiny.router[get_query_param],
   stringr[
@@ -268,7 +268,7 @@ server <- function(id, pid = NULL, updated) {
               unlist() |>
               paste(collapse = ", ") |>
               shiny$HTML(),
-            shiny$h5("Bank balance:", paste0("$", label_comma(data$bankBalance)))
+            shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
           )
         )
       )
