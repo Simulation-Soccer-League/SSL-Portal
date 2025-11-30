@@ -32,7 +32,6 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[indexQuery],
   app/logic/db/discord[sendAcademyIndexUpdate, sendIndexUpdate,],
   app/logic/db/get[getNextGameID, getSeasonalTotal],
   app/logic/db/login[isBoD, isFileworker],
@@ -536,18 +535,6 @@ server <- function(id, auth, updated) {
       tryCatch({
         
         disable("uploadDataAcademy")
-        
-        indexQuery(
-          query = "DELETE FROM academyoutfield WHERE season = {season};",
-          season = input$seasonAcademy,
-          type   = "set"
-        )
-        
-        indexQuery(
-          query = "DELETE FROM academykeeper WHERE season = {season};",
-          season = input$seasonAcademy,
-          type   = "set"
-        )
         
         importAcademyData(processedGameAcademy())
         
