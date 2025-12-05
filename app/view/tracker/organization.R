@@ -39,7 +39,7 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        shiny$h1("Organization Overview")
+        shiny$h1("Roster Overview")
       ),
       bslib$card_body(
         shiny$uiOutput(ns("tabs"))

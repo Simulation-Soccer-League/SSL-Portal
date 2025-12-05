@@ -977,3 +977,23 @@ $navbar-items-width: 112px;
   justify-content: space-between;
   padding-right: 12px;
 }
+
+/* Organization list */
+.org-list {
+  display: flex;
+  flex-wrap: wrap;          /* allow buttons to wrap to new lines */
+  justify-content: center;  /* center horizontally */
+  align-items: center;      /* center vertically if container has height */
+  gap: 10px;                /* spacing between buttons */
+  width: 90%;
+  margin: 0 auto;
+}
+.org-list a {
+  flex: 1 1 45%;            /* two columns, each link takes ~half width */
+  text-align: center;
+}
+.org-list button {
+  width: 100%;              /* button fills its link cell */
+  font-size: 20px;
+  font-weight: 600;
+}
