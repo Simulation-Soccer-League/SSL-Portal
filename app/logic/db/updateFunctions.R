@@ -328,12 +328,18 @@ updateTPE <- function(uid, tpeData, con = NULL) {
     
     DBI$dbExecute(con, safeQuery)
     
-    DBI$dbExecute(con, 
-                  "UPDATE playerdata p
-     JOIN temp_updates u ON p.pid = u.pid
-     SET 
-        p.tpe      = p.tpe + u.tpe,
-        p.tpebank  = p.tpebank + u.tpe;"
+    DBI$dbExecute(
+      con, 
+      "
+      UPDATE playerdata p
+      JOIN (
+        SELECT pid, SUM(tpe) AS total_tpe
+        FROM temp_updates
+        GROUP BY pid
+      ) u ON p.pid = u.pid
+      SET p.tpe     = p.tpe + u.total_tpe,
+          p.tpebank = p.tpebank + u.total_tpe;
+      "
     )
     
     if (new) {
