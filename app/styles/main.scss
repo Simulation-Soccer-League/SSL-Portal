@@ -697,7 +697,18 @@ $navbar-items-width: 112px;
   z-index: 1;
 }
 
+.leader-table-group {
+  display: flex;
+  flex-wrap: wrap;          /* allow buttons to wrap to new lines */
+  justify-content: center;  /* center horizontally */
+  align-items: center;      /* center vertically if container has height */
+  gap: 10px;                /* spacing between buttons */
+  width: 90%;
+  margin: 0 auto;
+}
+  
 .leader-table {
+  flex: 1 1 30%; 
   padding-top: 20px;
 }
 
