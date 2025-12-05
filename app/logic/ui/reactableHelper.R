@@ -12,6 +12,8 @@ box::use(
 
 box::use(
   app / logic / constant,
+  app/logic/db/get[getOrganizations],
+  app / logic / ui / tags[flexRow],
 )
 
 #' @export
@@ -48,17 +50,8 @@ clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
       )
     
   } else {
-    image <- img(
-      src = sprintf("static/logo/%s (Custom).png", clubData),
-      style = "height: 25px;",
-      alt = clubData,
-      title = clubData
-    )
-
-    list <-
-      tagList(
-        div(style = "display: inline-block; width: 25px;", image)
-      )
+    list <- 
+      linkOrganization(clubData, onlyImg = TRUE)
   }
   
   tagList(
@@ -75,6 +68,48 @@ clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
       div(list)
     )
   )
+}
+
+#' @export
+linkOrganization <- function(value, onlyImg = FALSE, height = 30) {
+  oid <- getOrganizations() |> 
+    dplyr$filter(name == value) |> 
+    dplyr$pull(ID) |> 
+    unique()
+  
+  image <- 
+    img(
+      src = sprintf("static/logo/%s (Custom).png", value),
+      style = paste0("height: ", height, "px;"),
+      alt = value,
+      title = value
+    )
+  
+  if (onlyImg) {
+    list <-
+      tagList(
+        a(
+          href = route_link(paste0("organization?oid=", oid)),
+          image
+        )
+      )
+  } else {
+    list <-
+      tagList(
+        a(
+          href = route_link(paste0("organization?oid=", oid)),
+          class = "tableClubName",
+          flexRow(
+            style = "align-items: center; gap: 8px;",
+            tagList(
+              image,
+              span(class = "truncated-text", value)
+            )
+          )
+        )
+      )
+  }
+  
 }
 
 #' @export
@@ -122,6 +157,11 @@ draftClassReactable <- function(data) {
           width = 200,
           align = "left",
           cell = function(value) {
+            oid <- getOrganizations() |> 
+              dplyr$filter(name == value) |> 
+              dplyr$pull(ID) |> 
+              unique()
+            
             image <- img(
               src = sprintf("static/logo/%s (Custom).png", value),
               style = "height: 30px;",
@@ -130,10 +170,16 @@ draftClassReactable <- function(data) {
             )
             list <-
               tagList(
-                div(
+                a(
+                  href = route_link(paste0("organization?oid=", oid)),
                   class = "tableClubName",
-                  div(style = "display: inline-block; width: 30px;", image),
-                  span(value)
+                  flexRow(
+                    style = "align-items: center; gap: 8px;",
+                    tagList(
+                      image,
+                      span(class = "truncated-text", value)
+                    )
+                  )
                 )
               )
           }

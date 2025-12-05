@@ -15,6 +15,7 @@ box::use(
   app / logic / db / api[readAPI],
   app / logic / db / get[getRecentCreates, getSchedule, getStandings, getTopEarners],
   app / logic / ui / cards[resultCard],
+  app / logic / ui / reactableHelper[linkOrganization],
   app / logic / ui / spinner[withSpinnerCustom],
   app / logic / ui / tags[flexRow],
 )
@@ -148,21 +149,11 @@ server <- function(id, usergroup) {
                   columns =
                     list(
                       Team = colDef(
-                        minWidth = 100,
+                        name = "", 
+                        minWidth = 100, 
+                        align = "left", 
                         cell = function(value) {
-                          image <- shiny$img(
-                            src = sprintf("static/logo/%s (Custom).png", value),
-                            style = "height: 25px;",
-                            alt = value, 
-                            title = value
-                          )
-                          list <-
-                            shiny$tagList(
-                              flexRow(style = "align-items: center; gap: 8px;", shiny$tagList(
-                                image,
-                                shiny$span(class = "truncated-text", value)
-                              ))
-                            )
+                          linkOrganization(value)
                         }
                       ),
                       Wins = colDef(

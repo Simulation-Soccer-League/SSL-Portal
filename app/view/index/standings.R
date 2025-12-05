@@ -4,12 +4,14 @@ box::use(
   reactable[colDef, reactable],
   rlang[is_empty],
   shiny,
+  shiny.router[route_link],
   tippy[tippy],
 )
 
 box::use(
   app / logic / constant,
-  app / logic / db / get[getStandings],
+  app / logic / db / get[getOrganizations, getStandings],
+  app / logic / ui / reactableHelper[linkOrganization],
   app / logic / ui / selector[leagueSelectInput],
   app / logic / ui / spinner[withSpinnerCustom],
   app / logic / ui / tags[flexRow],
@@ -125,25 +127,14 @@ server <- function(id, updated) {
                 }
               ),
               columns = list(
-                Team = colDef(name = "", width = 200, align = "left", cell = function(value) {
-                  image <- shiny$img(
-                    src = sprintf("static/logo/%s (Custom).png", value),
-                    style = "height: 30px;",
-                    alt = value,
-                    title = value
-                  )
-
-                  list <-
-                    shiny$tagList(
-                      flexRow(
-                        style = "align-items: center; gap: 8px;",
-                        shiny$tagList(
-                          image,
-                          shiny$span(class = "truncated-text", value)
-                        )
-                      )
-                    )
-                }),
+                Team = colDef(
+                  name = "", 
+                  width = 200, 
+                  align = "left", 
+                  cell = function(value) {
+                    linkOrganization(value)
+                  }
+                ),
                 MatchesPlayed = colDef(header = tippy("GP", "Games played", theme = "ssl")),
                 Wins = colDef(header = tippy("W", "Wins", theme = "ssl")),
                 Draws = colDef(header = tippy("D", "Draws", theme = "ssl")),
