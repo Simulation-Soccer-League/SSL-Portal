@@ -9,6 +9,7 @@ box::use(
 
 box::use(
   app/logic/constant,
+  app/logic/ui/reactableHelper[linkOrganization],
   app/logic/ui/spinner[withSpinnerCustom],
 )
 
@@ -51,10 +52,7 @@ server <- function(id, updated, playerData) {
     ## Club logo
     output$clubLogo <- shiny$renderUI({
       data <- playerData()
-      shiny$img(
-        src   = sprintf("static/logo/%s.png", data$team),
-        style = "height:100px", alt = data$team, title = data$team
-      )
+      linkOrganization(value = data$team, onlyImg = TRUE, height = 100)
     }) 
     
     ## Detailed info

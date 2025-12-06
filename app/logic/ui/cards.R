@@ -6,7 +6,7 @@ box::use(
 )
 
 box::use(
-  app / logic / ui / reactableHelper[linkOrganization],
+  app/logic/ui/reactableHelper[linkOrganization],
 )
 
 #' @export
