@@ -253,6 +253,11 @@ server <- function(id, auth, updated) {
     
     #### OBSERVERS ####
     shiny$observe({
+      enable("confirmDeposit")
+    }) |> 
+      shiny$bindEvent(input$depositSource)
+    
+    shiny$observe({
       disable("confirmDeposit")
       
       processed <- 
@@ -335,7 +340,7 @@ server <- function(id, auth, updated) {
         })
       }
       
-      enable("confirmDeposit")
+      # enable("confirmDeposit")
         
     }) |> 
       shiny$bindEvent(
