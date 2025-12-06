@@ -98,7 +98,7 @@ ui <- function(id) {
       route("bod/manager", assignManager$ui(ns("assignManager"))),
       route("bod/approve", approvePlayer$ui(ns("approvePlayer"))),
       route("bod/edit", editPlayer$ui(ns("editPlayer"))),
-      route("organization/overview", rosterOverview$ui(ns("rosterOverview"))),
+      route("manager/overview", rosterOverview$ui(ns("rosterOverview"))),
     )
   )
 }
@@ -541,7 +541,7 @@ server <- function(id) {
           change_page("")
         }
         
-      } else if (current == "organization/overview") {
+      } else if (current == "manager/overview") {
         
         if (navigationCheck(authOutput())) {
           if (!loadedServer$rosterOverview & 
