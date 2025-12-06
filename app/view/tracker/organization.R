@@ -172,14 +172,16 @@ server <- function(id, oid = NULL, updated) {
           pid
         )
     }) |> 
-      shiny$bindCache(id, query(), updated())
+      shiny$bindCache(id, query(), updated()) |> 
+      shiny$bindEvent(query())
     
     teamInfo <- shiny$reactive({
       shiny$req(query())
       
       getTeamInformation(oid = query())
     }) |> 
-      shiny$bindCache(id, query(), updated())
+      shiny$bindCache(id, query(), updated()) |> 
+      shiny$bindEvent(query())
 
     #### Output ####
     output$tabs <- shiny$renderUI({

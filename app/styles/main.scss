@@ -857,7 +857,7 @@ $navbar-items-width: 112px;
 }
 
 /* CSS styles for player and user statuses */
-.active:not(.tab-pane) {
+.active:not(.tab-pane):not(.option) {
   color: #66b38c;
 }
 

@@ -10,7 +10,7 @@ box::use(
 
 box::use(
   app / logic / constant,
-  app / logic / db / get[getOrganizations, getStandings],
+  app / logic / db / get[getStandings],
   app / logic / ui / reactableHelper[linkOrganization],
   app / logic / ui / selector[leagueSelectInput],
   app / logic / ui / spinner[withSpinnerCustom],

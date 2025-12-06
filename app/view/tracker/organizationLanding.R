@@ -6,7 +6,7 @@ box::use(
 )
 
 box::use(
-  app / logic / db / get[getOrganizations, getPlayers],
+  app / logic / db / get[getPlayers],
   app / logic / ui / reactableHelper[orgReactable],
   app / logic / ui / spinner[withSpinnerCustom],
   app / logic / ui / tags[flexRow],
@@ -32,7 +32,7 @@ ui <- function(id) {
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     ### Loading data
-    organizations <- getOrganizations() |>
+    organizations <- constant$organizations |>
       dplyr$filter(!is.na(organization), ID > -3)
 
     ### Outputs

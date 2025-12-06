@@ -20,7 +20,7 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[indexQuery],
-  app/logic/db/get[getOrganizations, getSchedule],
+  app/logic/db/get[getSchedule],
   app/logic/db/login[isBoD, isFileworker, isNonActiveForumUser],
   app/logic/import[importGameData, parseFMdata],
 )
@@ -76,7 +76,7 @@ server <- function(id, auth, updated) {
       shiny$bindEvent(updated())
     
     teams <- shiny$reactive({
-      getOrganizations() |> 
+      constant$organizations |> 
         dplyr$filter(ID >= 0) |> 
         dplyr$arrange(name) |> 
         dplyr$add_row(

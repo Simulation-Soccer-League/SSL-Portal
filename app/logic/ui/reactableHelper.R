@@ -1,6 +1,6 @@
 box::use(
   dplyr,
-  purrr[map, pmap],
+  purrr[is_empty, map, pmap],
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   shiny.router[route_link],
   shiny[a, div, h4, img, span, tagList],
@@ -11,9 +11,8 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app/logic/db/get[getOrganizations],
-  app / logic / ui / tags[flexRow],
+  app/logic/constant,
+  app/logic/ui/tags[flexRow],
 )
 
 #' @export
@@ -72,7 +71,7 @@ clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
 
 #' @export
 linkOrganization <- function(value, onlyImg = FALSE, height = 30) {
-  oid <- getOrganizations() |> 
+  oid <- constant$organizations |> 
     dplyr$filter(name == value) |> 
     dplyr$pull(ID) |> 
     unique()
@@ -86,11 +85,38 @@ linkOrganization <- function(value, onlyImg = FALSE, height = 30) {
     )
   
   if (onlyImg) {
+    list <- 
+      tagList(
+        image
+      )
+  } else {
+    list <- 
+      flexRow(
+        style = "align-items: center; gap: 8px;",
+        tagList(
+          image,
+          span(class = "truncated-text", value)
+        )
+      )
+  }
+  
+  if ((oid |> is_empty()) | (oid |> is.na() |> isTRUE())){
+    if (onlyImg) {
+      list
+    } else {
+      tagList(
+        div(
+          class = "tableClubName",
+          list
+        )
+      )
+    }
+  } else if (onlyImg) {
     list <-
       tagList(
         a(
           href = route_link(paste0("organization?oid=", oid)),
-          image
+          list
         )
       )
   } else {
@@ -99,13 +125,7 @@ linkOrganization <- function(value, onlyImg = FALSE, height = 30) {
         a(
           href = route_link(paste0("organization?oid=", oid)),
           class = "tableClubName",
-          flexRow(
-            style = "align-items: center; gap: 8px;",
-            tagList(
-              image,
-              span(class = "truncated-text", value)
-            )
-          )
+          list
         )
       )
   }
@@ -157,7 +177,7 @@ draftClassReactable <- function(data) {
           width = 200,
           align = "left",
           cell = function(value) {
-            oid <- getOrganizations() |> 
+            oid <- constant$organizations |> 
               dplyr$filter(name == value) |> 
               dplyr$pull(ID) |> 
               unique()
