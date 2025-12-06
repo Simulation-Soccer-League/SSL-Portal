@@ -391,7 +391,7 @@ getOrganizations <- function() {
     "SELECT o.ID, o.name AS organization, t.abbreviation AS abbreviation, t.name, t.primaryColor, t.secondaryColor, t.city
     FROM teams AS t
     LEFT JOIN organizations AS o ON t.orgID = o.ID
-    ORDER BY o.ID, t.affiliate"
+    ORDER BY o.ID, t.affiliate;"
   )
 }
 
