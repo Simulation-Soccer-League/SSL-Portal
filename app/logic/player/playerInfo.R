@@ -1,6 +1,7 @@
 box::use(
   bslib,
   dplyr,
+  scales[comma,],
   shiny,
   stringr,
   tidyr,
@@ -8,6 +9,7 @@ box::use(
 
 box::use(
   app/logic/constant,
+  app/logic/ui/reactableHelper[linkOrganization],
   app/logic/ui/spinner[withSpinnerCustom],
 )
 
@@ -50,10 +52,7 @@ server <- function(id, updated, playerData) {
     ## Club logo
     output$clubLogo <- shiny$renderUI({
       data <- playerData()
-      shiny$img(
-        src   = sprintf("static/logo/%s.png", data$team),
-        style = "height:100px", alt = data$team, title = data$team
-      )
+      linkOrganization(value = data$team, onlyImg = TRUE, height = 100)
     }) 
     
     ## Detailed info
@@ -71,8 +70,8 @@ server <- function(id, updated, playerData) {
         shiny$tagList(
           shiny$h4(paste("TPE:", data$tpe)),
           shiny$h4(paste("Banked TPE:", data$tpebank)),
-          shiny$h4("Player Status:", data$playerStatus, class = data$playerStatus),
-          shiny$h4("User Status:",   data$userStatus,   class = data$userStatus),
+          shiny$h4("Player Status:", data$playerStatus, class = data$playerStatus |> stringr$str_to_lower()),
+          shiny$h4("User Status:",   data$userStatus,   class = data$userStatus |> stringr$str_to_lower()),
           shiny$h5("Nationality:",    data$nationality),
           shiny$h5("Render:",         data$render),
           shiny$h5(paste("Footedness "),
@@ -123,7 +122,8 @@ server <- function(id, updated, playerData) {
           shiny$HTML(paste(
             posTbl |> dplyr$filter(value<20, value>=10) |> dplyr$pull(name),
             collapse=", "
-          ))
+          )),
+          shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
         )
       )
     }) 

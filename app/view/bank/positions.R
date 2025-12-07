@@ -246,9 +246,6 @@ server <- function(id, cost, playerData, parentSession) {
                 )
             )
           
-          print(result$subset)
-          print(result$remainder)
-          
           cost(swapCost + sum(standardCost$cost))
         }
         

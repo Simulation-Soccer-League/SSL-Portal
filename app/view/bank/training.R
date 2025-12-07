@@ -23,7 +23,7 @@ ui <- function(id) {
           ),
           shiny$sliderInput(
             ns("individualTraining"),
-            label = "Pull the slider to the amount of TPE you want to purchase:",
+            label = "Drag the slider to the amount of TPE you want to purchase:",
             min = 0,
             max = 18,
             value = 0,

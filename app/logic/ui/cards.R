@@ -5,6 +5,9 @@ box::use(
   stringr[str_replace_all],
 )
 
+box::use(
+  app/logic/ui/reactableHelper[linkOrganization],
+)
 
 #' @export
 resultCard <- function(data, i) {
@@ -13,22 +16,12 @@ resultCard <- function(data, i) {
       shiny$div(
         shiny$div(
           style = "display: inline-block; width: 40px;",
-          shiny$img(
-            src = sprintf("static/logo/%s (Custom).png", data[i, "Home"]),
-            style = "height: 40px;",
-            alt = data[i, "Home"],
-            title = data[i, "Home"]
-          )
+          linkOrganization(data[i, "Home"], onlyImg = TRUE, height = 40)
         ),
         shiny$strong(" - "),
         shiny$div(
           style = "display: inline-block; width: 40px;",
-          shiny$img(
-            src = sprintf("static/logo/%s (Custom).png", data[i, "Away"]),
-            style = "height: 40px;",
-            alt = data[i, "Away"],
-            title = data[i, "Away"]
-          )
+          linkOrganization(data[i, "Away"], onlyImg = TRUE, height = 40)
         ),
         align = "center"
       )

@@ -22,9 +22,12 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/database[portalQuery, updateTPE],
+  app/logic/db/database[portalQuery],
   app/logic/db/discord[sendGradedTPE],
   app/logic/db/login[isNonActiveForumUser],
+  app/logic/db/updateFunctions[
+    updateTPE,
+  ],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],
@@ -250,6 +253,11 @@ server <- function(id, auth, updated) {
     
     #### OBSERVERS ####
     shiny$observe({
+      enable("confirmDeposit")
+    }) |> 
+      shiny$bindEvent(input$depositSource)
+    
+    shiny$observe({
       disable("confirmDeposit")
       
       processed <- 
@@ -332,7 +340,7 @@ server <- function(id, auth, updated) {
         })
       }
       
-      enable("confirmDeposit")
+      # enable("confirmDeposit")
         
     }) |> 
       shiny$bindEvent(

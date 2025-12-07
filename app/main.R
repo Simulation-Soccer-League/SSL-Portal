@@ -49,6 +49,7 @@ box::use(
   app/view/player/playerUpdate,
   app/view/tracker/draftclass,
   app/view/tracker/organization,
+  app/view/tracker/organizationLanding,
   app/view/tracker/player,
   app/view/tracker/playerSearch,
   app/view/tracker/position,
@@ -77,7 +78,8 @@ ui <- function(id) {
       route("tracker/draftclass", draftclass$ui(ns("draftclass"))),
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/position", position$ui(ns("position"))),
-      route("tracker/organization", organization$ui(ns("organization"))),
+      route("tracker/organizations", organizationLanding$ui(ns("organization"))),
+      route("organization", organization$ui(ns("organization"))),
       route("tracker/wsfc", wsfc$ui(ns("wsfc"))),
       route("search", playerSearch$ui(ns("search"))),
       route("myBank", myBank$ui(ns("myBank"))),
@@ -96,7 +98,7 @@ ui <- function(id) {
       route("bod/manager", assignManager$ui(ns("assignManager"))),
       route("bod/approve", approvePlayer$ui(ns("approvePlayer"))),
       route("bod/edit", editPlayer$ui(ns("editPlayer"))),
-      route("organization/overview", rosterOverview$ui(ns("rosterOverview"))),
+      route("manager/overview", rosterOverview$ui(ns("rosterOverview"))),
     )
   )
 }
@@ -141,7 +143,8 @@ server <- function(id) {
         managerTeam = FALSE,
         assignManager = FALSE, approvePlayer = FALSE, editPlayer = FALSE,
         rosterOverview = FALSE, 
-        export = FALSE, organization = FALSE, draftclass = FALSE, 
+        export = FALSE, organization = FALSE, organizations = FALSE,
+        draftclass = FALSE, 
         nationTracker = FALSE,
         position = FALSE, main = FALSE,
         wsfc = FALSE
@@ -188,9 +191,14 @@ server <- function(id) {
         academyStandings$server("academyStandings")
         loadedServer$academyStandings <- TRUE
         
-      } else if (current == "tracker/organization" & !loadedServer$organization) {
+      } else if (current == "tracker/organizations" & !loadedServer$organizations) {
         
-        organization$server("organization")
+        organizationLanding$server("organization")
+        loadedServer$organizations <- TRUE
+        
+      } else if (current |> str_detect("organization") & !loadedServer$organization) {
+
+        organization$server("organization", updated = updated)
         loadedServer$organization <- TRUE
         
       } else if (current == "tracker/wsfc" & !loadedServer$wsfc) {
@@ -533,7 +541,7 @@ server <- function(id) {
           change_page("")
         }
         
-      } else if (current == "organization/overview") {
+      } else if (current == "manager/overview") {
         
         if (navigationCheck(authOutput())) {
           if (!loadedServer$rosterOverview & 

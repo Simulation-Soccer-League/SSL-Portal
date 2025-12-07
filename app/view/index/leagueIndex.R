@@ -150,7 +150,7 @@ server <- function(id) {
             )
           }
         ) |> 
-          shiny$div(class = "attribute-tables")
+          shiny$div(class = "leader-table-group")
 
       })
 
@@ -191,7 +191,7 @@ server <- function(id) {
             )
           }
         ) |> 
-          shiny$div(class = "attribute-tables")
+          shiny$div(class = "leader-table-group")
 
       })
 

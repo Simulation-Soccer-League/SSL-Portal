@@ -1,38 +1,30 @@
 box::use(
+  DBI, 
   dplyr[
     across, 
     as_tibble, 
     case_when, 
-    if_else, 
-    select, 
     mutate, 
     rename, 
-    relocate
+    relocate,
+    select,
   ],
-  purrr[pmap],
+  glue,
   rvest[read_html, html_elements, html_table],
-  stats[setNames],
   stringr[
     str_detect,
-    str_remove_all,
-    str_replace, 
     str_replace_all,
     str_split, 
-    str_squish,
-    str_to_lower, 
-    str_to_title,
-    str_to_upper,
   ],
   
 )
 
 box::use(
-  app/logic/constant,
-  app/logic/db/database[indexQuery]
+  app/logic/db/database[createConnection],
 )
 
 #' @export
-parseFMdata <- function(path){
+parseFMdata <- function(path) {
   FM <- 
     read_html(path, encoding = "UTF-8") |> 
     html_elements("table") |> 
@@ -167,12 +159,6 @@ parseFMdata <- function(path){
         )
     ) |> 
     mutate(
-      # Club =
-      #   Club |>
-      #   str_split(pattern = "-", simplify = TRUE) |> 
-      #   select(1) |> 
-      #   unlist() |> 
-      #   str_squish(),
       `Left Foot` = 
         case_when(
           `Left Foot` == "Very Strong" ~ 20,
@@ -194,16 +180,16 @@ parseFMdata <- function(path){
         as.numeric
       ),
       `Pass%` = 
-        (`Successful Passes` |> as.numeric()/
+        (`Successful Passes` |> as.numeric() /
            `Attempted Passes` |> as.numeric()) |> 
-        round(4)*100,
+        round(4) * 100,
       `Cross%` = 
-        (`Successful Crosses` |> as.numeric()/
+        (`Successful Crosses` |> as.numeric() /
            `Attempted Crosses` |> as.numeric()) |> 
-        round(4)*100,
+        round(4) * 100,
       `Save%` = 
-        ((`Saves Parried`+`Saves Held`+`Saves Tipped`)/
-           (`Saves Parried`+`Saves Held`+`Saves Tipped`+Conceded)) |> 
+        ((`Saves Parried` + `Saves Held` + `Saves Tipped`)/
+           (`Saves Parried` + `Saves Held` + `Saves Tipped` + Conceded)) |> 
         round(4) * 100,
     ) |> 
     suppressWarnings()
@@ -211,13 +197,19 @@ parseFMdata <- function(path){
 
 #' @export
 importGameData <- function(data) {
+  con <- createConnection("index")
+  
   outfield <- data$o
   keeper <- data$k
   
-  for (i in seq_len(nrow(outfield))) {
-    indexQuery(
-      query = "
-      INSERT INTO gamedataoutfield (
+  DBI$dbExecute(con, "SET NAMES utf8mb4;")
+  DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
+  DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
+  
+  DBI$dbBegin(con)
+  
+  tryCatch({
+    insert <- "INSERT INTO gamedataoutfield (
         name, club, position,
         acc, aer, agg, agi, ant, bal, bra, cmd, com, cmp, cnt, cor, cro, `dec`, det, dri, ecc,
         fin, fir, fla, fre, han, hea, jum, kic, ldr, lon, `l th`, mar, nat, otb, `1v1`,
@@ -235,7 +227,11 @@ importGameData <- function(data) {
         `shots blocked`, `progressive passes`, `successful presses`, `attempted presses`,
         gid
       )
-      VALUES (
+      VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "(
         {name}, {club}, {position},
         {acc}, {aer}, {agg}, {agi}, {ant}, {bal}, {bra}, {cmd}, {com}, {cmp}, {cnt}, {cor}, {cro}, {dec}, {det}, {dri}, {ecc},
         {fin}, {fir}, {fla}, {fre}, {han}, {hea}, {jum}, {kic}, {ldr}, {lon}, {l_th}, {mar}, {nat}, {otb}, {one_v_one},
@@ -252,148 +248,177 @@ importGameData <- function(data) {
         {open_play_key_passes}, {successful_open_play_crosses}, {attempted_open_play_crosses},
         {shots_blocked}, {progressive_passes}, {successful_presses}, {attempted_presses},
         {gid}
-      );",
-      name                 = outfield$name[i],
-      club                 = outfield$club[i],
-      position             = outfield$position[i],
-      acc                  = outfield$acc[i],
-      aer                  = outfield$aer[i],
-      agg                  = outfield$agg[i],
-      agi                  = outfield$agi[i],
-      ant                  = outfield$ant[i],
-      bal                  = outfield$bal[i],
-      bra                  = outfield$bra[i],
-      cmd                  = outfield$cmd[i],
-      com                  = outfield$com[i],
-      cmp                  = outfield$cmp[i],
-      cnt                  = outfield$cnt[i],
-      cor                  = outfield$cor[i],
-      cro                  = outfield$cro[i],
-      dec                  = outfield$dec[i],
-      det                  = outfield$det[i],
-      dri                  = outfield$dri[i],
-      ecc                  = outfield$ecc[i],
-      fin                  = outfield$fin[i],
-      fir                  = outfield$fir[i],
-      fla                  = outfield$fla[i],
-      fre                  = outfield$fre[i],
-      han                  = outfield$han[i],
-      hea                  = outfield$hea[i],
-      jum                  = outfield$jum[i],
-      kic                  = outfield$kic[i],
-      ldr                  = outfield$ldr[i],
-      lon                  = outfield$lon[i],
-      l_th                 = outfield$`l th`[i],
-      mar                  = outfield$mar[i],
-      nat                  = outfield$nat[i],
-      otb                  = outfield$otb[i],
-      one_v_one            = outfield$`1v1`[i],
-      pac                  = outfield$pac[i],
-      pas                  = outfield$pas[i],
-      pen                  = outfield$pen[i],
-      pos                  = outfield$pos[i],
-      pun                  = outfield$pun[i],
-      ref                  = outfield$ref[i],
-      tro                  = outfield$tro[i],
-      sta                  = outfield$sta[i],
-      str                  = outfield$str[i],
-      tck                  = outfield$tck[i],
-      tea                  = outfield$tea[i],
-      tec                  = outfield$tec[i],
-      thr                  = outfield$thr[i],
-      vis                  = outfield$vis[i],
-      wor                  = outfield$wor[i],
-      apps                 = outfield$apps[i],
-      minutes_played       = outfield$`minutes played`[i],
-      distance_run_km      = outfield$`distance run (km)`[i],
-      average_rating       = outfield$`average rating`[i],
-      player_of_the_match  = outfield$`player of the match`[i],
-      goals                = outfield$goals[i],
-      assists              = outfield$assists[i],
-      xg                   = outfield$xg[i],
-      xa                   = outfield$xa[i],
-      shots_on_target      = outfield$`shots on target`[i],
-      shots                = outfield$shots[i],
-      penalties_taken      = outfield$`penalties taken`[i],
-      penalties_scored     = outfield$`penalties scored`[i],
-      successful_passes    = outfield$`successful passes`[i],
-      attempted_passes     = outfield$`attempted passes`[i],
-      pass_pct             = outfield$`pass%`[i],
-      key_passes           = outfield$`key passes`[i],
-      successful_crosses   = outfield$`successful crosses`[i],
-      attempted_crosses    = outfield$`attempted crosses`[i],
-      cross_pct            = outfield$`cross%`[i],
-      chances_created      = outfield$`chances created`[i],
-      successful_headers   = outfield$`successful headers`[i],
-      attempted_headers    = outfield$`attempted headers`[i],
-      header_pct           = outfield$`header%`[i],
-      key_headers          = outfield$`key headers`[i],
-      dribbles             = outfield$dribbles[i],
-      tackles_won          = outfield$`tackles won`[i],
-      attempted_tackles    = outfield$`attempted tackles`[i],
-      tackle_pct           = outfield$`tackle%`[i],
-      key_tackles          = outfield$`key tackles`[i],
-      interceptions        = outfield$interceptions[i],
-      clearances           = outfield$clearances[i],
-      mistakes_leading_to_goals = outfield$`mistakes leading to goals`[i],
-      yellow_cards         = outfield$`yellow cards`[i],
-      red_cards            = outfield$`red cards`[i],
-      fouls                = outfield$fouls[i],
-      fouls_against        = outfield$`fouls against`[i],
-      offsides             = outfield$offsides[i],
-      xg_overperformance   = outfield$`xg overperformance`[i],
-      goals_outside_box    = outfield$`goals outside box`[i],
-      fk_shots             = outfield$`fk shots`[i],
-      blocks               = outfield$blocks[i],
-      open_play_key_passes = outfield$`open play key passes`[i],
-      successful_open_play_crosses = outfield$`successful open play crosses`[i],
-      attempted_open_play_crosses  = outfield$`attempted open play crosses`[i],
-      shots_blocked            = outfield$`shots blocked`[i],
-      progressive_passes       = outfield$`progressive passes`[i],
-      successful_presses       = outfield$`successful presses`[i],
-      attempted_presses        = outfield$`attempted presses`[i],
-      gid                      = outfield$gid[i],
-      type                     = "set"
-    )
-  }
-  
-  for (i in seq_len(nrow(keeper))) {
-    indexQuery(
-      query = "
-      INSERT INTO gamedatakeeper (
+      )",
+        .con = con,
+        name                 = outfield$name,
+        club                 = outfield$club,
+        position             = outfield$position,
+        acc                  = outfield$acc,
+        aer                  = outfield$aer,
+        agg                  = outfield$agg,
+        agi                  = outfield$agi,
+        ant                  = outfield$ant,
+        bal                  = outfield$bal,
+        bra                  = outfield$bra,
+        cmd                  = outfield$cmd,
+        com                  = outfield$com,
+        cmp                  = outfield$cmp,
+        cnt                  = outfield$cnt,
+        cor                  = outfield$cor,
+        cro                  = outfield$cro,
+        dec                  = outfield$dec,
+        det                  = outfield$det,
+        dri                  = outfield$dri,
+        ecc                  = outfield$ecc,
+        fin                  = outfield$fin,
+        fir                  = outfield$fir,
+        fla                  = outfield$fla,
+        fre                  = outfield$fre,
+        han                  = outfield$han,
+        hea                  = outfield$hea,
+        jum                  = outfield$jum,
+        kic                  = outfield$kic,
+        ldr                  = outfield$ldr,
+        lon                  = outfield$lon,
+        l_th                 = outfield$`l th`,
+        mar                  = outfield$mar,
+        nat                  = outfield$nat,
+        otb                  = outfield$otb,
+        one_v_one            = outfield$`1v1`,
+        pac                  = outfield$pac,
+        pas                  = outfield$pas,
+        pen                  = outfield$pen,
+        pos                  = outfield$pos,
+        pun                  = outfield$pun,
+        ref                  = outfield$ref,
+        tro                  = outfield$tro,
+        sta                  = outfield$sta,
+        str                  = outfield$str,
+        tck                  = outfield$tck,
+        tea                  = outfield$tea,
+        tec                  = outfield$tec,
+        thr                  = outfield$thr,
+        vis                  = outfield$vis,
+        wor                  = outfield$wor,
+        apps                 = outfield$apps,
+        minutes_played       = outfield$`minutes played`,
+        distance_run_km      = outfield$`distance run (km)`,
+        average_rating       = outfield$`average rating`,
+        player_of_the_match  = outfield$`player of the match`,
+        goals                = outfield$goals,
+        assists              = outfield$assists,
+        xg                   = outfield$xg,
+        xa                   = outfield$xa,
+        shots_on_target      = outfield$`shots on target`,
+        shots                = outfield$shots,
+        penalties_taken      = outfield$`penalties taken`,
+        penalties_scored     = outfield$`penalties scored`,
+        successful_passes    = outfield$`successful passes`,
+        attempted_passes     = outfield$`attempted passes`,
+        pass_pct             = outfield$`pass%`,
+        key_passes           = outfield$`key passes`,
+        successful_crosses   = outfield$`successful crosses`,
+        attempted_crosses    = outfield$`attempted crosses`,
+        cross_pct            = outfield$`cross%`,
+        chances_created      = outfield$`chances created`,
+        successful_headers   = outfield$`successful headers`,
+        attempted_headers    = outfield$`attempted headers`,
+        header_pct           = outfield$`header%`,
+        key_headers          = outfield$`key headers`,
+        dribbles             = outfield$dribbles,
+        tackles_won          = outfield$`tackles won`,
+        attempted_tackles    = outfield$`attempted tackles`,
+        tackle_pct           = outfield$`tackle%`,
+        key_tackles          = outfield$`key tackles`,
+        interceptions        = outfield$interceptions,
+        clearances           = outfield$clearances,
+        mistakes_leading_to_goals = outfield$`mistakes leading to goals`,
+        yellow_cards         = outfield$`yellow cards`,
+        red_cards            = outfield$`red cards`,
+        fouls                = outfield$fouls,
+        fouls_against        = outfield$`fouls against`,
+        offsides             = outfield$offsides,
+        xg_overperformance   = outfield$`xg overperformance`,
+        goals_outside_box    = outfield$`goals outside box`,
+        fk_shots             = outfield$`fk shots`,
+        blocks               = outfield$blocks,
+        open_play_key_passes = outfield$`open play key passes`,
+        successful_open_play_crosses = outfield$`successful open play crosses`,
+        attempted_open_play_crosses  = outfield$`attempted open play crosses`,
+        shots_blocked            = outfield$`shots blocked`,
+        progressive_passes       = outfield$`progressive passes`,
+        successful_presses       = outfield$`successful presses`,
+        attempted_presses        = outfield$`attempted presses`,
+        gid                      = outfield$gid
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
+    
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
+    
+    insert <- "INSERT INTO gamedatakeeper (
         name, club, apps, `minutes played`, 
         `average rating`, `player of the match`, 
         `clean sheets`, conceded, `saves parried`, `saves held`, 
         `saves tipped`, `save%`, `penalties faced`, `penalties saved`, 
         `xsave%`, `xg prevented`, gid
       )
-      VALUES (
+      VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "(
         {name}, {club}, {apps}, {minutes_played}, 
         {average_rating}, {player_of_the_match}, 
         {clean_sheets}, {conceded}, {saves_parried}, {saves_held}, 
         {saves_tipped}, {save_pct}, {penalties_faced}, {penalties_saved}, 
         {xsave_pct}, {xg_prevented}, {gid}
-      );",
-      name                = keeper$name[i],
-      club                = keeper$club[i],
-      apps                = keeper$apps[i],
-      minutes_played      = keeper$`minutes played`[i],
-      average_rating      = keeper$`average rating`[i],
-      player_of_the_match = keeper$`player of the match`[i],
-      clean_sheets        = keeper$`clean sheets`[i],
-      conceded            = keeper$conceded[i],
-      saves_parried       = keeper$`saves parried`[i],
-      saves_held          = keeper$`saves held`[i],
-      saves_tipped        = keeper$`saves tipped`[i],
-      save_pct            = keeper$`save%`[i],
-      penalties_faced     = keeper$`penalties faced`[i],
-      penalties_saved     = keeper$`penalties saved`[i],
-      xsave_pct           = keeper$`xsave%`[i],
-      xg_prevented        = keeper$`xg prevented`[i],
-      gid                 = keeper$gid[i],
-      type                = "set"
-    )
-  }
+      )",
+        .con = con,
+        name                = keeper$name,
+        club                = keeper$club,
+        apps                = keeper$apps,
+        minutes_played      = keeper$`minutes played`,
+        average_rating      = keeper$`average rating`,
+        player_of_the_match = keeper$`player of the match`,
+        clean_sheets        = keeper$`clean sheets`,
+        conceded            = keeper$conceded,
+        saves_parried       = keeper$`saves parried`,
+        saves_held          = keeper$`saves held`,
+        saves_tipped        = keeper$`saves tipped`,
+        save_pct            = keeper$`save%`,
+        penalties_faced     = keeper$`penalties faced`,
+        penalties_saved     = keeper$`penalties saved`,
+        xsave_pct           = keeper$`xsave%`,
+        xg_prevented        = keeper$`xg prevented`,
+        gid                 = keeper$gid
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
+    
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
+      
+    DBI$dbCommit(con)
+    
+  }, error = function(e) {
+    DBI$dbRollback(con)
+    
+    # Log or handle the error
+    message("Error executing query: ", e$message)
+    
+    stop(e$message)
+  }, finally = {
+    # Ensure the connection is closed
+    DBI$dbDisconnect(con)
+  })
   
 }
 
@@ -402,10 +427,34 @@ importAcademyData <- function(data) {
   outfield <- data$o
   keeper <- data$k
   
-  for (i in seq_len(nrow(outfield))) {
-    indexQuery(
-      query = "
-    INSERT INTO academyoutfield (
+  con <- createConnection("index")
+  
+  DBI$dbExecute(con, "SET NAMES utf8mb4;")
+  DBI$dbExecute(con, "SET CHARACTER SET utf8mb4;")
+  DBI$dbExecute(con, "SET character_set_connection=utf8mb4;")
+  
+  DBI$dbBegin(con)
+  
+  DBI$dbExecute(
+    con,
+    glue$glue_sql(
+      "DELETE FROM academyoutfield WHERE season = {season};",
+      .con = con,
+      season = outfield$season |> unique()
+    )
+  )
+  
+  DBI$dbExecute(
+    con,
+    glue$glue_sql(
+      "DELETE FROM academykeeper WHERE season = {season};",
+      .con = con,
+      season = outfield$season |> unique()
+    )
+  )
+  
+  tryCatch({
+    insert <- "INSERT INTO academyoutfield (
       season, name, club, position, apps, `minutes played`, `distance run (km)`,
       `average rating`, `player of the match`, goals, assists, xg, xa, 
       `xg overperformance`, `goals outside box`, `shots on target`, shots, 
@@ -420,117 +469,150 @@ importAcademyData <- function(data) {
       `fouls against`, offsides, `progressive passes`, `successful presses`, 
       `attempted presses`
     )
-    VALUES (
-      {season}, {name}, {club}, {position}, {apps}, {minutes_played}, {distance_run_km},
-      {average_rating}, {player_of_the_match}, {goals}, {assists}, {xg}, {xa}, 
-      {xg_overperformance}, {goals_outside_box}, {shots_on_target}, {shots}, 
-      {fk_shots}, {blocks}, {penalties_taken}, {penalties_scored}, 
-      {successful_passes}, {attempted_passes}, {pass_pct}, {key_passes}, 
-      {open_play_key_passes}, {successful_open_play_crosses}, 
-      {attempted_open_play_crosses}, {successful_crosses}, {attempted_crosses}, 
-      {cross_pct}, {chances_created}, {successful_headers}, {attempted_headers}, 
-      {header_pct}, {key_headers}, {dribbles}, {tackles_won}, {attempted_tackles}, 
-      {tackle_pct}, {key_tackles}, {interceptions}, {shots_blocked}, {clearances}, 
-      {mistakes_leading_to_goals}, {yellow_cards}, {red_cards}, {fouls}, 
-      {fouls_against}, {offsides}, {progressive_passes}, {successful_presses}, 
-      {attempted_presses}
-    );",
-      season                   = outfield$season[i],
-      name                     = outfield$name[i],
-      club                     = outfield$club[i],
-      position                 = outfield$position[i],
-      apps                     = outfield$apps[i],
-      minutes_played           = outfield$`minutes played`[i],
-      distance_run_km          = outfield$`distance run (km)`[i],
-      average_rating           = outfield$`average rating`[i],
-      player_of_the_match      = outfield$`player of the match`[i],
-      goals                    = outfield$goals[i],
-      assists                  = outfield$assists[i],
-      xg                       = outfield$xg[i],
-      xa                       = outfield$xa[i],
-      xg_overperformance       = outfield$`xg overperformance`[i],
-      goals_outside_box        = outfield$`goals outside box`[i],
-      shots_on_target          = outfield$`shots on target`[i],
-      shots                    = outfield$shots[i],
-      fk_shots                 = outfield$`fk shots`[i],
-      blocks                   = outfield$blocks[i],
-      penalties_taken          = outfield$`penalties taken`[i],
-      penalties_scored         = outfield$`penalties scored`[i],
-      successful_passes        = outfield$`successful passes`[i],
-      attempted_passes         = outfield$`attempted passes`[i],
-      pass_pct                 = outfield$`pass%`[i],
-      key_passes               = outfield$`key passes`[i],
-      open_play_key_passes     = outfield$`open play key passes`[i],
-      successful_open_play_crosses = outfield$`successful open play crosses`[i],
-      attempted_open_play_crosses  = outfield$`attempted open play crosses`[i],
-      successful_crosses       = outfield$`successful crosses`[i],
-      attempted_crosses        = outfield$`attempted crosses`[i],
-      cross_pct                = outfield$`cross%`[i],
-      chances_created          = outfield$`chances created`[i],
-      successful_headers       = outfield$`successful headers`[i],
-      attempted_headers        = outfield$`attempted headers`[i],
-      header_pct               = outfield$`header%`[i],
-      key_headers              = outfield$`key headers`[i],
-      dribbles                 = outfield$dribbles[i],
-      tackles_won              = outfield$`tackles won`[i],
-      attempted_tackles        = outfield$`attempted tackles`[i],
-      tackle_pct               = outfield$`tackle%`[i],
-      key_tackles              = outfield$`key tackles`[i],
-      interceptions            = outfield$interceptions[i],
-      shots_blocked            = outfield$`shots blocked`[i],
-      clearances               = outfield$clearances[i],
-      mistakes_leading_to_goals = outfield$`mistakes leading to goals`[i],
-      yellow_cards             = outfield$`yellow cards`[i],
-      red_cards                = outfield$`red cards`[i],
-      fouls                    = outfield$fouls[i],
-      fouls_against            = outfield$`fouls against`[i],
-      offsides                 = outfield$offsides[i],
-      progressive_passes       = outfield$`progressive passes`[i],
-      successful_presses       = outfield$`successful presses`[i],
-      attempted_presses        = outfield$`attempted presses`[i],
-      type                     = "set"
-    )
-  }
- 
-  for (i in seq_len(nrow(keeper))) {
-    indexQuery(
-      query = "
-    INSERT INTO academykeeper (
+    VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "(
+          {season}, {name}, {club}, {position}, {apps}, {minutes_played}, {distance_run_km},
+          {average_rating}, {player_of_the_match}, {goals}, {assists}, {xg}, {xa}, 
+          {xg_overperformance}, {goals_outside_box}, {shots_on_target}, {shots}, 
+          {fk_shots}, {blocks}, {penalties_taken}, {penalties_scored}, 
+          {successful_passes}, {attempted_passes}, {pass_pct}, {key_passes}, 
+          {open_play_key_passes}, {successful_open_play_crosses}, 
+          {attempted_open_play_crosses}, {successful_crosses}, {attempted_crosses}, 
+          {cross_pct}, {chances_created}, {successful_headers}, {attempted_headers}, 
+          {header_pct}, {key_headers}, {dribbles}, {tackles_won}, {attempted_tackles}, 
+          {tackle_pct}, {key_tackles}, {interceptions}, {shots_blocked}, {clearances}, 
+          {mistakes_leading_to_goals}, {yellow_cards}, {red_cards}, {fouls}, 
+          {fouls_against}, {offsides}, {progressive_passes}, {successful_presses}, 
+          {attempted_presses}
+        )",
+        .con = con,
+        season                   = outfield$season,
+        name                     = outfield$name,
+        club                     = outfield$club,
+        position                 = outfield$position,
+        apps                     = outfield$apps,
+        minutes_played           = outfield$`minutes played`,
+        distance_run_km          = outfield$`distance run (km)`,
+        average_rating           = outfield$`average rating`,
+        player_of_the_match      = outfield$`player of the match`,
+        goals                    = outfield$goals,
+        assists                  = outfield$assists,
+        xg                       = outfield$xg,
+        xa                       = outfield$xa,
+        xg_overperformance       = outfield$`xg overperformance`,
+        goals_outside_box        = outfield$`goals outside box`,
+        shots_on_target          = outfield$`shots on target`,
+        shots                    = outfield$shots,
+        fk_shots                 = outfield$`fk shots`,
+        blocks                   = outfield$blocks,
+        penalties_taken          = outfield$`penalties taken`,
+        penalties_scored         = outfield$`penalties scored`,
+        successful_passes        = outfield$`successful passes`,
+        attempted_passes         = outfield$`attempted passes`,
+        pass_pct                 = outfield$`pass%`,
+        key_passes               = outfield$`key passes`,
+        open_play_key_passes     = outfield$`open play key passes`,
+        successful_open_play_crosses = outfield$`successful open play crosses`,
+        attempted_open_play_crosses  = outfield$`attempted open play crosses`,
+        successful_crosses       = outfield$`successful crosses`,
+        attempted_crosses        = outfield$`attempted crosses`,
+        cross_pct                = outfield$`cross%`,
+        chances_created          = outfield$`chances created`,
+        successful_headers       = outfield$`successful headers`,
+        attempted_headers        = outfield$`attempted headers`,
+        header_pct               = outfield$`header%`,
+        key_headers              = outfield$`key headers`,
+        dribbles                 = outfield$dribbles,
+        tackles_won              = outfield$`tackles won`,
+        attempted_tackles        = outfield$`attempted tackles`,
+        tackle_pct               = outfield$`tackle%`,
+        key_tackles              = outfield$`key tackles`,
+        interceptions            = outfield$interceptions,
+        shots_blocked            = outfield$`shots blocked`,
+        clearances               = outfield$clearances,
+        mistakes_leading_to_goals = outfield$`mistakes leading to goals`,
+        yellow_cards             = outfield$`yellow cards`,
+        red_cards                = outfield$`red cards`,
+        fouls                    = outfield$fouls,
+        fouls_against            = outfield$`fouls against`,
+        offsides                 = outfield$offsides,
+        progressive_passes       = outfield$`progressive passes`,
+        successful_presses       = outfield$`successful presses`,
+        attempted_presses        = outfield$`attempted presses`
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
+    
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
+    
+    insert <- "INSERT INTO academykeeper (
       season, name, club, position, apps, `minutes played`, 
       `average rating`, `player of the match`, won, lost, draw, 
       `clean sheets`, conceded, `saves parried`, `saves held`, 
       `saves tipped`, `save%`, `penalties faced`, `penalties saved`, 
       `xsave%`, `xg prevented`
     )
-    VALUES (
-      {season}, {name}, {club}, {position}, {apps}, {minutes_played}, 
-      {average_rating}, {player_of_the_match}, {won}, {lost}, {draw}, 
-      {clean_sheets}, {conceded}, {saves_parried}, {saves_held}, 
-      {saves_tipped}, {save_pct}, {penalties_faced}, {penalties_saved}, 
-      {xsave_pct}, {xg_prevented}
-    );",
-      season              = keeper$season[i],
-      name                = keeper$name[i],
-      club                = keeper$club[i],
-      position            = keeper$position[i],
-      apps                = keeper$apps[i],
-      minutes_played      = keeper$`minutes played`[i],
-      average_rating      = keeper$`average rating`[i],
-      player_of_the_match = keeper$`player of the match`[i],
-      won                 = keeper$won[i],
-      lost                = keeper$lost[i],
-      draw                = keeper$drawn[i],
-      clean_sheets        = keeper$`clean sheets`[i],
-      conceded            = keeper$conceded[i],
-      saves_parried       = keeper$`saves parried`[i],
-      saves_held          = keeper$`saves held`[i],
-      saves_tipped        = keeper$`saves tipped`[i],
-      save_pct            = keeper$`save%`[i],
-      penalties_faced     = keeper$`penalties faced`[i],
-      penalties_saved     = keeper$`penalties saved`[i],
-      xsave_pct           = keeper$`xsave%`[i],
-      xg_prevented        = keeper$`xg prevented`[i],
-      type                = "set"
-    )
-  }
+    VALUES "
+    
+    values <- 
+      glue$glue_sql(
+        "(
+          {season}, {name}, {club}, {position}, {apps}, {minutes_played}, 
+          {average_rating}, {player_of_the_match}, {won}, {lost}, {draw}, 
+          {clean_sheets}, {conceded}, {saves_parried}, {saves_held}, 
+          {saves_tipped}, {save_pct}, {penalties_faced}, {penalties_saved}, 
+          {xsave_pct}, {xg_prevented}
+        )",
+        .con = con,
+        season              = keeper$season,
+        name                = keeper$name,
+        club                = keeper$club,
+        position            = keeper$position,
+        apps                = keeper$apps,
+        minutes_played      = keeper$`minutes played`,
+        average_rating      = keeper$`average rating`,
+        player_of_the_match = keeper$`player of the match`,
+        won                 = keeper$won,
+        lost                = keeper$lost,
+        draw                = keeper$drawn,
+        clean_sheets        = keeper$`clean sheets`,
+        conceded            = keeper$conceded,
+        saves_parried       = keeper$`saves parried`,
+        saves_held          = keeper$`saves held`,
+        saves_tipped        = keeper$`saves tipped`,
+        save_pct            = keeper$`save%`,
+        penalties_faced     = keeper$`penalties faced`,
+        penalties_saved     = keeper$`penalties saved`,
+        xsave_pct           = keeper$`xsave%`,
+        xg_prevented        = keeper$`xg prevented`
+      ) |> 
+      glue$glue_sql_collapse(sep = ", ")
+    
+    safeQuery <- 
+      c(insert, values, ";") |> 
+      glue$glue_sql_collapse()
+    
+    DBI$dbExecute(con, safeQuery) |> 
+      suppressWarnings()
+      
+    DBI$dbCommit(con)
+    
+  }, error = function(e) {
+    DBI$dbRollback(con)
+    
+    # Log or handle the error
+    message("Error executing query: ", e$message)
+    
+    stop(e$message)
+  }, finally = {
+    # Ensure the connection is closed
+    DBI$dbDisconnect(con)
+  })
 }

@@ -1,4 +1,5 @@
 box::use(
+  assertthat,
   bslib,
   dplyr,
   lubridate[
@@ -24,19 +25,15 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[
-    logBankTransaction, 
     portalQuery,
-    updateTPE,
   ],
   app/logic/db/get[
     getActivePlayer, 
     getPlayer, 
   ],
   app/logic/db/login[isNonActiveForumUser],
-  app/logic/db/updateFunctions[updatePlayerData],
-  app/logic/player/playerChecks[
-    hasActivePlayer,
-  ],
+  app/logic/db/updateFunctions[updateFromBank],
+  app/logic/player/playerChecks[hasActivePlayer,],
   app/logic/player/playerHistory,
   app/logic/player/playerInfo,
   app/view/bank/footedness,
@@ -278,7 +275,45 @@ server <- function(id, auth, updated) {
             wait at least 1 minute between purchases."
           )
         } else {
+          
           tryCatch({
+            
+            assertthat$assert_that(
+              totalCost() > 0, 
+              msg = "Your total cost is not positive."
+            )
+            
+            assertthat$assert_that(
+              totalCost() < playerData()$bankBalance, 
+              msg = "Your total cost is higher than your bank balance."
+            )
+            
+            assertthat$assert_that(
+              inputTrain$individualTraining <= playerData()$purchasedTPE,
+              msg = "You are trying to purchase more TPE than you have available for the season."
+            )
+            
+            assertthat$assert_that(
+              inputFoot$left %in% c(10, 15, 20),
+              inputFoot$right %in% c(10, 15, 20),
+              msg = "You are trying to purchase footedness that does not exist."
+            )
+            
+            if (playerData()$position != "GK") {
+
+              assertthat$assert_that(
+                all(inputTrait$traits %in% (constant$traits |> unlist(use.names = FALSE))),
+                msg = "You are trying to purchase traits that does not exist."
+              )
+
+              assertthat$assert_that(
+                all(inputPos$primary %in% names(constant$positions)),
+                all(inputPos$secondary %in% names(constant$positions)),
+                msg = "You are trying to purchase positions that does not exist."
+              )
+              
+            }
+            
             currentPos <- 
               playerData() |> 
               dplyr$select(pos_gk:pos_st) |> 
@@ -330,47 +365,14 @@ server <- function(id, auth, updated) {
               ) |> 
               dplyr$filter(new != old & attribute != "tpe")
             
-            if (purchaseSummary |> nrow() > 0) {
-              updatePlayerData(
-                uid = auth$uid,
-                pid = playerData()$pid,
-                updates = purchaseSummary
-              )  
-            }
-            
-            if (inputTrain$individualTraining > 0) {
-              
-              ## Logs and updates the tpe
-              updateTPE(
-                uid = auth$uid,
-                tpe = dplyr$tibble(
-                  pid = playerData()$pid,
-                  source = "Individual Training",
-                  tpe = inputTrain$individualTraining
-                )
-              )
-              
-              ## Logs and updates the purchased TPE
-              portalQuery(
-                query = 
-                  "UPDATE playerdata 
-                  SET purchasedTPE = purchasedTPE + {tpe} 
-                  WHERE pid = {pid};",
-                tpe = inputTrain$individualTraining,
-                pid = playerData()$pid,
-                type = "set"
-              )
-            }
-            
-            logBankTransaction(
+            updateFromBank(
               uid = auth$uid,
-              data = dplyr$tibble(
-                pid = playerData()$pid,
-                source = "Store Purchase",
-                amount = -totalCost()
-              )
+              pid = playerData()$pid,
+              updates = purchaseSummary,
+              tpe = inputTrain$individualTraining,
+              totalCost = -totalCost()
             )
-            
+          
             updated(updated() + 1)
             
             showToast(

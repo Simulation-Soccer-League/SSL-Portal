@@ -159,6 +159,29 @@ getPlayers <- function(active) {
     suppressWarnings()
 }
 
+#' @export
+getOrganizationPlayers <- function(oid) {
+  portalQuery(
+    "SELECT p.*
+      FROM allplayersview p
+      LEFT JOIN organizations o ON
+        p.organization = o.name
+      WHERE o.id = {oid};",
+    oid = oid
+  ) |> 
+    suppressWarnings()
+}
+
+#' @export
+getTeamInformation <- function(oid){
+  portalQuery(
+    "SELECT *
+      FROM teams
+      WHERE orgID = {oid};",
+    oid = oid
+  )
+}
+
 
 #' @export
 getPlayersFromOrganization <- function(uid) {
@@ -365,10 +388,10 @@ getPlayer <- function(pid) {
 #' @export
 getOrganizations <- function() {
   portalQuery(
-    "SELECT o.ID, o.name AS organization, o.abbr AS abbreviation, t.name, t.primaryColor, t.secondaryColor, t.city
+    "SELECT o.ID, o.name AS organization, t.abbreviation AS abbreviation, t.name, t.primaryColor, t.secondaryColor, t.city
     FROM teams AS t
     LEFT JOIN organizations AS o ON t.orgID = o.ID
-    ORDER BY o.ID"
+    ORDER BY o.ID, t.affiliate;"
   )
 }
 

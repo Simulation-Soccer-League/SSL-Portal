@@ -5,6 +5,7 @@ box::use(
   plotly,
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
+  scales[comma],
   shiny,
   shiny.router[get_query_param],
   stringr[
@@ -29,8 +30,9 @@ box::use(
   ],
   app/logic/ui/reactableHelper[
     attributeReactable, 
-    indexReactable, 
-    recordReactable
+    indexReactable,
+    linkOrganization,
+    recordReactable,
   ],
   app/logic/ui/spinner[withSpinnerCustom],
 )
@@ -169,13 +171,8 @@ server <- function(id, pid = NULL, updated) {
     
     output$clubLogo <- shiny$renderUI({
       data <- playerData()
-
-      shiny$img(
-        src = sprintf("static/logo/%s.png", data$team),
-        style = "height: 100px;",
-        alt = data$team,
-        title = data$team
-      )
+      
+      linkOrganization(value = data$team, onlyImg = TRUE, height = 100)
     })
 
     output$playerInfo <- shiny$renderUI({
@@ -266,7 +263,8 @@ server <- function(id, pid = NULL, updated) {
               dplyr$select(name) |>
               unlist() |>
               paste(collapse = ", ") |>
-              shiny$HTML()
+              shiny$HTML(),
+            shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
           )
         )
       )
@@ -424,7 +422,7 @@ server <- function(id, pid = NULL, updated) {
             ),
             yaxis = list(
               title = "TPE",
-              range = c(300, 2100),
+              range = c(250, 2100),
               tickfont = list(color = "white"), # Set y-axis tick labels color to white
               titlefont = list(color = "white"), # Set y-axis title color to white
               dtick = 200, # Show tickmarks at intervals of 200

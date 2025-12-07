@@ -17,7 +17,6 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/get[
-    getOrganizations,
     getPlayer,
     getPlayers,
   ],
@@ -159,7 +158,7 @@ server <- function(id, auth, updated) {
     })
     
     organizations <- shiny$reactive({
-      getOrganizations() |> 
+      constant$organizations |> 
         dplyr$select(id = ID, name = organization, abbr = abbreviation) |> 
         dplyr$filter(!is.na(name)) |> 
         dplyr$distinct()

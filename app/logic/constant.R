@@ -5,7 +5,8 @@ box::use(
 )
 
 box::use(
-  app / logic / db / api,
+  app/logic/db/api,
+  app/logic/db/get[getOrganizations],
 )
 
 #' @export
@@ -591,6 +592,9 @@ currentSeason <- api$readAPI(url = "https://api.simulationsoccer.com/admin/getCu
 
 #' @export
 statisticsLegend <- api$readAPI(url = "https://api.simulationsoccer.com/admin/statistics")
+
+#' @export
+organizations <- getOrganizations()
 
 #' @export
 sslToastOptions <- 
