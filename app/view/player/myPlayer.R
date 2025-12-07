@@ -141,13 +141,14 @@ server <- function(id, auth, updated) {
       shiny$tagList(
         bslib$layout_column_wrap(
           width = NULL,
-          style = bslib$css(grid_template_columns = "1fr 8fr 1fr"),
-          "",
+          style = bslib$css(
+            width = "80%",
+            margin = "0 auto"
+          ),
           bslib$layout_column_wrap(
             width = 1 / length(buttonList),
             !!!unname(buttonList)
-          ),
-          ""
+          )
         ),
         shiny$br(),
         player$ui(ns("player"))
