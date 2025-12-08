@@ -289,7 +289,7 @@ server <- function(id, auth, updated) {
             )
             
             assertthat$assert_that(
-              inputTrain$individualTraining <= playerData()$purchasedTPE,
+              inputTrain$individualTraining <= (18 - playerData()$purchasedTPE),
               msg = "You are trying to purchase more TPE than you have available for the season."
             )
             
