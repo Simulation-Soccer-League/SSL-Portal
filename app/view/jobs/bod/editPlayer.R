@@ -159,7 +159,7 @@ server <- function(id, auth, updated) {
     
     organizations <- shiny$reactive({
       constant$organizations |> 
-        dplyr$select(id = ID, name = organization, abbr = abbreviation) |> 
+        dplyr$select(id = ID, name = name, abbr = abbreviation) |> 
         dplyr$filter(!is.na(name)) |> 
         dplyr$distinct()
     })
