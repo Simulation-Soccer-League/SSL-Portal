@@ -214,7 +214,7 @@ server <- function(id, auth, resAuth, updated) {
             navMenuItem(
               label = "Manager",
               subItems = list(
-                a("Roster Overview", href = route_link("organization/overview"))
+                a("Roster Overview", href = route_link("manager/overview"))
               )
             )
           },
