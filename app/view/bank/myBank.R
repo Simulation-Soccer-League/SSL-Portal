@@ -284,7 +284,7 @@ server <- function(id, auth, updated) {
             )
             
             assertthat$assert_that(
-              totalCost() < playerData()$bankBalance, 
+              totalCost() <= playerData()$bankBalance, 
               msg = "Your total cost is higher than your bank balance."
             )
             
