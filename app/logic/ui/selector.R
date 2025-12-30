@@ -19,7 +19,7 @@ leagueSelectInput <- function(season, session) {
             "ALL"
           )
       )
-    } else if (season == 12) {
+    } else if (season %in% c(12, 18, 23)) {
       shiny$selectInput(
         inputId = session$ns("selectedLeague"),
         label = "League",
