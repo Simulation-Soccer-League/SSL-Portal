@@ -142,6 +142,7 @@ server <- function(id, updated) {
                 MatchType == -1 ~ "Friendlies",
                 MatchType == 0 ~ "Cup",
                 MatchType == 1 ~ "Major League",
+                MatchType == 5 ~ "WSFC",
                 TRUE ~ "Minor League"
               )
             ) |>
