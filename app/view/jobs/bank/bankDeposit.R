@@ -89,12 +89,7 @@ server <- function(id, auth, updated) {
                 shiny$downloadButton(
                   ns("downloadTemplate"),
                   label = "Download the template file"
-                ),
-                shiny$downloadButton(
-                  ns("downloadData"),
-                  label = "Fake", 
-                  style = "visibility: hidden;"
-                ) 
+                )
               ),
               shiny$fileInput(
                 inputId = ns("depositFile"),
@@ -228,18 +223,6 @@ server <- function(id, auth, updated) {
       }
     })
     
-    output$downloadData <- shiny$downloadHandler(
-      filename = function() {
-        paste("unprocessed", input$depositFile$name)
-      },
-      content = function(file) {
-        bankDeposit() |> 
-          dplyr$filter(pid == -99) |> 
-          dplyr$select(!pid) |> 
-          write_csv(file, na = "")
-      }
-    )
-    
     output$downloadTemplate <- shiny$downloadHandler(
       filename = function() {
         "Bank Deposit Template.csv"
@@ -273,15 +256,11 @@ server <- function(id, auth, updated) {
       if (nrow(unProcessed) > 0) {
         showToast(
           .options = constant$sslToastOptions,
-          "warning",
-          "At least one player in the submitted csv has not been matched to an active player.
-          A filtered file has been downloaded for manual processing."
+          "error",
+          "At least one player in the submitted csv has not been matched to an active player."
         )
         
-        click("downloadData")
-      }
-      
-      if (nrow(processed) <= 0) {
+      } else if (nrow(processed) <= 0) {
         showToast(
           .options = constant$myToastOptions,
           "error",
