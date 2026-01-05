@@ -862,7 +862,7 @@ getManagers <- function() {
 #' @export
 getUnapprovedPlayers <- function() {
   portalQuery(
-    "SELECT pid, username, first, last, tpe, tpebank, render
+    "SELECT pid, username, first, last, tpe, tpebank, render, position
     FROM allplayersview
     WHERE status_p = -1;"
   )
