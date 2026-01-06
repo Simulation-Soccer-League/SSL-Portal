@@ -144,6 +144,7 @@ server <- function(id, usergroup) {
                   gd,
                   p
                 ) |>
+                dplyr$arrange(dplyr$desc(p), dplyr$desc(gd), dplyr$desc(gf)) |> 
                 reactable(
                   defaultColDef = colDef(minWidth = 30),
                   pagination = FALSE,
