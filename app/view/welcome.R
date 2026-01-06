@@ -1,6 +1,6 @@
 box::use(
   bslib,
-  dplyr[mutate, rename_with, select],
+  dplyr[arrange, desc, mutate, rename_with, select],
   plotly[config, layout, plot_ly, plotlyOutput, renderPlotly],
   reactable[colDef, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
@@ -138,13 +138,13 @@ server <- function(id, usergroup) {
 
             if (!(standings |> is_empty())) {
               standings |>
+                arrange(desc(p), desc(gd), desc(gf)) |>
                 select(
                   team,
                   w:l,
                   gd,
                   p
                 ) |>
-                dplyr$arrange(dplyr$desc(p), dplyr$desc(gd), dplyr$desc(gf)) |> 
                 reactable(
                   defaultColDef = colDef(minWidth = 30),
                   pagination = FALSE,
