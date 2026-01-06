@@ -290,54 +290,10 @@ getStandings <- function(league, season) {
   indexQuery(
     query = "
       SELECT
-        Team,
-        COUNT(*) AS MatchesPlayed,
-        SUM(CASE
-              WHEN (Home = Team AND HomeScore > AwayScore)
-                OR (Away = Team AND AwayScore > HomeScore)
-              THEN 1 ELSE 0
-            END) AS Wins,
-        SUM(CASE
-              WHEN HomeScore = AwayScore THEN 1 ELSE 0
-            END) AS Draws,
-        SUM(CASE
-              WHEN (Home = Team AND HomeScore < AwayScore)
-                OR (Away = Team AND AwayScore < HomeScore)
-              THEN 1 ELSE 0
-            END) AS Losses,
-        SUM(CASE WHEN Home = Team THEN HomeScore ELSE AwayScore END)    AS GoalsFor,
-        SUM(CASE WHEN Home = Team THEN AwayScore ELSE HomeScore END)    AS GoalsAgainst,
-        SUM(CASE
-              WHEN (Home = Team AND HomeScore > AwayScore)
-                OR (Away = Team AND AwayScore > HomeScore) THEN 3
-              WHEN HomeScore = AwayScore THEN 1
-              ELSE 0
-            END) AS Points,
-        SUM(CASE WHEN Home = Team THEN HomeScore ELSE AwayScore END)
-        - SUM(CASE WHEN Home = Team THEN AwayScore ELSE HomeScore END)
-        AS GoalDifference
-      FROM (
-        SELECT Home  AS Team, Home, Away, HomeScore, AwayScore, matchtype, Season
-        FROM schedule
-        WHERE HomeScore IS NOT NULL
-          -- league filter: either ALL or exact match
-          AND ( {league} = 'ALL'    OR matchtype = {league} )
-          -- season filter: either ALL or exact match
+        *
+      FROM standings
+      WHERE ( {league} = 'ALL'    OR matchtype = {league} )
           AND ( {season} = 'ALL'    OR Season    = {season} )
-        
-        UNION ALL
-        
-        SELECT Away  AS Team, Home, Away, HomeScore, AwayScore, matchtype, Season
-        FROM schedule
-        WHERE HomeScore IS NOT NULL
-          AND ( {league} = 'ALL'    OR matchtype = {league} )
-          AND ( {season} = 'ALL'    OR Season    = {season} )
-      ) AS combined
-      GROUP BY Team
-      ORDER BY
-        Points DESC,
-        GoalDifference DESC,
-        GoalsFor DESC
     ",
     league = league,
     season = season

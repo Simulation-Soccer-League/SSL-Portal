@@ -139,16 +139,17 @@ server <- function(id, usergroup) {
             if (!(standings |> is_empty())) {
               standings |>
                 select(
-                  Team,
-                  Wins:Losses,
-                  Points
+                  team,
+                  w:l,
+                  gd,
+                  p
                 ) |>
                 reactable(
                   defaultColDef = colDef(minWidth = 30),
                   pagination = FALSE,
                   columns =
                     list(
-                      Team = colDef(
+                      team = colDef(
                         name = "", 
                         minWidth = 100, 
                         align = "left", 
@@ -156,7 +157,7 @@ server <- function(id, usergroup) {
                           linkOrganization(value)
                         }
                       ),
-                      Wins = colDef(
+                      w = colDef(
                         header = tippy(
                           "W",
                           "Wins",
@@ -165,7 +166,7 @@ server <- function(id, usergroup) {
                           arrow = TRUE
                         )
                       ),
-                      Draws = colDef(
+                      d = colDef(
                         header = tippy(
                           "D",
                           "Draws",
@@ -174,7 +175,7 @@ server <- function(id, usergroup) {
                           arrow = TRUE
                         )
                       ),
-                      Losses = colDef(
+                      l = colDef(
                         header = tippy(
                           "L",
                           "Losses",
@@ -183,7 +184,16 @@ server <- function(id, usergroup) {
                           arrow = TRUE
                         )
                       ),
-                      Points = colDef(
+                      gd = colDef(
+                        header = tippy(
+                          "GD",
+                          "Goal difference",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      p = colDef(
                         header = tippy(
                           "P",
                           "Points",

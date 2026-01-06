@@ -92,15 +92,58 @@ server <- function(id, updated) {
           relegation <- TRUE
         }
 
-        data <- standings()
+        data <- standings() |> 
+          dplyr$arrange(matchday, dplyr$desc(p), dplyr$desc(gd), dplyr$desc(gf))
 
         if (data |> is_empty()) {
           NULL
+        } else if (league == 5){
+          data |> 
+            dplyr$select(!c(matchtype, season)) |> 
+            dplyr$filter(nchar(matchday) == 1) |> 
+            reactable(
+              sortable = FALSE,
+              pagination = FALSE,
+              defaultExpanded = TRUE,
+              groupBy = "matchday",
+              defaultColDef = colDef(
+                minWidth = 60,
+                align = "center",
+                style = function(value, index) {
+                  list(
+                    background =
+                      dplyr$if_else(index %in% c(1,2, 5,6, 9, 10, 13, 14), constant$green, NA),
+                    borderTop =
+                      dplyr$if_else(index %in% seq(3, 15, by = 4), "solid", "none")
+                  )
+                }
+              ),
+              columns = list(
+                matchday = colDef(name = ""),
+                team = colDef(
+                  name = "", 
+                  width = 200, 
+                  align = "left", 
+                  cell = function(value) {
+                    linkOrganization(value)
+                  }
+                ),
+                mp = colDef(header = tippy("GP", "Games played", theme = "ssl")),
+                w = colDef(header = tippy("W", "Wins", theme = "ssl")),
+                d = colDef(header = tippy("D", "Draws", theme = "ssl")),
+                l = colDef(header = tippy("L", "Losses", theme = "ssl")),
+                gf = colDef(header = tippy("GF", "Goals scored", theme = "ssl")),
+                ga = colDef(header = tippy("GA", "Goals conceded", theme = "ssl")),
+                gd = colDef(header = tippy("GD", "Goal difference", theme = "ssl")),
+                p = colDef(header = tippy("P", "Points", theme = "ssl"))
+              )
+            )
         } else {
           data |>
-            dplyr$select(!GoalDifference) |>
+            dplyr$select(!c(matchtype, matchday, season)) |> 
             reactable(
               pagination = FALSE,
+              sortable = FALSE,
               defaultColDef = colDef(
                 minWidth = 60,
                 align = "center",
@@ -127,7 +170,7 @@ server <- function(id, updated) {
                 }
               ),
               columns = list(
-                Team = colDef(
+                team = colDef(
                   name = "", 
                   width = 200, 
                   align = "left", 
@@ -135,13 +178,14 @@ server <- function(id, updated) {
                     linkOrganization(value)
                   }
                 ),
-                MatchesPlayed = colDef(header = tippy("GP", "Games played", theme = "ssl")),
-                Wins = colDef(header = tippy("W", "Wins", theme = "ssl")),
-                Draws = colDef(header = tippy("D", "Draws", theme = "ssl")),
-                Losses = colDef(header = tippy("L", "Losses", theme = "ssl")),
-                GoalsFor = colDef(header = tippy("GF", "Goals scored", theme = "ssl")),
-                GoalsAgainst = colDef(header = tippy("GA", "Goals conceded", theme = "ssl")),
-                Points = colDef(header = tippy("P", "Points", theme = "ssl"))
+                mp = colDef(header = tippy("GP", "Games played", theme = "ssl")),
+                w = colDef(header = tippy("W", "Wins", theme = "ssl")),
+                d = colDef(header = tippy("D", "Draws", theme = "ssl")),
+                l = colDef(header = tippy("L", "Losses", theme = "ssl")),
+                gf = colDef(header = tippy("GF", "Goals scored", theme = "ssl")),
+                ga = colDef(header = tippy("GA", "Goals conceded", theme = "ssl")),
+                gd = colDef(header = tippy("GD", "Goal difference", theme = "ssl")),
+                p = colDef(header = tippy("P", "Points", theme = "ssl"))
               )
             )
         }
