@@ -29,18 +29,7 @@ ui <- function(id) {
   ns <- shiny$NS(id)
   shiny$tagList(
     bslib$card(
-      bslib$card_header(
-        bslib$layout_column_wrap(
-          width = NULL,
-          style = bslib$css(grid_template_columns = "1fr 5fr"),
-          shiny$selectInput(
-            inputId = ns("selectedSeason"),
-            label = "Select a season",
-            choices = constant$currentSeason$season:21
-          ),
-          ""
-        )
-      ),
+      bslib$card_header(""),
       bslib$card_body(
         shiny$h3("Standings"),
         reactableOutput(ns("standings")) |>
@@ -55,7 +44,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, updated) {
+server <- function(id, season) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
@@ -63,188 +52,242 @@ server <- function(id, updated) {
       
       #### DATA GENERATION ####
       schedule <- shiny$reactive({
+        season <- season() |> as.numeric()
         
-        
-        read_sheet(
-          ss = "https://docs.google.com/spreadsheets/d/1jcsFLjtiq-jK273DI-m-N38x9yUS66HwuX5x5Uig8Uc/edit?usp=sharing", 
-          sheet = paste("Season", input$selectedSeason, "Academy")
-        ) |> 
-          dplyr$mutate(
-            dplyr$across(
-              Division:Matchday,
-              unlist
-            )
-          )
+        if (season < 21) {
+          NULL
+        } else {
+          read_sheet(
+            ss = "https://docs.google.com/spreadsheets/d/1jcsFLjtiq-jK273DI-m-N38x9yUS66HwuX5x5Uig8Uc/edit?usp=sharing", 
+            sheet = paste("Season", season(), "Academy")
+          ) |> 
+            dplyr$mutate(
+              dplyr$across(
+                Division:Matchday,
+                unlist
+              )
+            )  
+        }
       }) |> 
         shiny$bindCache(
           id,
-          input$selectedSeason
+          season()
         ) |> 
         shiny$bindEvent(
-          input$selectedSeason
+          season()
         )
 
       
       standings <- shiny$reactive({
-        sheet <- 
-          schedule()
+        season <- season() |> as.numeric()
         
-        tryCatch({
-          sheet |> 
-            dplyr$mutate(
-              `In-game Date` = `In-game Date` |> as_date() |> format(format = "%m/%d"),
-              `IRL Date` = `IRL Date` |> as_date() |> format(format = "%m/%d"),
-              HomeScore = 
-                str_split(
-                  Result, 
-                  pattern = "-", 
-                  simplify = TRUE
-                )[,1], 
-              AwayScore = 
-                str_split(
-                  Result, 
-                  pattern = "-", 
-                  simplify = TRUE
-                )[,2]
-            ) |>
-            dplyr$mutate(
-              HomePoints = 
-                dplyr$case_when(
-                  str_detect(HomeScore, "e|p") ~ 3,
-                  HomeScore |> as.numeric() > AwayScore |> as.numeric() ~ 3,
-                  HomeScore |> as.numeric() == AwayScore |> as.numeric() ~ 1,
-                  TRUE ~ 0
-                ),
-              AwayPoints = 
-                dplyr$case_when(
-                  str_detect(AwayScore, "e|p") ~ 3,
-                  HomeScore |> as.numeric() < AwayScore |> as.numeric() ~ 3,
-                  HomeScore |> as.numeric() == AwayScore |> as.numeric() ~ 1,
-                  TRUE ~ 0
-                )
-            ) |> 
-            dplyr$select(
-              -`IRL Date`,
-              -`In-game Date`,
-              -Result
-            ) |> 
-            pivot_longer(
-              c(HomePoints, AwayPoints),
-              names_to = c("set", ".value"),
-              names_pattern = "(....)(.*)$"
-            ) |> 
-            dplyr$mutate(
-              Team = 
-                dplyr$case_when(
-                  set == "Home" ~ Home,
-                  TRUE ~ Away
-                ),
-              GF = 
-                dplyr$case_when(
-                  set == "Home" ~ HomeScore,
-                  TRUE ~ AwayScore
-                ),
-              GA = 
-                dplyr$case_when(
-                  set == "Home" ~ AwayScore,
-                  TRUE ~ HomeScore
-                ),
-              Matchday = unlist(Matchday)
-            ) |> 
-            dplyr$select(
-              !dplyr$contains("Home"),
-              !dplyr$contains("Away"),
-              !set
-            ) |> 
-            dplyr$filter(
-              !is.na(GF) & GF != "",
-              !is.na(as.numeric(Matchday) |> suppressWarnings()) 
-            ) |> 
-            dplyr$group_by(
-              Team
-            ) |> 
-            dplyr$summarize(
-              GP = dplyr$n(),
-              W = sum(Points == 3),
-              D = sum(Points == 1),
-              L = sum(Points == 0),
-              GF = sum(as.numeric(GF)),
-              GA = sum(as.numeric(GA)),
-              GD = GF-GA,
-              Points = sum(Points)
-            ) |> 
-            dplyr$arrange(
-              dplyr$desc(Points),
-              dplyr$desc(GD)
-            ) |> 
-            dplyr$ungroup() |> 
-            dplyr$mutate(
-              Pos = seq_len(dplyr$n())
-            ) |> 
-            dplyr$relocate(
-              c(Pos), 
-              .before = Team
-            ) |> 
-            dplyr$rename(
-              Pts = Points
-            )
-        })
-        
+        if (season < 21) {
+          NULL 
+        } else {
+          sheet <- 
+            schedule()
+          
+          tryCatch({
+            sheet |> 
+              dplyr$mutate(
+                `In-game Date` = `In-game Date` |> as_date() |> format(format = "%m/%d"),
+                `IRL Date` = `IRL Date` |> as_date() |> format(format = "%m/%d"),
+                HomeScore = 
+                  str_split(
+                    Result, 
+                    pattern = "-", 
+                    simplify = TRUE
+                  )[,1], 
+                AwayScore = 
+                  str_split(
+                    Result, 
+                    pattern = "-", 
+                    simplify = TRUE
+                  )[,2]
+              ) |>
+              dplyr$mutate(
+                HomePoints = 
+                  dplyr$case_when(
+                    str_detect(HomeScore, "e|p") ~ 3,
+                    HomeScore |> as.numeric() > AwayScore |> as.numeric() ~ 3,
+                    HomeScore |> as.numeric() == AwayScore |> as.numeric() ~ 1,
+                    TRUE ~ 0
+                  ),
+                AwayPoints = 
+                  dplyr$case_when(
+                    str_detect(AwayScore, "e|p") ~ 3,
+                    HomeScore |> as.numeric() < AwayScore |> as.numeric() ~ 3,
+                    HomeScore |> as.numeric() == AwayScore |> as.numeric() ~ 1,
+                    TRUE ~ 0
+                  )
+              ) |> 
+              dplyr$select(
+                -`IRL Date`,
+                -`In-game Date`,
+                -Result
+              ) |> 
+              pivot_longer(
+                c(HomePoints, AwayPoints),
+                names_to = c("set", ".value"),
+                names_pattern = "(....)(.*)$"
+              ) |> 
+              dplyr$mutate(
+                Team = 
+                  dplyr$case_when(
+                    set == "Home" ~ Home,
+                    TRUE ~ Away
+                  ),
+                GF = 
+                  dplyr$case_when(
+                    set == "Home" ~ HomeScore,
+                    TRUE ~ AwayScore
+                  ),
+                GA = 
+                  dplyr$case_when(
+                    set == "Home" ~ AwayScore,
+                    TRUE ~ HomeScore
+                  ),
+                Matchday = unlist(Matchday)
+              ) |> 
+              dplyr$select(
+                !dplyr$contains("Home"),
+                !dplyr$contains("Away"),
+                !set
+              ) |> 
+              dplyr$filter(
+                !is.na(GF) & GF != "",
+                !is.na(as.numeric(Matchday) |> suppressWarnings()) 
+              ) |> 
+              dplyr$group_by(
+                Team
+              ) |> 
+              dplyr$summarize(
+                GP = dplyr$n(),
+                W = sum(Points == 3),
+                D = sum(Points == 1),
+                L = sum(Points == 0),
+                GF = sum(as.numeric(GF)),
+                GA = sum(as.numeric(GA)),
+                GD = GF-GA,
+                Points = sum(Points)
+              ) |> 
+              dplyr$arrange(
+                dplyr$desc(Points),
+                dplyr$desc(GD)
+              ) |> 
+              dplyr$ungroup() |> 
+              dplyr$mutate(
+                Pos = seq_len(dplyr$n())
+              ) |> 
+              dplyr$relocate(
+                c(Pos), 
+                .before = Team
+              ) |> 
+              dplyr$rename(
+                Pts = Points
+              )
+          })
+        }
       })
 
       #### UI OUTPUT ####
       output$standings <- renderReactable({
-        reactable(
-          standings(), 
-          pagination = FALSE,
-          fullWidth = FALSE,
-          defaultColDef = colDef(minWidth = 60),
-          columns = 
-            list(
-              Team = colDef(name = "", width = 200, align = "left", cell = function(value){
-                image <- shiny$img(
-                  src = sprintf("static/logo/%s (Custom).png", value),
-                  style = "height: 30px;",
-                  alt = value,
-                  title = value
-                )
-                
-                list <-
-                  shiny$tagList(
-                    flexRow(
-                      style = "align-items: center; gap: 8px;",
-                      shiny$tagList(
-                        image,
-                        shiny$span(class = "truncated-text", value)
+        season <- season() |> as.numeric()
+        
+        if (season < 21) {
+          reactable(
+            dplyr$tibble(
+              Message = "No data found for this season"
+            ),
+            searchable = FALSE,
+            pagination = FALSE,
+            sortable = FALSE,
+            highlight = FALSE,
+            bordered = TRUE,
+            striped = FALSE,
+            defaultColDef = reactable::colDef(align = "center"),
+            columns = list(
+              Message = reactable::colDef(name = "")
+            )
+          )
+          
+        } else {
+          reactable(
+            standings(), 
+            pagination = FALSE,
+            fullWidth = FALSE,
+            defaultColDef = colDef(minWidth = 60),
+            columns = 
+              list(
+                Team = colDef(name = "", width = 200, align = "left", cell = function(value){
+                  image <- shiny$img(
+                    src = sprintf("static/logo/%s (Custom).png", value),
+                    style = "height: 30px;",
+                    alt = value,
+                    title = value
+                  )
+                  
+                  list <-
+                    shiny$tagList(
+                      flexRow(
+                        style = "align-items: center; gap: 8px;",
+                        shiny$tagList(
+                          image,
+                          shiny$span(class = "truncated-text", value)
+                        )
                       )
                     )
-                  )
-              }),
-              GP = colDef(header = tippy("GP", "Games played", placement = "top", theme = "ssl", arrow = TRUE)),
-              W = colDef(header = tippy("W", "Wins", placement = "top", theme = "ssl", arrow = TRUE)),
-              D = colDef(header = tippy("D", "Draws", placement = "top", theme = "ssl", arrow = TRUE)),
-              L = colDef(header = tippy("L", "Losses", placement = "top", theme = "ssl", arrow = TRUE)),
-              GF = colDef(header = tippy("GF", "Goals scored", placement = "top", theme = "ssl", arrow = TRUE)),
-              GA = colDef(header = tippy("GA", "Goals conceded", placement = "top", theme = "ssl", arrow = TRUE)),
-              Pts = colDef(header = tippy("P", "Points", placement = "top", theme = "ssl", arrow = TRUE))
-            )
-        ) 
+                }),
+                GP = colDef(header = tippy("GP", "Games played", placement = "top", theme = "ssl", arrow = TRUE)),
+                W = colDef(header = tippy("W", "Wins", placement = "top", theme = "ssl", arrow = TRUE)),
+                D = colDef(header = tippy("D", "Draws", placement = "top", theme = "ssl", arrow = TRUE)),
+                L = colDef(header = tippy("L", "Losses", placement = "top", theme = "ssl", arrow = TRUE)),
+                GF = colDef(header = tippy("GF", "Goals scored", placement = "top", theme = "ssl", arrow = TRUE)),
+                GA = colDef(header = tippy("GA", "Goals conceded", placement = "top", theme = "ssl", arrow = TRUE)),
+                Pts = colDef(header = tippy("P", "Points", placement = "top", theme = "ssl", arrow = TRUE))
+              )
+          ) 
+        }
+        
       }) 
       
       output$schedule <- renderReactable({
-        schedule() |> 
-          dplyr$select(Date = `IRL Date`, Matchday, Home, Away, Result) |>
-          dplyr$mutate(
-            Date = Date |> as_date()
-          ) |> 
+        season <- season() |> as.numeric()
+        
+        if (season < 21) {
           reactable(
+            dplyr$tibble(
+              Message = "No data found for this season"
+            ),
+            searchable = FALSE,
             pagination = FALSE,
-            columns = 
-              list(
-                Date = colDef(width = 100),
-                Matchday = colDef(width = 100)
-              )
+            sortable = FALSE,
+            highlight = FALSE,
+            bordered = TRUE,
+            striped = FALSE,
+            defaultColDef = reactable::colDef(align = "center"),
+            columns = list(
+              Message = reactable::colDef(name = "")
+            )
           )
+          
+        } else {
+          schedule() |> 
+            dplyr$select(Date = `IRL Date`, Matchday, Home, Away, Result) |>
+            dplyr$mutate(
+              Date = Date |> as_date()
+            ) |> 
+            reactable(
+              pagination = FALSE,
+              columns = 
+                list(
+                  Date = colDef(width = 100),
+                  Matchday = colDef(width = 100)
+                )
+            )
+        }
+        
+        
       })
     }
   )

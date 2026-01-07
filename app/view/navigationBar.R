@@ -52,7 +52,8 @@ box::use(
   app/logic/player/playerChecks[checkApprovingPlayer, hasActivePlayer],
 )
 
-values <- seq_len(constant$currentSeason$season) |> sort(decreasing = TRUE)
+values <- seq_len(constant$currentSeason$season) |> 
+  sort(decreasing = TRUE) 
 names(values) <- paste("Season", values)
 
 getNavItems <- function(ns, suffix) {
