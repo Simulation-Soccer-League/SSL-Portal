@@ -23,23 +23,8 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        bslib$layout_column_wrap(
-          width = NULL,
-          style = bslib$css(grid_template_columns = "1fr 4fr 1fr"),
-          shiny$selectInput(
-            inputId = ns("selectedSeason"),
-            label = "Select a season",
-            choices =
-              c(
-                seq_len(constant$currentSeason$season) |>
-                  sort(decreasing = TRUE),
-                "ALL"
-              )
-          ),
-          "",
-          shiny$uiOutput(ns("leagueSelector")) |>
-            withSpinnerCustom(height = 20)
-        )
+        shiny$uiOutput(ns("leagueSelector")) |>
+          withSpinnerCustom(height = 20)
       ),
       bslib$card_body(
         shiny$h1("Standings"),
@@ -51,25 +36,25 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, updated) {
+server <- function(id, updated, season) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
       #### DATA GENERATION ####
       standings <- shiny$reactive({
         shiny$req(input$selectedLeague)
-        season <- input$selectedSeason
+        season <- season()
         league <- input$selectedLeague
 
         getStandings(season = season, league = league)
       }) |> 
         shiny$bindCache(
           id,
-          input$selectedSeason,
+          season(),
           input$selectedLeague
         ) |> 
         shiny$bindEvent(
-          input$selectedSeason,
+          season(),
           input$selectedLeague,
           updated()
         )
@@ -77,11 +62,11 @@ server <- function(id, updated) {
 
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
-        leagueSelectInput(season = input$selectedSeason, session = session)
+        leagueSelectInput(season = season(), session = session)
       }) 
 
       output$standings <- shiny$renderUI({
-        season <- input$selectedSeason
+        season <- season()
         league <- input$selectedLeague
 
         if (season == "ALL") {

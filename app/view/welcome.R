@@ -111,7 +111,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, usergroup) {
+server <- function(id, usergroup, season) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
@@ -134,7 +134,7 @@ server <- function(id, usergroup) {
       lapply(1:2,
         FUN = function(division) {
           output[[paste0("standings_", division)]] <- renderReactable({
-            standings <- getStandings(league = division, season = constant$currentSeason$season)
+            standings <- getStandings(league = division, season = season())
 
             if (!(standings |> is_empty())) {
               standings |>
@@ -216,7 +216,7 @@ server <- function(id, usergroup) {
 
         league <- input$selectedLeague
 
-        getSchedule(league = league, season = constant$currentSeason$season)
+        getSchedule(league = league, season = season())
       })
 
       output$schedule <- shiny$renderUI({
@@ -259,7 +259,7 @@ server <- function(id, usergroup) {
           )
         }
       }) |>
-        shiny$bindCache(id, input$selectedLeague)
+        shiny$bindCache(id, input$selectedLeague, season())
 
       #### Weekly TPE Leaders ####
       output$weeklyLeaders <- renderReactable({

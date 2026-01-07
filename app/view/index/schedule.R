@@ -19,22 +19,8 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        bslib$layout_column_wrap(
-          width = NULL,
-          style = bslib$css(grid_template_columns = "1fr 4fr 1fr"),
-          shiny$selectInput(
-            inputId = ns("selectedSeason"),
-            label = "Select a season",
-            choices =
-              c(
-                1:constant$currentSeason$season |>
-                  sort(decreasing = TRUE)
-              )
-          ),
-          "",
-          shiny$uiOutput(ns("leagueSelector")) |>
-            withSpinnerCustom(height = 20)
-        )
+        shiny$uiOutput(ns("leagueSelector")) |>
+          withSpinnerCustom(height = 20)
       ),
       bslib$card_body(
         shiny$h1("Schedule"),
@@ -46,14 +32,14 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, updated) {
+server <- function(id, updated, season) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
       #### DATA GENERATION ####
       schedule <- shiny$reactive({
         shiny$req(input$selectedLeague)
-        season <- input$selectedSeason
+        season <- season()
         league <- input$selectedLeague
 
         getSchedule(season = season, league = league) |> 
@@ -61,22 +47,22 @@ server <- function(id, updated) {
       }) |> 
         shiny$bindCache(
           id,
-          input$selectedSeason,
+          season(),
           input$selectedLeague
         ) |> 
         shiny$bindEvent(
-          input$selectedSeason,
+          season(),
           input$selectedLeague
         )
 
 
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
-        leagueSelectInput(season = input$selectedSeason, session = session)
+        leagueSelectInput(season = season(), session = session)
       })
 
       output$schedule <- shiny$renderUI({
-        season <- input$selectedSeason
+        season <- season()
         league <- input$selectedLeague
 
         data <- schedule()

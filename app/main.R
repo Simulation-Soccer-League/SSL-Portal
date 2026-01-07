@@ -125,7 +125,9 @@ server <- function(id) {
     ## made that require re-loading assets
     updated <- shiny$reactiveVal(0)
     
-    navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated)
+    season <- shiny$reactiveVal(constant$currentSeason$season)
+    
+    navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated, season = season)
     
     playerSearch$server("search")
 
@@ -158,7 +160,7 @@ server <- function(id) {
       
       if (current == "" & !loadedServer$main) {
         
-        welcome$server("welcome", usergroup = authOutput()$usergroup)
+        welcome$server("welcome", usergroup = authOutput()$usergroup, season = season)
         loadedServer$main <- TRUE
         
       } else if (current == "index/records" & !loadedServer$records) {
@@ -168,27 +170,27 @@ server <- function(id) {
         
       } else if (current == "index/" & !loadedServer$index) {
         
-        leagueIndex$server("league")
+        leagueIndex$server("league", season = season)
         loadedServer$index <- TRUE
         
       } else if (current == "index/standings" & !loadedServer$standings) {
         
-        standings$server("standings", updated)
+        standings$server("standings", updated, season = season)
         loadedServer$standings <- TRUE
         
       } else if (current == "index/schedule" & !loadedServer$schedule) {
         
-        schedule$server("schedule", updated)
+        schedule$server("schedule", updated, season = season)
         loadedServer$schedule <- TRUE
         
       } else if (current == "index/academy" & !loadedServer$academy) {
        
-        academyIndex$server("academy")
+        academyIndex$server("academy", season = season)
         loadedServer$academy <- TRUE
         
       } else if (current == "index/academyStandings" & !loadedServer$academyStandings) {
           
-        academyStandings$server("academyStandings")
+        academyStandings$server("academyStandings", season = season)
         loadedServer$academyStandings <- TRUE
         
       } else if (current == "tracker/organizations" & !loadedServer$organizations) {
