@@ -125,7 +125,7 @@ server <- function(id, auth, updated) {
             if (!is.null(x)) {
               player <- data |> filter(fileName == x)
               
-              league <- if_else(player$affiliate == 1, "Major", "Minor")
+              league <- if_else(player$currentAffiliate == 1, "Major", "Minor")
               
               file_name <- glue("{x}_Build.json")
               writeLines(
