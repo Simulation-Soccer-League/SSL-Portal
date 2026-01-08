@@ -121,10 +121,14 @@ server <- function(id, auth, updated) {
         data$fileName |>
           imap(function(x, y) {
             if (!is.null(x)) {
+              player <- data |> filter(fileName == x)
+              
+              league <- dplyr$if_else(data$affiliate == 1, "Major", "Minor")
+              
               file_name <- glue("{x}_Build.json")
               writeLines(
-                downloadPlayer(data |> filter(fileName == x)),
-                file.path(temp_directory, file_name)
+                downloadPlayer(player),
+                file.path(league, temp_directory, file_name)
               )
             }
           })
