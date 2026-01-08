@@ -109,6 +109,8 @@ server <- function(id, auth, updated) {
 
         temp_directory <- file.path(tempdir(), as.integer(Sys.time()))
         dir.create(temp_directory)
+        dir.create(file.path(temp_directory, "Major"))
+        dir.create(file.path(temp_directory, "Minor"))
 
         data <-
           data |>
@@ -123,12 +125,12 @@ server <- function(id, auth, updated) {
             if (!is.null(x)) {
               player <- data |> filter(fileName == x)
               
-              league <- if_else(data$affiliate == 1, "Major", "Minor")
+              league <- if_else(player$affiliate == 1, "Major", "Minor")
               
               file_name <- glue("{x}_Build.json")
               writeLines(
                 downloadPlayer(player),
-                file.path(league, temp_directory, file_name)
+                file.path(temp_directory, league, file_name)
               )
             }
           })
