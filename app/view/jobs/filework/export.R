@@ -1,6 +1,6 @@
 box::use(
   bslib,
-  dplyr[case_when, filter, mutate, select],
+  dplyr[case_when, filter, if_else, mutate, select],
   glue[glue],
   lubridate[today],
   purrr[imap],
@@ -123,7 +123,7 @@ server <- function(id, auth, updated) {
             if (!is.null(x)) {
               player <- data |> filter(fileName == x)
               
-              league <- dplyr$if_else(data$affiliate == 1, "Major", "Minor")
+              league <- if_else(data$affiliate == 1, "Major", "Minor")
               
               file_name <- glue("{x}_Build.json")
               writeLines(
