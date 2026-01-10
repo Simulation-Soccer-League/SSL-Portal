@@ -69,22 +69,17 @@ server <- function(id, updated, season) {
         season <- season()
         league <- input$selectedLeague
 
-        if (season == "ALL") {
-          relegation <- FALSE
-        } else if (season |> as.numeric() < 5 | season |> as.numeric() > 11) {
-          relegation <- FALSE
-        } else {
-          relegation <- TRUE
-        }
-
         data <- standings() |> 
           dplyr$arrange(matchday, dplyr$desc(p), dplyr$desc(gd), dplyr$desc(gf))
-
+        
         if (data |> is_empty()) {
+          ### EMPTY
           NULL
-        } else if (league == 5){
+        } else if (league == 5) {
+          ### WSFC
           data |> 
-            dplyr$select(!c(matchtype, season)) |> 
+            dplyr$select(!c(matchtype, season)) |>
+            ## Filters out group stage matches for the standings
             dplyr$filter(nchar(matchday) == 1) |> 
             reactable(
               sortable = FALSE,
@@ -123,7 +118,68 @@ server <- function(id, updated, season) {
                 p = colDef(header = tippy("P", "Points", theme = "ssl"))
               )
             )
+        } else if (season |> as.numeric() > 23) {
+          ### NEW PRO/REL STRUCTURE
+          data |> 
+            dplyr$select(!c(matchtype, season)) |> 
+            ## Filters out stage matches for the standings
+            dplyr$filter(nchar(matchday) == 1) |> 
+            reactable(
+              sortable = FALSE,
+              pagination = FALSE,
+              defaultExpanded = TRUE,
+              groupBy = "matchday",
+              defaultColDef = colDef(
+                minWidth = 60,
+                align = "center",
+                style = function(value, index) {
+                  list(
+                    background =
+                      dplyr$case_when(
+                        index %in% c(7) ~ constant$green, 
+                        index %in% c(6) ~ constant$red,
+                        index %in% c(5, 8) ~ constant$yellow,
+                        TRUE ~ NA
+                      ),
+                    borderTop =
+                      dplyr$case_when(
+                        index %in% c(5, 6, 8, 9) ~ "solid",
+                        TRUE ~ "none"
+                      )
+                  )
+                }
+              ),
+              columns = list(
+                matchday = colDef(name = ""),
+                team = colDef(
+                  name = "", 
+                  width = 200, 
+                  align = "left", 
+                  cell = function(value) {
+                    linkOrganization(value)
+                  }
+                ),
+                mp = colDef(header = tippy("GP", "Games played", theme = "ssl")),
+                w = colDef(header = tippy("W", "Wins", theme = "ssl")),
+                d = colDef(header = tippy("D", "Draws", theme = "ssl")),
+                l = colDef(header = tippy("L", "Losses", theme = "ssl")),
+                gf = colDef(header = tippy("GF", "Goals scored", theme = "ssl")),
+                ga = colDef(header = tippy("GA", "Goals conceded", theme = "ssl")),
+                gd = colDef(header = tippy("GD", "Goal difference", theme = "ssl")),
+                p = colDef(header = tippy("P", "Points", theme = "ssl"))
+              )
+            )
+          
         } else {
+          if (season == "ALL") {
+            relegation <- FALSE
+          } else if (season |> as.numeric() < 5 | 
+                     season |> as.numeric() > 11) {
+            relegation <- FALSE
+          } else {
+            relegation <- TRUE
+          }
+          
           data |>
             dplyr$select(!c(matchtype, matchday, season)) |> 
             reactable(
@@ -136,11 +192,11 @@ server <- function(id, updated, season) {
                   list(
                     background =
                       dplyr$if_else(index > 6 & relegation & league == 1,
-                        constant$red,
-                        dplyr$if_else(index < 3 & relegation & league == 2,
-                          constant$green,
-                          NA
-                        )
+                                    constant$red,
+                                    dplyr$if_else(index < 3 & relegation & league == 2,
+                                                  constant$green,
+                                                  NA
+                                    )
                       ),
                     borderTop =
                       dplyr$if_else(
