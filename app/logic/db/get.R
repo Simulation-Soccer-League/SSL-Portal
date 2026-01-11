@@ -823,3 +823,12 @@ getUnapprovedPlayers <- function() {
     WHERE status_p = -1;"
   )
 }
+
+#' @export
+getCurrentSeason <- function() {
+  indexQuery(
+    "SELECT * 
+    FROM seasoninfo 
+    ORDER BY startDate DESC LIMIT 1"
+  )
+}

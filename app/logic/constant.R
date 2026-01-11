@@ -6,7 +6,7 @@ box::use(
 
 box::use(
   app/logic/db/api,
-  app/logic/db/get[getOrganizations],
+  app/logic/db/get[getOrganizations, getCurrentSeason],
 )
 
 #' @export
@@ -17,6 +17,16 @@ sslBlueD <- "#4b8dad"
 sslGold <- "#BD9523"
 #' @export
 red <- "#D96F68"
+
+#' @export
+standingsRed <- "#EA4335"
+
+#' @export
+standingsBlue <- "#4285F4"
+
+#' @export
+standingsGreen <- "#148A00"
+
 #' @export
 yellow <- "#F5D17E"
 #' @export
@@ -588,7 +598,7 @@ attributes <- api$readAPI(url = "https://api.simulationsoccer.com/admin/attribut
   )
 
 #' @export
-currentSeason <- api$readAPI(url = "https://api.simulationsoccer.com/admin/getCurrentSeason")
+currentSeason <- getCurrentSeason()
 
 #' @export
 statisticsLegend <- api$readAPI(url = "https://api.simulationsoccer.com/admin/statistics")

@@ -51,7 +51,7 @@ server <- function(id, updated, season) {
         shiny$bindCache(
           id,
           season(),
-          input$selectedLeague
+          input$selectedLeague, 3
         ) |> 
         shiny$bindEvent(
           season(),
@@ -136,14 +136,14 @@ server <- function(id, updated, season) {
                   list(
                     background =
                       dplyr$case_when(
-                        index %in% c(7) ~ constant$green, 
-                        index %in% c(6) ~ constant$red,
-                        index %in% c(5, 8) ~ constant$yellow,
+                        index %in% c(7) ~ constant$standingsGreen, 
+                        index %in% c(6) ~ constant$standingsRed,
+                        index %in% c(5, 8) ~ constant$standingsBlue,
                         TRUE ~ NA
                       ),
                     borderTop =
                       dplyr$case_when(
-                        index %in% c(5, 6, 8, 9) ~ "solid",
+                        index %in% c(5, 9) ~ "solid",
                         TRUE ~ "none"
                       )
                   )
