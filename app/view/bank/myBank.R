@@ -194,8 +194,9 @@ server <- function(id, auth, updated) {
               attribute =
                 c(
                   "traits", "left foot", "right foot",
-                  inputPos$primary, inputPos$secondary,
-                  inputPos$unusedPositions,
+                  currentPos$position[currentPos$position %in% inputPos$primary],
+                  currentPos$position[currentPos$position %in% inputPos$secondary],
+                  currentPos$position[currentPos$position %in% inputPos$unusedPositions],
                   "tpe"
                 ),
               old =
