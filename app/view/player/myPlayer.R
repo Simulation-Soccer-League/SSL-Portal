@@ -272,7 +272,7 @@ server <- function(id, auth, updated) {
           recentPost <- dplyr$tibble(time = 0)
         }
         
-        if ((now() |> as.numeric()) - recentPost$time < 240) {
+        if ((now() |> as.numeric()) - recentPost$time < 600) {
           showToast(
             .options = constant$sslToastOptions,
             "warning",
