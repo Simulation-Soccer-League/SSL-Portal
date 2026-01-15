@@ -17,22 +17,7 @@ ui <- function(id) {
   ns <- shiny$NS(id)
   shiny$tagList(
     bslib$card(
-      bslib$card_header(
-        bslib$layout_column_wrap(
-          width = NULL,
-          style = bslib$css(grid_template_columns = "1fr 5fr"),
-          shiny$selectInput(
-            inputId = ns("selectedSeason"),
-            label = "Select a season",
-            choices =
-              c(
-                13:constant$currentSeason$season |>
-                  sort(decreasing = TRUE)
-              )
-          ),
-          ""
-        )
-      ),
+      bslib$card_header(),
       bslib$card_body(
         shiny$tabsetPanel(
           header = shiny$h1("Outfield"),
@@ -76,26 +61,26 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id) {
+server <- function(id, season) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
       #### DATA GENERATION ####
       outfieldData <- shiny$reactive({
-        season <- input$selectedSeason
+        season <- season()
 
         getAcademyIndex(season = season)
       }) |>
-        shiny$bindCache(id, "outfield", input$selectedSeason) |> 
-        shiny$bindEvent(input$selectedSeason)
+        shiny$bindCache(id, "outfield", season()) |> 
+        shiny$bindEvent(season())
 
       keeperData <- shiny$reactive({
-        season <- input$selectedSeason
+        season <- season()
 
         getAcademyIndex(season = season, outfield = FALSE)
       }) |>
-        shiny$bindCache(id, "keeper", input$selectedSeason) |> 
-        shiny$bindEvent(input$selectedSeason)
+        shiny$bindCache(id, "keeper", season()) |> 
+        shiny$bindEvent(season())
 
       #### REACTABLE OUTPUT ####
       output$outfieldBasic <- renderReactable({

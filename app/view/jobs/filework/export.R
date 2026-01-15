@@ -1,6 +1,6 @@
 box::use(
   bslib,
-  dplyr[case_when, filter, mutate, select],
+  dplyr[case_when, filter, if_else, mutate, select],
   glue[glue],
   lubridate[today],
   purrr[imap],
@@ -109,6 +109,8 @@ server <- function(id, auth, updated) {
 
         temp_directory <- file.path(tempdir(), as.integer(Sys.time()))
         dir.create(temp_directory)
+        dir.create(file.path(temp_directory, "Major"))
+        dir.create(file.path(temp_directory, "Minor"))
 
         data <-
           data |>
@@ -121,10 +123,14 @@ server <- function(id, auth, updated) {
         data$fileName |>
           imap(function(x, y) {
             if (!is.null(x)) {
+              player <- data |> filter(fileName == x)
+              
+              league <- if_else(player$currentAffiliate == 1, "Major", "Minor")
+              
               file_name <- glue("{x}_Build.json")
               writeLines(
-                downloadPlayer(data |> filter(fileName == x)),
-                file.path(temp_directory, file_name)
+                downloadPlayer(player),
+                file.path(temp_directory, league, file_name)
               )
             }
           })

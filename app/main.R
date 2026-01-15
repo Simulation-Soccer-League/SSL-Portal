@@ -29,6 +29,7 @@ box::use(
   app/view/bank/myBank,
   app/view/index/academyIndex,
   app/view/index/careerRecords,
+  app/view/index/careerIndex,
   app/view/index/leagueIndex,
   app/view/index/schedule,
   app/view/index/standings,
@@ -72,6 +73,7 @@ ui <- function(id) {
       route("index/academy", academyIndex$ui(ns("academy"))),
       route("index/", leagueIndex$ui(ns("league"))),
       route("index/records", careerRecords$ui(ns("records"))),
+      route("index/career", careerIndex$ui(ns("career"))),
       route("index/schedule", schedule$ui(ns("schedule"))),
       route("index/standings", standings$ui(ns("standings"))),
       route("index/academyStandings", academyStandings$ui(ns("academyStandings"))),
@@ -125,14 +127,17 @@ server <- function(id) {
     ## made that require re-loading assets
     updated <- shiny$reactiveVal(0)
     
-    navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated)
+    season <- shiny$reactiveVal(constant$currentSeason$season)
+    
+    navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated, season = season)
     
     playerSearch$server("search")
 
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
-        create = FALSE, player = FALSE, index = FALSE, playerUpdate = FALSE,
+        create = FALSE, player = FALSE, index = FALSE, careerIndex = FALSE,
+        playerUpdate = FALSE,
         playerReroll = FALSE, playerRedist = FALSE, playerRegress = FALSE,
         myPlayer = FALSE, import = FALSE, standings = FALSE, 
         schedule = FALSE, academy = FALSE, academyStandings = FALSE, 
@@ -158,7 +163,7 @@ server <- function(id) {
       
       if (current == "" & !loadedServer$main) {
         
-        welcome$server("welcome", usergroup = authOutput()$usergroup)
+        welcome$server("welcome", usergroup = authOutput()$usergroup, season = season)
         loadedServer$main <- TRUE
         
       } else if (current == "index/records" & !loadedServer$records) {
@@ -166,29 +171,34 @@ server <- function(id) {
         careerRecords$server("records")
         loadedServer$records <- TRUE
         
+      } else if (current == "index/career" & !loadedServer$careerIndex) {
+        
+        careerIndex$server("career")
+        loadedServer$careerIndex <- TRUE
+        
       } else if (current == "index/" & !loadedServer$index) {
         
-        leagueIndex$server("league")
+        leagueIndex$server("league", season = season)
         loadedServer$index <- TRUE
         
       } else if (current == "index/standings" & !loadedServer$standings) {
         
-        standings$server("standings", updated)
+        standings$server("standings", updated, season = season)
         loadedServer$standings <- TRUE
         
       } else if (current == "index/schedule" & !loadedServer$schedule) {
         
-        schedule$server("schedule", updated)
+        schedule$server("schedule", updated, season = season)
         loadedServer$schedule <- TRUE
         
       } else if (current == "index/academy" & !loadedServer$academy) {
        
-        academyIndex$server("academy")
+        academyIndex$server("academy", season = season)
         loadedServer$academy <- TRUE
         
       } else if (current == "index/academyStandings" & !loadedServer$academyStandings) {
           
-        academyStandings$server("academyStandings")
+        academyStandings$server("academyStandings", season = season)
         loadedServer$academyStandings <- TRUE
         
       } else if (current == "tracker/organizations" & !loadedServer$organizations) {

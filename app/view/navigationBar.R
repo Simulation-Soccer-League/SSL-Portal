@@ -1,13 +1,33 @@
 box::use(
+  bslib,
   lubridate[now],
   methods[is],
-  shiny[moduleServer, NS, tagList, tags, 
-        icon, div, uiOutput, renderUI, 
-        observe, bindEvent, a, actionButton, 
-        p, showModal, removeModal, modalDialog, 
-        modalButton, textInput, passwordInput, 
-        verbatimTextOutput, renderText, reactive,
-        actionLink],
+  shiny[
+    a,
+    actionButton,
+    actionLink,
+    bindEvent,
+    div,
+    icon,
+    modalButton,
+    modalDialog,
+    moduleServer,
+    NS,
+    observe,
+    p,
+    passwordInput,
+    reactive,
+    renderText,
+    renderUI,
+    removeModal,
+    selectInput,
+    showModal,
+    tagList,
+    tags,
+    textInput,
+    uiOutput,
+    verbatimTextOutput
+  ],
   shiny.router[change_page, route_link],
   shinyFeedback[feedbackWarning, showToast],
   stringr[str_split],
@@ -15,6 +35,7 @@ box::use(
 
 
 box::use(
+  app/logic/constant,
   app/logic/ui/tags[flexCol, flexRow, navMenu, navMenuItem],
   app/logic/db/login[
     customCheckCredentials, 
@@ -30,6 +51,10 @@ box::use(
   app/logic/ui/spinner[withSpinnerCustom],
   app/logic/player/playerChecks[checkApprovingPlayer, hasActivePlayer],
 )
+
+values <- seq_len(constant$currentSeason$season) |> 
+  sort(decreasing = TRUE) 
+names(values) <- paste("Season", values)
 
 getNavItems <- function(ns, suffix) {
   tagList(
@@ -52,7 +77,13 @@ getNavItems <- function(ns, suffix) {
           label = "Index",
           items = list(
             a("Index", href = route_link("index/")),
-            a("Records", href = route_link("index/records")),
+            navMenuItem(
+              label = "Career",
+              subItems = list(
+                a("Index", href = route_link("index/career")),
+                a("Records", href = route_link("index/records"))
+              )
+            ),
             a("Standings", href = route_link("index/standings")),
             a("Schedule", href = route_link("index/schedule")),
             navMenuItem(
@@ -66,6 +97,19 @@ getNavItems <- function(ns, suffix) {
         ),
         uiOutput(ns(paste0("jobsNavigation", suffix))) |>
           withSpinnerCustom(height = 20)
+      )
+    ),
+    flexRow(
+      # Dropdown (full width)
+      div(
+        class = "seasonDropdown",
+        
+        selectInput(
+          inputId = ns("selectedSeason"),
+          label = NULL,
+          choices = values,
+          width = "120%"  
+        )
       )
     ),
     uiOutput(ns(paste0("yourPlayer", suffix))) |>
@@ -164,7 +208,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, auth, resAuth, updated) {
+server <- function(id, auth, resAuth, updated, season) {
   moduleServer(id, function(input, output, session) {
     ### Output
     getJobsUi <- function(userGroup) {
@@ -291,6 +335,13 @@ server <- function(id, auth, resAuth, updated) {
       bindEvent(auth())
 
     ### Observers
+    # Changes season
+    observe({
+      season(input$selectedSeason)
+    }) |> 
+      bindEvent(input$selectedSeason)
+    
+    
     # Checks saved cookie for automatic login
     observe({
       refreshtoken <- getRefreshToken(input$token)

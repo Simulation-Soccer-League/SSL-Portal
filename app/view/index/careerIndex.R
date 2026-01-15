@@ -21,7 +21,13 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        shiny$uiOutput(ns("leagueSelector"))
+        bslib$layout_column_wrap(
+          width = NULL,
+          style = bslib$css(grid_template_columns = "1fr 1fr 2fr"),
+          shiny$uiOutput(ns("leagueSelector")),
+          shiny$uiOutput(ns("retiredSelector")),
+          ""
+        )
       ),
       bslib$card_body(
         shiny$h1("Outfield"),
@@ -66,14 +72,15 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, season) {
+server <- function(id) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
+      season <- "ALL"
+      
       #### DATA GENERATION ####
       outfieldData <- shiny$reactive({
         shiny$req(input$selectedLeague)
-        season <- season()
         league <- input$selectedLeague
 
         getLeagueIndex(season = season, league = league)
@@ -81,13 +88,11 @@ server <- function(id, season) {
         shiny$bindCache(
           id,
           "outfield", 
-          season(), 
           input$selectedLeague
         )
 
       keeperData <- shiny$reactive({
         shiny$req(input$selectedLeague)
-        season <- season()
         league <- input$selectedLeague
 
         getLeagueIndex(season = season, league = league, outfield = FALSE)
@@ -95,14 +100,20 @@ server <- function(id, season) {
         shiny$bindCache(
           id,
           "keeper", 
-          season(), 
           input$selectedLeague
         )
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
-        leagueSelectInput(season = season(), session = session)
-      }) |>
-        shiny$bindCache(id, season())
+        leagueSelectInput(season = season, session = session)
+      })
+      
+      output$retiredSelector <- shiny$renderUI({
+        shiny$checkboxInput(
+          session$ns("retired"),
+          label = "Remove retired players",
+          value = FALSE
+        )  
+      })
       
       outstatistics <- c(
         "goals",
@@ -137,7 +148,8 @@ server <- function(id, season) {
       lapply(outstatistics, function(stat) {
         output[[paste0(stat, "_leader")]] <- renderReactable({
           data <- outfieldData() |> 
-            dplyr$filter(max_season == max(max_season, na.rm = FALSE))
+            dplyr$filter(input$retired == FALSE | 
+                           max_season == max(max_season, na.rm = FALSE))
 
           data |>
             dplyr$select(
@@ -177,7 +189,8 @@ server <- function(id, season) {
       lapply(keepstatistics, function(stat) {
         output[[paste0(stat, "_leader")]] <- renderReactable({
           data <- keeperData() |> 
-            dplyr$filter(max_season == max(max_season, na.rm = FALSE))
+            dplyr$filter(input$retired == FALSE | 
+                           max_season == max(max_season, na.rm = FALSE))
 
           data |>
             dplyr$select(
@@ -206,7 +219,8 @@ server <- function(id, season) {
             max_season,
             pid
           ) |> 
-          dplyr$filter(max_season == max(max_season, na.rm = FALSE))
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
         
         currentData |>
           dplyr$select(!max_season) |> 
@@ -227,7 +241,8 @@ server <- function(id, season) {
             max_season,
             pid
           ) |> 
-          dplyr$filter(max_season == max(max_season, na.rm = FALSE))
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
           dplyr$select(!max_season) |> 
@@ -244,7 +259,8 @@ server <- function(id, season) {
             max_season,
             pid
           ) |> 
-          dplyr$filter(max_season == max(max_season, na.rm = FALSE))
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
           dplyr$select(!max_season) |> 
@@ -262,7 +278,8 @@ server <- function(id, season) {
             max_season,
             pid
           ) |> 
-          dplyr$filter(max_season == max(max_season, na.rm = FALSE))
+          dplyr$filter(input$retired == FALSE | 
+                         max_season == max(max_season, na.rm = FALSE))
 
         currentData |>
           dplyr$select(!max_season) |> 

@@ -1,6 +1,6 @@
 box::use(
   bslib,
-  dplyr[arrange, desc, mutate, rename_with, select],
+  dplyr[arrange, case_when, desc, filter, mutate, rename_with, select],
   plotly[config, layout, plot_ly, plotlyOutput, renderPlotly],
   reactable[colDef, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
@@ -111,7 +111,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, usergroup) {
+server <- function(id, usergroup, season) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
@@ -134,9 +134,106 @@ server <- function(id, usergroup) {
       lapply(1:2,
         FUN = function(division) {
           output[[paste0("standings_", division)]] <- renderReactable({
-            standings <- getStandings(league = division, season = constant$currentSeason$season)
+            standings <- getStandings(league = division, season = season())
 
-            if (!(standings |> is_empty())) {
+            if (standings |> is_empty()) {
+              NULL
+            } else if (season() |> as.numeric() >= 24) {
+              standings |>
+                ## Filters out stage matches for the standings
+                filter(nchar(matchday) == 1) |> 
+                arrange(matchday, desc(p), desc(gd), desc(gf)) |>
+                select(
+                  team,
+                  w:l,
+                  gd,
+                  p,
+                  matchday
+                ) |> 
+                reactable(
+                  pagination = FALSE,
+                  sortable = FALSE,
+                  defaultExpanded = TRUE,
+                  groupBy = "matchday",
+                  defaultColDef = colDef(
+                    minWidth = 30,
+                    align = "center",
+                    style = function(value, index) {
+                      list(
+                        background =
+                          case_when(
+                            index %in% c(7) ~ constant$standingsGreen, 
+                            index %in% c(6) ~ constant$standingsRed,
+                            index %in% c(5, 8) ~ constant$standingsBlue,
+                            TRUE ~ NA
+                          ),
+                        borderTop =
+                          case_when(
+                            index %in% c(5, 9) ~ "solid",
+                            TRUE ~ "none"
+                          )
+                      )
+                    }
+                  ),
+                  columns =
+                    list(
+                      matchday = colDef(name = ""),
+                      team = colDef(
+                        name = "", 
+                        minWidth = 100, 
+                        align = "left", 
+                        cell = function(value) {
+                          linkOrganization(value)
+                        }
+                      ),
+                      w = colDef(
+                        header = tippy(
+                          "W",
+                          "Wins",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      d = colDef(
+                        header = tippy(
+                          "D",
+                          "Draws",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      l = colDef(
+                        header = tippy(
+                          "L",
+                          "Losses",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      gd = colDef(
+                        header = tippy(
+                          "GD",
+                          "Goal difference",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      p = colDef(
+                        header = tippy(
+                          "P",
+                          "Points",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      )
+                    )
+                )
+            } else {
               standings |>
                 arrange(desc(p), desc(gd), desc(gf)) |>
                 select(
@@ -216,7 +313,7 @@ server <- function(id, usergroup) {
 
         league <- input$selectedLeague
 
-        getSchedule(league = league, season = constant$currentSeason$season)
+        getSchedule(league = league, season = season())
       })
 
       output$schedule <- shiny$renderUI({
@@ -259,7 +356,7 @@ server <- function(id, usergroup) {
           )
         }
       }) |>
-        shiny$bindCache(id, input$selectedLeague)
+        shiny$bindCache(id, input$selectedLeague, season())
 
       #### Weekly TPE Leaders ####
       output$weeklyLeaders <- renderReactable({

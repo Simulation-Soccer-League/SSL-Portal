@@ -825,6 +825,7 @@ $navbar-items-width: 112px;
   justify-content: space-between;
   align-items: center;
   text-align: end;
+  color: inherit;
 }
 
 .leader-table .tableClubName {
@@ -1007,4 +1008,25 @@ $navbar-items-width: 112px;
   width: 100%;              /* button fills its link cell */
   font-size: 20px;
   font-weight: 600;
+}
+
+/* Main menu season dropdown */
+.seasonDropdown {
+  margin-bottom: -8px; 
+  width: 120%;
+}
+
+.seasonDropdown .shiny-input-container:not(.shiny-input-container-inline) {
+  max-width: 120%;
+}
+
+.seasonDropdown .selectize-input {
+  background-color: var(--menu-color);
+  color: var(--lighter-text);
+}
+
+.seasonDropdown .selectize-input.input-active,
+.seasonDropdown .selectize-dropdown {
+  background: var(--lighter-text);  
+  color: var(--menu-color);
 }

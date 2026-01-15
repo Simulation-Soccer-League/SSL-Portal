@@ -66,6 +66,7 @@ leagueSelectInput <- function(season, session) {
           "Major / Division 1" = "1",
           "Minor / Division 2" = "2",
           "Cup" = "0",
+          "WSFC" = "5",
           "ALL"
         )
     )
