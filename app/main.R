@@ -29,6 +29,7 @@ box::use(
   app/view/bank/myBank,
   app/view/index/academyIndex,
   app/view/index/careerRecords,
+  app/view/index/careerIndex,
   app/view/index/leagueIndex,
   app/view/index/schedule,
   app/view/index/standings,
@@ -72,6 +73,7 @@ ui <- function(id) {
       route("index/academy", academyIndex$ui(ns("academy"))),
       route("index/", leagueIndex$ui(ns("league"))),
       route("index/records", careerRecords$ui(ns("records"))),
+      route("index/career", careerIndex$ui(ns("career"))),
       route("index/schedule", schedule$ui(ns("schedule"))),
       route("index/standings", standings$ui(ns("standings"))),
       route("index/academyStandings", academyStandings$ui(ns("academyStandings"))),
@@ -134,7 +136,8 @@ server <- function(id) {
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
-        create = FALSE, player = FALSE, index = FALSE, playerUpdate = FALSE,
+        create = FALSE, player = FALSE, index = FALSE, careerIndex = FALSE,
+        playerUpdate = FALSE,
         playerReroll = FALSE, playerRedist = FALSE, playerRegress = FALSE,
         myPlayer = FALSE, import = FALSE, standings = FALSE, 
         schedule = FALSE, academy = FALSE, academyStandings = FALSE, 
@@ -167,6 +170,11 @@ server <- function(id) {
         
         careerRecords$server("records")
         loadedServer$records <- TRUE
+        
+      } else if (current == "index/career" & !loadedServer$careerIndex) {
+        
+        careerIndex$server("career")
+        loadedServer$careerIndex <- TRUE
         
       } else if (current == "index/" & !loadedServer$index) {
         

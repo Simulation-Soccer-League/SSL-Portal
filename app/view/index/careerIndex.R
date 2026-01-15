@@ -72,14 +72,15 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, season) {
+server <- function(id) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
+      season <- "ALL"
+      
       #### DATA GENERATION ####
       outfieldData <- shiny$reactive({
         shiny$req(input$selectedLeague)
-        season <- season()
         league <- input$selectedLeague
 
         getLeagueIndex(season = season, league = league)
@@ -87,13 +88,11 @@ server <- function(id, season) {
         shiny$bindCache(
           id,
           "outfield", 
-          season(), 
           input$selectedLeague
         )
 
       keeperData <- shiny$reactive({
         shiny$req(input$selectedLeague)
-        season <- season()
         league <- input$selectedLeague
 
         getLeagueIndex(season = season, league = league, outfield = FALSE)
@@ -101,34 +100,20 @@ server <- function(id, season) {
         shiny$bindCache(
           id,
           "keeper", 
-          season(), 
           input$selectedLeague
         )
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
-        leagueSelectInput(season = season(), session = session)
-      }) |>
-        shiny$bindCache(id, season())
-
+        leagueSelectInput(season = season, session = session)
+      })
       
       output$retiredSelector <- shiny$renderUI({
-        if (season() == "ALL") {
-          shiny$checkboxInput(
-            session$ns("retired"),
-            label = "Remove retired players",
-            value = FALSE
-          )  
-        } else {
-          shiny$checkboxInput(
-            session$ns("retired"),
-            label = "Remove retired players",
-            value = FALSE
-          ) |> 
-            shinyjs$hidden()
-        }
-      }) |> 
-        shiny$bindEvent(season())
-      
+        shiny$checkboxInput(
+          session$ns("retired"),
+          label = "Remove retired players",
+          value = FALSE
+        )  
+      })
       
       outstatistics <- c(
         "goals",

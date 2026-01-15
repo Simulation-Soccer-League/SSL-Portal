@@ -77,7 +77,13 @@ getNavItems <- function(ns, suffix) {
           label = "Index",
           items = list(
             a("Index", href = route_link("index/")),
-            a("Records", href = route_link("index/records")),
+            navMenuItem(
+              label = "Career",
+              subItems = list(
+                a("Index", href = route_link("index/career")),
+                a("Records", href = route_link("index/records"))
+              )
+            ),
             a("Standings", href = route_link("index/standings")),
             a("Schedule", href = route_link("index/schedule")),
             navMenuItem(
