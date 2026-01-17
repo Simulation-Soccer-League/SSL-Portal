@@ -4,7 +4,7 @@ box::use(
   dplyr,
   glue,
   lubridate[now, with_tz],
-  RMySQL,
+  RMariaDB,
 )
 
 dbHost <- Sys.getenv("HOST")
@@ -15,7 +15,7 @@ dbPassword <- Sys.getenv("DBPASSWORD")
 #' @export
 createConnection <- function(schema) {
   DBI$dbConnect(
-    RMySQL$MySQL(),
+    RMariaDB$MariaDB(),
     dbname = Sys.getenv(schema),
     host = dbHost,
     port = dbPort,
@@ -25,9 +25,15 @@ createConnection <- function(schema) {
 }
 
 getQuery <- function(query, ..., schema) {
-  tryCatch({
+  
     con <- createConnection(schema)
-    
+
+  if (is.null(con)) {
+    message("⚠️ LOCAL MODE: Skipping DB query")
+    return(data.frame())
+  }
+
+  tryCatch({  
     DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
     DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")
@@ -59,9 +65,15 @@ getQuery <- function(query, ..., schema) {
 }
 
 setQuery <- function(query, ..., schema) {
-  tryCatch({
-    con <- createConnection(schema)
+  
+  con <- createConnection(schema)
     
+    if (is.null(con)) {
+    message("⚠️ LOCAL MODE: Skipping DB write")
+    return(invisible(TRUE))
+  }
+
+  tryCatch({
     DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
     DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")
