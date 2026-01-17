@@ -19,13 +19,13 @@ sslGold <- "#BD9523"
 red <- "#D96F68"
 
 #' @export
-standingsRed <- "#EA4335"
+standingsRed <- "#a9322678"
 
 #' @export
-standingsBlue <- "#4285F4"
+standingsBlue <- "#2980B978"
 
 #' @export
-standingsGreen <- "#148A00"
+standingsGreen <- "#27AE6078"
 
 #' @export
 yellow <- "#F5D17E"
