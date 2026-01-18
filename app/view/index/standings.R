@@ -92,9 +92,17 @@ server <- function(id, updated, season) {
                 style = function(value, index) {
                   list(
                     background =
-                      dplyr$if_else(index %in% c(1,2, 5,6, 9, 10, 13, 14), constant$standingsGreen, NA),
+                      dplyr$if_else(
+                        index %in% c(1,2, 5,6, 9, 10, 13, 14), 
+                        constant$standingsGreen, 
+                        NA
+                      ),
                     borderTop =
-                      dplyr$if_else(index %in% seq(3, 15, by = 4), "solid", "none")
+                      dplyr$if_else(
+                        index %in% seq(3, 15, by = 4), 
+                        "solid", 
+                        "none"
+                      )
                   )
                 }
               ),
