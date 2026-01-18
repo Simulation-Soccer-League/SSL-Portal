@@ -19,6 +19,15 @@ sslGold <- "#BD9523"
 red <- "#D96F68"
 
 #' @export
+majorGold <- "#BA9136"
+
+#' @export
+minorRed <- "#B73737"
+
+#' @export
+cupGreen <- "#4CA319"
+
+#' @export
 standingsRed <- "#a9322678"
 
 #' @export
