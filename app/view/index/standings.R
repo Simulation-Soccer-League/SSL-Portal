@@ -92,7 +92,7 @@ server <- function(id, updated, season) {
                 style = function(value, index) {
                   list(
                     background =
-                      dplyr$if_else(index %in% c(1,2, 5,6, 9, 10, 13, 14), constant$green, NA),
+                      dplyr$if_else(index %in% c(1,2, 5,6, 9, 10, 13, 14), constant$standingsGreen, NA),
                     borderTop =
                       dplyr$if_else(index %in% seq(3, 15, by = 4), "solid", "none")
                   )
@@ -192,9 +192,9 @@ server <- function(id, updated, season) {
                   list(
                     background =
                       dplyr$if_else(index > 6 & relegation & league == 1,
-                                    constant$red,
+                                    constant$standingsRed,
                                     dplyr$if_else(index < 3 & relegation & league == 2,
-                                                  constant$green,
+                                                  constant$standingsGreen,
                                                   NA
                                     )
                       ),
