@@ -9,131 +9,137 @@ box::use(
   app/logic/ui/reactableHelper[linkOrganization],
 )
 # Division and Matchday parsing
-parse_division_matchday <- function(match_day) {
+parseDivisionMatchday <- function(matchDay) {
 
-  # New format: "1.2", "2.4"
-  if (grepl("^\\d+\\.\\d+$", match_day)) {
-    parts <- strsplit(match_day, "\\.")[[1]]
+  #New Format (1.2, 2.5)
+  if (grepl("^\\d+\\.\\d+$", matchDay)) {
+    parts <- strsplit(matchDay, "\\.")[[1]]
     return(list(
       division = parts[1],
       matchday = parts[2]
     ))
   }
 
-  # Old format: "1", "2", etc. (≤ S23)
+  #Old Format
   list(
     division = NULL,
-    matchday = match_day
+    matchday = matchDay
   )
 }
 
 
 # Competition key (used for colour + logo)
 
-get_competition_key <- function(match_type, match_day) {
+getCompetitionKey <- function(matchType, matchDay) {
 
-  parsed <- parse_division_matchday(match_day)
+  parsed <- parseDivisionMatchday(matchDay)
 
-  # SSL Shield (Cup + Shi)
-  if (match_type == 0 && match_day == "Shi") {
+  if (matchType == 0 && matchDay == "Shi") {
     return("shield")
   }
-
-  # Majors (S24+)
-  if (match_type == 1 && !is.null(parsed$division)) {
+  #Majors / Minors with division
+  if (matchType == 1 && !is.null(parsed$division)) {
     return(paste0("major-div", parsed$division))
   }
 
-  # Minors (S24+)
-  if (match_type == 2 && !is.null(parsed$division)) {
+  if (matchType == 2 && !is.null(parsed$division)) {
     return(paste0("minor-div", parsed$division))
   }
-
-  # Legacy Majors / Minors (≤ S23)
-  if (match_type == 1) return("major")
-  if (match_type == 2) return("minor")
-
-  # Others
-  if (match_type == 0) return("cup")
-  if (match_type == 5) return("wsfc")
+  #Majors / Minors without division and other competitions
+  if (matchType == 1) return("major")
+  if (matchType == 2) return("minor")
+  if (matchType == 0) return("cup")
+  if (matchType == 5) return("wsfc")
 
   "friendlies"
 }
 
 
 # Stage label (Footer text)
-get_stage_label <- function(match_type, match_day) {
+getStageLabel <- function(matchType, matchDay) {
 
-  # Majors / Minors
-if (match_type %in% c(1, 2)) {
+  if (matchType %in% c(1, 2)) {
 
-  parsed <- parse_division_matchday(match_day)
+    parsed <- parseDivisionMatchday(matchDay)
 
-  if (!is.null(parsed$division)) {
-    return(
-      paste(
-        "D", parsed$division,
-        " MD", parsed$matchday
+    if (!is.null(parsed$division)) {
+      return(
+        paste("D", parsed$division, " MD", parsed$matchday)
       )
-    )
+    }
+
+    return(paste("MD", matchDay))
   }
 
-  return(paste("MD", match_day))
-}
-  # SSL Shield
-  if (match_type == 0 && match_day == "Shi") {
+  if (matchType == 0 && matchDay == "Shi") {
     return("Shield")
   }
 
-  # Cup (non-shield)
-  if (match_type == 0) {
+  if (matchType == 0) {
+
+    if (grepl("^[A-D][0-9]+$", matchDay)) {
+      group <- substr(matchDay, 1, 1)
+      round <- substr(matchDay, 2, nchar(matchDay))
+      return(paste("Group", group, "MD", round))
+    }
+
+    if (grepl("^(FR|R16|QF|SF)[12]$", matchDay)) {
+
+      stage <- sub("[12]$", "", matchDay)
+      leg <- substr(matchDay, nchar(matchDay), nchar(matchDay))
+
+      stageLabel <- switch(
+        stage,
+        "FR"  = "First Round",
+        "R16" = "Round of 16",
+        "QF"  = "Quarter Final",
+        "SF"  = "Semi Final",
+        stage
+      )
+
+      return(paste(stageLabel, "Leg", leg))
+    }
+
     return(
       switch(
-        as.character(match_day),
+        as.character(matchDay),
         "Q"   = "Qualifying",
         "R16" = "Round of 16",
         "QF"  = "Quarter Final",
         "SF"  = "Semi Final",
         "F"   = "Final",
-        match_day
+        matchDay
       )
     )
   }
 
-  # WSFC
-  if (match_type == 5) {
+  if (matchType == 5) {
 
-    # Pre-season
-    if (match_day == "Pre") {
+    if (matchDay == "Pre") {
       return("Pre Season")
     }
 
-    # Group stages: A1, B2, C3, D4
-    if (grepl("^[A-D][0-9]+$", match_day)) {
-      group <- substr(match_day, 1, 1)
-      round <- substr(match_day, 2, nchar(match_day))
-      return(paste("Group ", group, " MD", round))
+    if (grepl("^[A-D][0-9]+$", matchDay)) {
+      group <- substr(matchDay, 1, 1)
+      round <- substr(matchDay, 2, nchar(matchDay))
+      return(paste("Group", group, "MD", round))
     }
 
-    # Knockouts
     return(
       switch(
-        as.character(match_day),
+        as.character(matchDay),
         "QF" = "Quarter Final",
         "SF" = "Semi Final",
         "F"  = "Final",
-        match_day
+        matchDay
       )
     )
   }
 
-  # Friendlies
-  return(
-    switch(
-      as.character(match_day),
-      "Pre" = "Pre Season",
-      "Friendly"
-    )
+  switch(
+    as.character(matchDay),
+    "Pre" = "Pre Season",
+    "Friendly"
   )
 }
 
@@ -141,72 +147,80 @@ if (match_type %in% c(1, 2)) {
 #' @export
 resultCard <- function(data, i) {
 
-  competition_key <- get_competition_key(
+  competitionKey <- getCompetitionKey(
     data[i, "MatchType"],
     data[i, "MatchDay"]
   )
 
-  # Build logo path INSIDE the function
-  competition_logo <- paste0(
+  competitionLogo <- paste0(
     "/static/competition/",
-    gsub("-", "_", competition_key),
+    gsub("-", "_", competitionKey),
     ".png"
   )
 
-  stage_label <- get_stage_label(
+  stageLabel <- getStageLabel(
     data[i, "MatchType"],
     data[i, "MatchDay"]
   )
 
+  homeScore <- data[i, "HomeScore"]
+  awayScore <- data[i, "AwayScore"]
+
+  hasScore <- !is.na(homeScore) && !is.na(awayScore)
+
+  scoreText <- if (hasScore) {
+    paste(homeScore, awayScore, sep = " - ")
+  } else {
+    "-"
+  }
+
   card <- bslib$card(
     shiny$div(
-    class="result-card-inner",
+      class = "result-card-inner",
 
-    bslib$card_header(
-      shiny$div(
+      bslib$card_header(
         shiny$div(
-          style = "display: inline-block; width: 40px;",
-          linkOrganization(data[i, "Home"], onlyImg = TRUE, height = 40)
-        ),
-        shiny$strong(" - "),
+          shiny$div(
+            style = "display: inline-block; width: 40px;",
+            linkOrganization(data[i, "Home"], onlyImg = TRUE, height = 40)
+          ),
+          shiny$strong(" - "),
+          shiny$div(
+            style = "display: inline-block; width: 40px;",
+            linkOrganization(data[i, "Away"], onlyImg = TRUE, height = 40)
+          ),
+          align = "center"
+        )
+      ),
+
+      bslib$card_body(
+        shiny$h4(
+          scoreText,
+          class = paste("score", if (hasScore) "" else "is-empty")
+        )
+      ),
+
+      bslib$card_footer(
         shiny$div(
-          style = "display: inline-block; width: 40px;",
-          linkOrganization(data[i, "Away"], onlyImg = TRUE, height = 40)
-        ),
-        align = "center"
+          align = "center",
+          shiny$div(stageLabel),
+          shiny$div(data[i, "IRLDate"])
+        )
       )
     ),
 
-    bslib$card_body(
-      shiny$h4(
-        paste(data[i, "HomeScore"], data[i, "AwayScore"], sep = "-") |>
-          str_replace_all(pattern = "NA", replacement = " ")
-      )
-    ),
-
-    bslib$card_footer(
-      shiny$div(
-        align = "center",
-        shiny$div(stage_label),
-        shiny$div(data[i, "IRLDate"])
-      )
-    )
-    ),
-
-    # ✅ OVERLAY MUST BE INSIDE THE CARD
     shiny$div(
       class = "competition-overlay",
       shiny$img(
-        src = competition_logo,
-        alt = paste("Competition:", competition_key)
+        src = competitionLogo,
+        alt = paste("Competition:", competitionKey)
       )
     )
-  
   )
 
   shiny::tagAppendAttributes(
     card,
     class = "result-card",
-    `data-league` = competition_key
+    `data-league` = competitionKey
   )
 }

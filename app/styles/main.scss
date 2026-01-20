@@ -639,6 +639,7 @@ $navbar-items-width: 112px;
   isolation: isolate;
 }
 
+.results .result-card .result-card-inner,
 .results .result-card > .card {
   position: relative;
   z-index: 1;
@@ -657,45 +658,39 @@ $navbar-items-width: 112px;
 /* Competition logo overlay */
 .results .result-card .competition-overlay {
   position: absolute;
-  inset: 0;
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
-  z-index: 10;
+  transition:
+   opacity 0.25s ease;
+  z-index: 0;
 }
 
 .results .result-card .competition-overlay img {
-  max-width: 65%;
-  max-height: 65%;
+  max-width: 70%;
+  max-height: 70%;
   object-fit: contain;
-  opacity: 1 !important;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+  opacity: 1 ;
+  filter: 
+  blur(0.2px)
+  drop-shadow(0 2px 6px rgba(0,0,0,0.4));
 }
 
-/* Fade ONLY the Bootstrap card, not the overlay */
-.results .result-card:hover .result-card-inner {
-  opacity: 0.08;
+/* Show competition logo only when score is empty */
+.results .result-card:has(.score.is-empty) .competition-overlay {
+  opacity: 0.35;
 }
 
-
-.results .result-card:hover .competition-overlay {
-  opacity: 1;
+/* Hide dash but preserve score layout */
+.results .result-card .score.is-empty {
+  visibility: hidden;
 }
-
-/* Touch device support */
-@media (hover: none) {
-  .results .result-card:active .result-card-inner {
-    opacity: 0.08;
-  }
-
-  .results .result-card:active .competition-overlay {
-    opacity: 1;
-  }
-}
-
 
 
 /* Header / Body / Footer normalisation */

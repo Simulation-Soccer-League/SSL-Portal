@@ -4,7 +4,7 @@ box::use(
   dplyr,
   glue,
   lubridate[now, with_tz],
-  RMariaDB,
+  RMySQL,
 )
 
 dbHost <- Sys.getenv("HOST")
@@ -15,7 +15,7 @@ dbPassword <- Sys.getenv("DBPASSWORD")
 #' @export
 createConnection <- function(schema) {
   DBI$dbConnect(
-    RMariaDB$MariaDB(),
+    RMySQL$MySQL(),
     dbname = Sys.getenv(schema),
     host = dbHost,
     port = dbPort,
@@ -25,8 +25,7 @@ createConnection <- function(schema) {
 }
 
 getQuery <- function(query, ..., schema) {
-  
-    con <- createConnection(schema)
+  con <- createConnection(schema)
 
   if (is.null(con)) {
     message("⚠️ LOCAL MODE: Skipping DB query")
@@ -65,10 +64,9 @@ getQuery <- function(query, ..., schema) {
 }
 
 setQuery <- function(query, ..., schema) {
-  
   con <- createConnection(schema)
     
-    if (is.null(con)) {
+  if (is.null(con)) {
     message("⚠️ LOCAL MODE: Skipping DB write")
     return(invisible(TRUE))
   }
