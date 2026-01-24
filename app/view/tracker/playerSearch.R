@@ -1,7 +1,13 @@
 box::use(
   bslib,
   dplyr[arrange, desc, rename_with, select],
-  reactable[colDef, reactable, reactableOutput, renderReactable],
+  reactable[
+    colDef, 
+    colFormat, 
+    reactable, 
+    reactableOutput, 
+    renderReactable
+  ],
   shiny,
   shiny.router[route_link],
   stringr[str_to_upper],
@@ -9,6 +15,7 @@ box::use(
 
 box::use(
   app / logic / db / get[getPlayers],
+  app / logic / ui / reactableHelper[linkOrganization],
 )
 
 #' @export
@@ -36,8 +43,9 @@ server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     output$players <- renderReactable({
       data <- getPlayers(active = (input$retired == "No")) |>
-        select(name, username, pid, team, position, tpe, 
-               tpebank, class, playerStatus, userStatus) |> 
+        select(name, username, pid, team, class, position, tpe, 
+               tpebank, nationality, bankBalance, playerStatus, 
+               userStatus) |> 
         arrange(desc(tpe))
 
       data |>
@@ -57,6 +65,21 @@ server <- function(id) {
                   value # Display the name as the link text
                 )
               }
+            ),
+            TEAM = colDef(
+              width = 200, 
+              align = "left", 
+              cell = function(value) {
+                linkOrganization(value)
+              }
+            ),
+            BANKBALANCE = colDef(
+              width = 120, 
+              format = colFormat(
+                digits = 0,
+                separators = TRUE,
+                currency = "USD"
+              )
             ),
             PID = colDef(show = FALSE)
           ),
