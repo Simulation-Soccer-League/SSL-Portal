@@ -44,6 +44,7 @@ box::use(
     isBankerAccountant,
     isBoD,
     isBoDIntern,
+    isDepartmentHead,
     isFileworker,
     isManager,
     isPT,
@@ -213,6 +214,7 @@ server <- function(id, auth, resAuth, updated, season) {
     ### Output
     getJobsUi <- function(userGroup) {
       if (any(
+        isDepartmentHead(userGroup),
         isFileworker(userGroup), 
         isBoD(userGroup), 
         isBoDIntern(userGroup),
@@ -221,8 +223,16 @@ server <- function(id, auth, resAuth, updated, season) {
         isPT(userGroup)
       )) {
         items <- list(
-          if (any(isBankerAccountant(userGroup), isPT(userGroup), isBoD(userGroup),
-                  isBoDIntern(userGroup), isManager(userGroup))) {
+          if (
+            any(
+              isDepartmentHead(userGroup),
+              isBankerAccountant(userGroup), 
+              isPT(userGroup), 
+              isBoD(userGroup),
+              isBoDIntern(userGroup), 
+              isManager(userGroup)
+              )
+            ) {
             navMenuItem(
               label = "Bank",
               subItems = list(

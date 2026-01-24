@@ -14,6 +14,7 @@ box::use(
     isBankerAccountant,
     isBoD,
     isBoDIntern,
+    isDepartmentHead,
     isFileworker,
     isManager,
     isPT,
@@ -409,6 +410,7 @@ server <- function(id) {
         if (navigationCheck(authOutput())) {
           if (!loadedServer$bankDeposit & 
               any(
+                isDepartmentHead(authOutput()$usergroup),
                 isBankerAccountant(authOutput()$usergroup),
                 isManager(authOutput()$usergroup),
                 isPT(authOutput()$usergroup),
