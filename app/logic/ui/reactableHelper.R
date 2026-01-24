@@ -57,14 +57,21 @@ clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
     div(
       class = "tableClubName",
       if (!onlyLogo & !is.na(pid)) {
-        a(
-          href = route_link(paste0("tracker/player?pid=", pid)),
-          value # Display the name as the link text
+        tagList(
+          a(
+            href = route_link(paste0("tracker/player?pid=", pid)),
+            value # Display the name as the link text
+          ),
+          div(list)
+        )
+      } else if (!onlyLogo) {
+        tagList(
+          value,
+          div(list)
         )
       } else {
-        value
-      },
-      div(list)
+        div(list)
+      }
     )
   )
 }
