@@ -116,20 +116,6 @@ ui <- function(id) {
     #     shiny$h3("Player History")
     #   ),
     #   bslib$card_body(
-    #     shiny$tabsetPanel(
-    #       shiny$tabPanel(
-    #         title = "TPE History",
-    #         reactableOutput(ns("tpe"), height = 450)
-    #       ),
-    #       shiny$tabPanel(
-    #         title = "Update History",
-    #         reactableOutput(ns("update"), height = 450)
-    #       ),
-    #       shiny$tabPanel(
-    #         title = "Bank History",
-    #         reactableOutput(ns("bank"), height = 450)
-    #       )
-    #     )
     #   )
     # )
   )
@@ -214,21 +200,23 @@ server <- function(id, oid = NULL, updated) {
         dplyr$filter(affiliate == 2) |> 
         dplyr$pull(name)
       
-      shiny$tagList(
-        shiny$h3(
-          paste(majorName, dplyr$if_else(query() < 0, "", "(Major)"))
+      shiny$tabsetPanel(
+        shiny$tabPanel(
+          title = paste(majorName, dplyr$if_else(query() < 0, "", "(Major)")),
+          reactableOutput(session$ns("major"), height = 433) |> 
+            withSpinnerCustom(height = 50)
         ),
-        reactableOutput(session$ns("major")) |> 
-          withSpinnerCustom(height = 50),
         if (nrow(minors()) > 0) {
-          shiny$tagList(
-            shiny$h3(
-              paste(minorName, "(Minor)")
-            ),
-            reactableOutput(session$ns("minor")) |> 
+          shiny$tabPanel(
+            title = paste(minorName, "(Minor)"),
+            reactableOutput(session$ns("minor"), height = 433) |> 
               withSpinnerCustom(height = 50)
           )
-        }
+        },
+        shiny$tabPanel(
+          title = "Test",
+          "tesy"
+        )
       )
     })
     
