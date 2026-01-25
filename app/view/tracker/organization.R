@@ -9,6 +9,7 @@ box::use(
   scales[comma],
   shiny,
   shiny.router[get_query_param],
+  stringi[stri_remove_empty],
   stringr[
     str_detect, 
     str_remove, 
@@ -45,79 +46,31 @@ ui <- function(id) {
       bslib$card_body(
         bslib$layout_column_wrap(
           width = NULL,
-          style = bslib$css(grid_template_columns = "1fr 3fr"),
+          style = bslib$css(grid_template_columns = "1fr 1fr 1fr 1fr"),
           shiny$uiOutput(ns("clubLogo"), height = NULL) |>
-            withSpinnerCustom(height = 20),
-          shiny$uiOutput(ns("orgInfo")) |>
-            withSpinnerCustom(height = 40)
+            withSpinnerCustom(height = 200),
+          shiny$tagList(
+            shiny$uiOutput(ns("city")) |> 
+              withSpinnerCustom(height = 50),
+            shiny$uiOutput(ns("orgInfo")) |>
+              withSpinnerCustom(height = 50)
+          ),
+          shiny$tagList(
+            shiny$uiOutput(ns("stadium")) |> 
+              withSpinnerCustom(height = 50),
+            shiny$uiOutput(ns("colors")) |> 
+              withSpinnerCustom(height = 50)
+          ),
+          shiny$tagList(
+            shiny$uiOutput(ns("established")) |> 
+              withSpinnerCustom(height = 50)
+          )
         )
       )
     ),
-    bslib$card(
-      bslib$card_header(
-        shiny$h2("Roster Overview")
-      ),
-      bslib$card_body(
-        shiny$uiOutput(ns("tabs")) |> 
-          withSpinnerCustom(height = 50)
-      )
-    )
-    # bslib$layout_column_wrap(
-    #   width = 1 / 2,
-    #   bslib$card(
-    #     bslib$card_header(
-    #       shiny$h3("Organization Information")
-    #     ),
-    #     bslib$card_body(
-    #     )
-    #   ),
-    #   bslib$card(
-    #     bslib$card_header(
-    #       shiny$h3("Match Statistics")
-    #     ),
-    #     bslib$card_body(
-    #       shiny$tabsetPanel(
-    #         shiny$tabPanel(
-    #           title = "Last 10 games",
-    #           reactableOutput(ns("matchStatistics"))
-    #         ),
-    #         shiny$tabPanel(
-    #           title = "Career Statistics",
-    #           reactableOutput(ns("careerStatistics"))
-    #         )
-    #       )
-    #     )
-    #   )
-    # ),
-    # bslib$layout_column_wrap(
-    #   width = NULL,
-    #   style = bslib$css(grid_template_columns = "2fr 1fr"),
-    #   bslib$card(
-    #     bslib$card_header(
-    #       shiny$h3("Player Attributes")
-    #     ),
-    #     bslib$card_body(
-    #       shiny$uiOutput(ns("playerAttributes")) |>
-    #         withSpinnerCustom(height = 60)
-    #     )
-    #   ),
-    #   bslib$card(
-    #     bslib$card_header(
-    #       shiny$h3("TPE Progression")
-    #     ),
-    #     bslib$card_body(
-    #       plotly$plotlyOutput(ns("tpeProgression")) |>
-    #         withSpinnerCustom(height = 60)
-    #     )
-    #   )
-    # ),
-    # bslib$card(
-    #   bslib$card_header(
-    #     shiny$h3("Player History")
-    #   ),
-    #   bslib$card_body(
-    #   )
-    # )
+    shiny$uiOutput(ns("tabs")) |> 
+      withSpinnerCustom(height = 50),
+    shiny$br()
   )
 }
 
@@ -188,8 +141,84 @@ server <- function(id, oid = NULL, updated) {
     })
 
     #### Output ####
-    output$information <- shiny$renderUI({
+    output$stadium <- shiny$renderUI({
+      shiny$req(teamInfo())
       
+      data <- teamInfo()
+      
+      stadiums <- c(
+        dplyr$if_else(
+          data$stadium[1] |> is.na(),
+          "",
+          data$stadium[1]
+        ),
+        dplyr$if_else(
+          data$stadium[2] |> is.na(),
+          "",
+          data$stadium[2]
+        )
+      ) |> 
+        stri_remove_empty()
+      
+      if (stadiums |> length() > 0) {
+        # Build a nice list
+        shiny$div(
+          style = "
+          padding: 10px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        ",
+          shiny$h4("Stadium", style = "margin-bottom: 6px;"),
+          lapply(stadiums, function(name) {
+            shiny$div(
+              style = "padding: 4px 8px;
+                width: fit-content;",
+              name
+            )
+          })
+        )
+      }
+    })
+    
+    output$established <- shiny$renderUI({
+      shiny$req(teamInfo())
+      
+      data <- teamInfo()
+      
+      established <- c(
+        dplyr$if_else(
+          data$established[1] |> is.na(),
+          "",
+          paste0("S", data$established[1])
+        ),
+        dplyr$if_else(
+          data$established[2] |> is.na(),
+          "",
+          paste0("S", data$established[2])
+        )
+      ) |> 
+        stri_remove_empty()
+      
+      if (established |> length() > 0) {
+        # Build a nice list
+        shiny$div(
+          style = "
+          padding: 10px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        ",
+          shiny$h4("Established", style = "margin-bottom: 6px;"),
+          lapply(established, function(name) {
+            shiny$div(
+              style = "padding: 4px 8px;
+                width: fit-content;",
+              name
+            )
+          })
+        )
+      }
     })
     
     output$tabs <- shiny$renderUI({
@@ -304,17 +333,102 @@ server <- function(id, oid = NULL, updated) {
         shiny$h4("Management", style = "margin-bottom: 6px;"),
         lapply(managers, function(name) {
           shiny$div(
-            style = glue$glue(
-              "padding: 4px 8px;
-                background: {bg};
-                border-radius: 4px;
+            style = "padding: 4px 8px;
                 width: fit-content;",
-              bg = data$primary[1]
-            ),
             name
           )
         })
       )
+    })
+    
+    output$city <- shiny$renderUI({
+      shiny$req(teamInfo())
+      
+      data <- teamInfo()
+      
+      cities <- c(
+        dplyr$if_else(
+          data$city[1] |> is.na(),
+          "",
+          data$city[1]
+        ),
+        dplyr$if_else(
+          data$city[2] |> is.na(),
+          "",
+          data$city[2]
+        )
+      ) |> 
+        stri_remove_empty()
+        
+      if (cities |> length() > 0) {
+        # Build a nice list
+        shiny$div(
+          style = "
+          padding: 10px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        ",
+          shiny$h4("Origin", style = "margin-bottom: 6px;"),
+          lapply(cities, function(name) {
+            shiny$div(
+              style = "padding: 4px 8px;
+                width: fit-content;",
+              name
+            )
+          })
+        )
+      }
+      
+    })
+    
+    output$colors <- shiny$renderUI({
+      shiny$req(teamInfo())
+      
+      data <- teamInfo() |> 
+        dplyr$select(primaryColor, secondaryColor)
+      
+      # Build a nice list
+      shiny$div(
+        style = "
+          padding: 10px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        ",
+        shiny$h4("Colors", style = "margin-bottom: 6px;"),
+        lapply(seq_len(nrow(data)), function(index) {
+          shiny$div(
+            style = 
+              "display: flex; 
+                flex-direction: row; 
+                gap: 8px;",
+            shiny$div(
+              style = glue$glue(
+                "padding: 4px 8px;
+                  background: {bg};
+                  color: {col};
+                  width: fit-content;",
+                bg = data$primaryColor[index],
+                col = data$secondaryColor[index]
+              ),
+              data$primaryColor[index]
+            ),
+            shiny$div(
+              style = glue$glue(
+                "padding: 4px 8px;
+                  background: {bg};
+                  color: {col};
+                  width: fit-content;",
+                bg = data$secondaryColor[index],
+                col = data$primaryColor[index]
+              ),
+              data$secondaryColor[index]
+            )
+          )
+        })
+      )
+      
     })
   #   
   #   
