@@ -1,6 +1,7 @@
 box::use(
   bslib,
   dplyr,
+  glue,
   lubridate[as_date, as_datetime, floor_date, today],
   plotly,
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
@@ -27,7 +28,7 @@ box::use(
     getOrganizationPlayers, 
     getTeamInformation,
   ],
-  app/logic/ui/reactableHelper[orgReactable],
+  app/logic/ui/reactableHelper[linkOrganization, orgReactable],
   app/logic/ui/spinner[withSpinnerCustom],
   app / logic / ui / tags[flexRow],
 )
@@ -39,10 +40,26 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        shiny$h1("Roster Overview")
+        shiny$h2("Organization")
       ),
       bslib$card_body(
-        shiny$uiOutput(ns("tabs"))
+        bslib$layout_column_wrap(
+          width = NULL,
+          style = bslib$css(grid_template_columns = "1fr 3fr"),
+          shiny$uiOutput(ns("clubLogo"), height = NULL) |>
+            withSpinnerCustom(height = 20),
+          shiny$uiOutput(ns("orgInfo")) |>
+            withSpinnerCustom(height = 40)
+        )
+      )
+    ),
+    bslib$card(
+      bslib$card_header(
+        shiny$h2("Roster Overview")
+      ),
+      bslib$card_body(
+        shiny$uiOutput(ns("tabs")) |> 
+          withSpinnerCustom(height = 50)
       )
     )
     # bslib$layout_column_wrap(
@@ -52,16 +69,6 @@ ui <- function(id) {
     #       shiny$h3("Organization Information")
     #     ),
     #     bslib$card_body(
-    #       bslib$layout_column_wrap(
-    #         width = NULL,
-    #         style = bslib$css(grid_template_columns = "3fr 1fr"),
-    #         shiny$uiOutput(ns("playerName")) |>
-    #           withSpinnerCustom(height = 20),
-    #         shiny$uiOutput(ns("clubLogo"), height = NULL) |>
-    #           withSpinnerCustom(height = 20)
-    #       ),
-    #       shiny$uiOutput(ns("playerInfo")) |>
-    #         withSpinnerCustom(height = 40)
     #     )
     #   ),
     #   bslib$card(
@@ -154,13 +161,13 @@ server <- function(id, oid = NULL, updated) {
         dplyr$select(
           name,
           class,
+          position,
           tpe,
           tpebank,
           username,
           discord,
           bankBalance,
           nationality,
-          position,
           userStatus,
           playerStatus,
           render,
@@ -178,18 +185,28 @@ server <- function(id, oid = NULL, updated) {
     teamInfo <- shiny$reactive({
       shiny$req(query())
       
-      getTeamInformation(oid = query())
+      getTeamInformation(oid = query()) |> 
+        dplyr$arrange(affiliate)
     }) |> 
       shiny$bindCache(id, query(), updated()) |> 
       shiny$bindEvent(query())
+    
+    majors <- shiny$reactive({
+      players() |>
+        dplyr$filter(affiliate == 1)
+    })
+    
+    minors <- shiny$reactive({
+      players() |>
+        dplyr$filter(affiliate == 2)
+    })
 
     #### Output ####
-    output$tabs <- shiny$renderUI({
-      majors <- players() |>
-        dplyr$filter(affiliate == 1)
-      minors <- players() |>
-        dplyr$filter(affiliate == 2)
+    output$information <- shiny$renderUI({
       
+    })
+    
+    output$tabs <- shiny$renderUI({
       majorName <- teamInfo() |> 
         dplyr$filter(affiliate == 1) |> 
         dplyr$pull(name)
@@ -201,19 +218,114 @@ server <- function(id, oid = NULL, updated) {
         shiny$h3(
           paste(majorName, dplyr$if_else(query() < 0, "", "(Major)"))
         ),
-        flexRow(
-          orgReactable(majors)
-        ),
-        if (nrow(minors) > 0) {
+        reactableOutput(session$ns("major")) |> 
+          withSpinnerCustom(height = 50),
+        if (nrow(minors()) > 0) {
           shiny$tagList(
             shiny$h3(
               paste(minorName, "(Minor)")
             ),
-            flexRow(
-              orgReactable(minors)
-            )
+            reactableOutput(session$ns("minor")) |> 
+              withSpinnerCustom(height = 50)
           )
         }
+      )
+    })
+    
+    output$major <- renderReactable({
+      orgReactable(majors())
+    })
+    
+    output$minor <- renderReactable({
+      orgReactable(minors())
+    })
+    
+    output$clubLogo <- shiny$renderUI({
+      data <- teamInfo() |> 
+        dplyr$arrange(affiliate)
+      
+      shiny$tagList(
+        shiny$div(
+          style = glue$glue(
+            "display: flex; 
+             flex-direction: column; 
+             align-items: center; /* center horizontally */ 
+             justify-content: space-between; 
+             width: 150px; 
+             height: {height}px; 
+             margin: 0 auto;",
+            height = nrow(data) * 150
+            ),
+          # Top-left image
+          if (nrow(data) >= 1) {
+            shiny$div(
+              shiny$img(
+                src = sprintf('static/logo/%s.png', data$name[1]),
+                style = "height: 150px; padding: 2px;",
+                alt = data$name[1],
+                title = data$fullname[1]
+              )
+            )
+          },
+          # Bottom-right image
+          if (nrow(data) >= 2) {
+            shiny$div(
+              shiny$img(
+                src = sprintf('static/logo/%s.png', data$name[2]),
+                style = "height: 150px; padding: 2px;",
+                alt = data$name[2],
+                title = data$fullname[2]
+              )
+            )
+          }
+        )
+      )
+        
+      
+    })
+    
+    output$orgInfo <- shiny$renderUI({
+      shiny$req(teamInfo())
+      
+      data <- teamInfo()
+      
+      # Extract up to three names (already joined from allplayersview)
+      managers <- c(
+        paste(
+          "Organizational Manager:",
+          dplyr$if_else(data$om[1] |> is.na(), "None", data$om[1])
+        ),
+        paste(
+          "Assistant Manager:",
+          dplyr$if_else(data$am1[1] |> is.na(), "None", data$am1[1])
+        ),
+        paste(
+          "Assistant Manager:",
+          dplyr$if_else(data$am2[1] |> is.na(), "None", data$am2[1])
+        )
+      )
+      
+      # Build a nice list
+      shiny$div(
+        style = "
+          padding: 10px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        ",
+        shiny$h4("Management", style = "margin-bottom: 6px;"),
+        lapply(managers, function(name) {
+          shiny$div(
+            style = glue$glue(
+              "padding: 4px 8px;
+                background: {bg};
+                border-radius: 4px;
+                width: fit-content;",
+              bg = data$primary[1]
+            ),
+            name
+          )
+        })
       )
     })
   #   
@@ -228,16 +340,6 @@ server <- function(id, oid = NULL, updated) {
   #     )
   #   }) 
   #   
-  #   output$clubLogo <- shiny$renderUI({
-  #     data <- playerData()
-  # 
-  #     shiny$img(
-  #       src = sprintf("static/logo/%s.png", data$team),
-  #       style = "height: 100px;",
-  #       alt = data$team,
-  #       title = data$team
-  #     )
-  #   })
   # 
   #   output$playerInfo <- shiny$renderUI({
   #     data <- playerData()

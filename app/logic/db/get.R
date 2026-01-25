@@ -175,9 +175,12 @@ getOrganizationPlayers <- function(oid) {
 #' @export
 getTeamInformation <- function(oid){
   portalQuery(
-    "SELECT *
-      FROM teams
-      WHERE orgID = {oid};",
+    "SELECT t.*, muid.orgManager, muid.assManager1, 
+      muid.assManager2, m.om, m.am1, m.am2
+      FROM teams t
+      LEFT JOIN managers muid ON t.orgID = muid.orgID
+      LEFT JOIN managerview m ON t.orgID = m.orgID
+      WHERE t.orgID = {oid};",
     oid = oid
   )
 }
