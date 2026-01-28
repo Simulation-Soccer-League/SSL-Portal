@@ -65,6 +65,7 @@ ui <- function(id) {
     ),
     bslib$layout_column_wrap(
       width = 1 / 2,
+      heights_equal = "row",
       bslib$card(
         bslib$card_header(
           shiny$h5("Major League Standings")
@@ -89,7 +90,7 @@ ui <- function(id) {
         ),
         bslib$card_body(
           reactableOutput(ns("weeklyLeaders")) |>
-            withSpinnerCustom(height = 40)
+            withSpinnerCustom(height = 20)
         )
       ),
       bslib$card(
@@ -98,7 +99,7 @@ ui <- function(id) {
         ),
         bslib$card_body(
           reactableOutput(ns("created")) |>
-            withSpinnerCustom(height = 40)
+            withSpinnerCustom(height = 20)
         )
       )
     ),
@@ -297,7 +298,8 @@ server <- function(id, usergroup, season) {
                     )
                 )
             }
-          })
+          }) |> 
+            shiny$bindCache(id, division, season(), "standings")
         }
       )
 
@@ -350,7 +352,7 @@ server <- function(id, usergroup, season) {
           )
         }
       }) |>
-        shiny$bindCache(id, input$selectedLeague, season())
+        shiny$bindCache(id, input$selectedLeague, season(), "schedule")
 
       #### Weekly TPE Leaders ####
       output$weeklyLeaders <- renderReactable({
@@ -374,7 +376,8 @@ server <- function(id, usergroup, season) {
               )
             )
           )
-      })
+      }) |> 
+        shiny$bindCache(id, "earner")
 
       #### Recently created ####
       output$created <- renderReactable({
@@ -398,7 +401,8 @@ server <- function(id, usergroup, season) {
               )
             )
           )
-      })
+      }) |> 
+        shiny$bindCache(id, "created")
 
       output$activityChecks <- renderPlotly({
         getAChistory() |>
@@ -440,7 +444,8 @@ server <- function(id, usergroup, season) {
             ),
             displaylogo = FALSE # Remove Plotly logo
           )
-      })
+      }) |> 
+        shiny$bindCache(id, "ac")
     }
   )
 }
