@@ -835,3 +835,24 @@ getCurrentSeason <- function() {
     ORDER BY startDate DESC LIMIT 1"
   )
 }
+
+#' @export
+getAChistory <- function(){
+  portalQuery(
+    "SELECT 
+      CONCAT(
+        'W',
+          FLOOR(
+          DATEDIFF(
+            CONVERT_TZ(FROM_UNIXTIME(time), 'UTC', 'America/Los_Angeles'),
+            '2024-07-22' 
+          ) / 7
+        ) + 140
+      ) AS nweeks,
+      COUNT(*) AS count
+    FROM tpehistory
+    WHERE source = 'Activity Check'
+    GROUP BY nweeks
+    ORDER BY nweeks;"
+  )
+}

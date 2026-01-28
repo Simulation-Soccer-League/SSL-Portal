@@ -12,8 +12,13 @@ box::use(
 
 box::use(
   app / logic / constant,
-  app / logic / db / api[readAPI],
-  app / logic / db / get[getRecentCreates, getSchedule, getStandings, getTopEarners],
+  app / logic / db / get[
+    getAChistory, 
+    getRecentCreates, 
+    getSchedule, 
+    getStandings, 
+    getTopEarners,
+  ],
   app / logic / ui / cards[resultCard],
   app / logic / ui / reactableHelper[linkOrganization],
   app / logic / ui / spinner[withSpinnerCustom],
@@ -143,13 +148,7 @@ server <- function(id, usergroup, season) {
                 ## Filters out stage matches for the standings
                 filter(nchar(matchday) == 1) |> 
                 arrange(matchday, desc(p), desc(gd), desc(gf)) |>
-                select(
-                  team,
-                  w:l,
-                  gd,
-                  p,
-                  matchday
-                ) |> 
+                select(team, w:l, gd, p, matchday) |> 
                 reactable(
                   pagination = FALSE,
                   sortable = FALSE,
@@ -236,12 +235,7 @@ server <- function(id, usergroup, season) {
             } else {
               standings |>
                 arrange(desc(p), desc(gd), desc(gf)) |>
-                select(
-                  team,
-                  w:l,
-                  gd,
-                  p
-                ) |>
+                select(team, w:l, gd, p) |>
                 reactable(
                   defaultColDef = colDef(minWidth = 30),
                   pagination = FALSE,
@@ -407,10 +401,9 @@ server <- function(id, usergroup, season) {
       })
 
       output$activityChecks <- renderPlotly({
-        readAPI("https://api.simulationsoccer.com/player/acHistory") |>
-          mutate(weekYear = paste(paste0("W", nweeks))) |>
+        getAChistory() |>
           plot_ly(
-            x = ~weekYear, y = ~count, type = "scatter", mode = "lines+markers",
+            x = ~nweeks, y = ~count, type = "scatter", mode = "lines+markers",
             hoverinfo = "text",
             line = list(color = constant$sslGold),
             marker = list(size = 5, color = constant$sslGold),
