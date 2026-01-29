@@ -671,7 +671,7 @@ getLeagueIndex <- function(
 }
 
 #' @export
-getSeasonalTotal <- function(outfield = TRUE, season) {
+getSeasonalTotal <- function(outfield = TRUE, season, league) {
   if (outfield) {
     indexQuery(
       query = "
@@ -731,13 +731,15 @@ getSeasonalTotal <- function(outfield = TRUE, season) {
         JOIN schedule AS s
           ON gd.gid = s.gid
         WHERE
-          ( {season} = 'ALL' OR s.Season = {season} )
+          ( {season} = 'ALL' OR s.Season = {season} ) AND
+              s.Matchtype = {league}
         GROUP BY
           name, club
         ORDER BY
           name, club;
       ",
-      season = season
+      season = season,
+      league = league
     )
   } else {
     indexQuery(
@@ -763,13 +765,15 @@ getSeasonalTotal <- function(outfield = TRUE, season) {
         JOIN schedule AS s
           ON gd.gid = s.gid
         WHERE
-          ( {season} = 'ALL' OR s.Season = {season} )
+          ( {season} = 'ALL' OR s.Season = {season} ) AND
+              s.Matchtype = {league}
         GROUP BY
           name, club
         ORDER BY
           name, club;
       ",
-      season = season
+      season = season,
+      league = league
     )
   }
 }
