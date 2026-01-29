@@ -58,7 +58,7 @@ ui <- function(id) {
         ),
         bslib$card_body(
           shiny$uiOutput(ns("schedule")) |>
-            withSpinnerCustom(height = 20)
+            withSpinnerCustom(height = 200)
         )
       ),
       min_height = "200px"
@@ -72,7 +72,7 @@ ui <- function(id) {
         ),
         bslib$card_body(
           reactableOutput(ns("standings_1")) |>
-            withSpinnerCustom(height = 20)
+            withSpinnerCustom(height = 200)
         )
       ),
       bslib$card(
@@ -81,7 +81,7 @@ ui <- function(id) {
         ),
         bslib$card_body(
           reactableOutput(ns("standings_2")) |>
-            withSpinnerCustom(height = 20)
+            withSpinnerCustom(height = 200)
         )
       ),
       bslib$card(
@@ -90,7 +90,7 @@ ui <- function(id) {
         ),
         bslib$card_body(
           reactableOutput(ns("weeklyLeaders")) |>
-            withSpinnerCustom(height = 20)
+            withSpinnerCustom(height = 100)
         )
       ),
       bslib$card(
@@ -99,7 +99,7 @@ ui <- function(id) {
         ),
         bslib$card_body(
           reactableOutput(ns("created")) |>
-            withSpinnerCustom(height = 20)
+            withSpinnerCustom(height = 100)
         )
       )
     ),
@@ -109,7 +109,7 @@ ui <- function(id) {
       ),
       bslib$card_body(
         plotlyOutput(ns("activityChecks")) |>
-          withSpinnerCustom(height = 40) |>
+          withSpinnerCustom(height = 100) |>
           shiny$div(class = "plotlyBorder")
       )
     )
@@ -121,6 +121,29 @@ server <- function(id, usergroup, season) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
+      
+      
+      #### REACTIVES ####
+      standings <- shiny$reactive({
+        getStandings(league = 'ALL', season = season()) |> 
+          filter(matchtype > 0)
+      }) |> 
+        shiny$bindCache(id, season())
+      
+      schedule <- shiny$reactive({
+        shiny$req(input$selectedLeague)
+        
+        league <- input$selectedLeague
+        
+        getSchedule(league = league, season = season())
+      }) |> 
+        shiny$bindCache(id, input$selectedLeague, season())
+      
+      ac <- shiny$reactive({
+        getAChistory()
+      }) |> 
+        shiny$bindCache(id, "ac")
+      
       #### INFORMATION ####
       output$information <- shiny$renderUI({
         if (any(5 %in% usergroup)) {
@@ -137,11 +160,12 @@ server <- function(id, usergroup, season) {
       })
 
       #### Latest league standings ####
-      lapply(1:2,
+      lapply(standings()$matchtype |> unique() |> sort(),
         FUN = function(division) {
           output[[paste0("standings_", division)]] <- renderReactable({
-            standings <- getStandings(league = division, season = season())
-
+            standings <- standings() |> 
+              filter(matchtype == division)
+              
             if (standings |> is_empty()) {
               NULL
             } else if (season() |> as.numeric() >= 24) {
@@ -304,14 +328,6 @@ server <- function(id, usergroup, season) {
       )
 
       #### Latest results ####
-      schedule <- shiny$reactive({
-        shiny$req(input$selectedLeague)
-
-        league <- input$selectedLeague
-
-        getSchedule(league = league, season = season())
-      })
-
       output$schedule <- shiny$renderUI({
         league <- input$selectedLeague
 
@@ -405,7 +421,7 @@ server <- function(id, usergroup, season) {
         shiny$bindCache(id, "created")
 
       output$activityChecks <- renderPlotly({
-        getAChistory() |>
+         ac() |>
           plot_ly(
             x = ~nweeks, y = ~count, type = "scatter", mode = "lines+markers",
             hoverinfo = "text",

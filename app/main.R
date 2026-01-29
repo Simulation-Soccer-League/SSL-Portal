@@ -109,6 +109,7 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
+    
     router_server("/")
 
     ## Reactives
@@ -594,7 +595,6 @@ server <- function(id) {
         authOutput(), 
         ignoreInit = TRUE  # skip on module startup
       )
-    
     
   })
 }
