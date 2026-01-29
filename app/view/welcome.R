@@ -8,6 +8,7 @@ box::use(
   shiny.router[route_link],
   stringr[str_to_upper,],
   tippy[tippy],
+  waiter,
 )
 
 box::use(
@@ -463,5 +464,6 @@ server <- function(id, usergroup, season) {
       }) |> 
         shiny$bindCache(id, "ac")
     }
+    
   )
 }

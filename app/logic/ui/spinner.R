@@ -3,12 +3,12 @@ box::use(
 )
 
 #' @export
-withSpinnerCustom <- function(x, height) {
+withSpinnerCustom <- function(x, height, caption = "Loading information!") {
   withSpinner(
     ui_element = x, 
     proxy.height = paste0(height, "px"), 
     type = 6, 
-    caption = "Loading information",
+    caption = caption,
     color = "white",
     size = 0.5
   )
