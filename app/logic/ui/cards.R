@@ -33,16 +33,8 @@ resultCard <- function(data, i) {
     bslib$card_footer(
       paste(
         paste(
-          if_else(data[i, "MatchType"] == 0,
-            "Cup",
-            if_else(data[i, "MatchType"] == 1,
-              "Major League",
-              if_else(data[i, "MatchType"] == 2, "Minor League",
-                if_else(data[i, "MatchType"] == 5, "WSFC", "Friendlies")
-              )
-            )
-          ),
-          data[i, "MatchDay"],
+          data[i, "Matchtype"],
+          data[i, "Matchday"],
           sep = ", "
         ),
         paste(
