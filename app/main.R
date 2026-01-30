@@ -1,11 +1,13 @@
 box::use(
   cachem,
+  glue,
   shiny,
   shiny.router[change_page, route, router_server, router_ui],
   shinyFeedback[showToast, useShinyFeedback],
   shinyjs[useShinyjs],
   stringr[str_detect, str_remove],
   utils[head, installed.packages, sessionInfo],
+  waiter
 )
 
 box::use(
@@ -14,6 +16,7 @@ box::use(
     isBankerAccountant,
     isBoD,
     isBoDIntern,
+    isDepartmentHead,
     isFileworker,
     isManager,
     isPT,
@@ -63,7 +66,63 @@ shiny$shinyOptions(cache = cachem$cache_mem(max_size = 500e6, max_age = 8 * 60 *
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
+  
   shiny$bootstrapPage(
+    waiter$useWaiter(),
+    waiter$waiterPreloader(
+      html = shiny$tagList(
+        waiter$spin_loaders(
+          id = 3, 
+          color = constant$sslGold
+        ),
+        shiny$br(),
+        shiny$br(),
+        
+        # Text that will be updated
+        shiny$div(
+          id = ns("waiter-rotating-text"),
+          style = "font-size: 16px; color: #ccc; margin-top: 10px;",
+          "Loading…"
+        )
+      ),
+      fadeout = TRUE
+    ),
+    # JavaScript that rotates messages every 2 seconds
+    shiny$tags$script(
+      shiny$HTML(
+        glue$glue(
+          'setTimeout(function() {
+              const messages = [
+                "Checking your regression plan...",
+                "Reading up on the rules...",
+                "Building the Portal from scratch...",
+                "Visiting all teams...",
+                "Scouting for new Academy players...",
+                "Finding lost awards...",
+                "Looking for the index...",
+                "Trying to load..."
+              ];
+            
+              const interval = setInterval(function() {
+                const el = document.getElementById("<<id>>");
+                if (!el) {
+                  clearInterval(interval);   // stop once waiter is gone
+                  return;
+                }
+            
+                // pick a random message
+                const msg = messages[Math.floor(Math.random() * messages.length)];
+                el.textContent = msg;
+            
+              }, 2000);
+            }, 10);
+            ',
+          id = ns("waiter-rotating-text"),
+          .open = "<<",
+          .close = ">>"
+        )
+      )
+    ),
     useShinyFeedback(), # include shinyFeedback
     useShinyjs(), # include shinyjs
     title = "SSL Portal",
@@ -108,6 +167,7 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
+    
     router_server("/")
 
     ## Reactives
@@ -409,6 +469,7 @@ server <- function(id) {
         if (navigationCheck(authOutput())) {
           if (!loadedServer$bankDeposit & 
               any(
+                isDepartmentHead(authOutput()$usergroup),
                 isBankerAccountant(authOutput()$usergroup),
                 isManager(authOutput()$usergroup),
                 isPT(authOutput()$usergroup),
@@ -592,7 +653,6 @@ server <- function(id) {
         authOutput(), 
         ignoreInit = TRUE  # skip on module startup
       )
-    
     
   })
 }

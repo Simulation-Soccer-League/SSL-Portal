@@ -89,6 +89,12 @@ server <- function(id, auth, updated) {
                   label = "Which season is the view from?",
                   choices = 1:constant$currentSeason$season,
                   selected = constant$currentSeason$season
+                ),
+                shiny$selectInput(
+                  inputId = ns("league"),
+                  label = "Which file/league is the view from?",
+                  choices = 
+                    c("Major" = 1, "Minor" = 2, "Cup" = 0)
                 )
               ),
               shiny$div(
@@ -216,10 +222,11 @@ server <- function(id, auth, updated) {
       shiny$bindEvent(filePath())
 
     processedGame <- shiny$reactive({
-      currentSave <- parseFMdata(filePath())
+      currentSave <- parseFMdata(filePath()) |> 
+        select(!c(CA, UID))
 
-      keeperTotals <- getSeasonalTotal(season = input$season, outfield = FALSE)
-      outfieldTotals <- getSeasonalTotal(season = input$season)
+      keeperTotals <- getSeasonalTotal(season = input$season, outfield = FALSE, league = input$league)
+      outfieldTotals <- getSeasonalTotal(season = input$season, league = input$league)
 
       current <-
         currentSave |>

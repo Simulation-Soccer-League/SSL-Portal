@@ -563,7 +563,8 @@ server <- function(id, auth, updated, type, player = NULL) {
       } else {
         player
       }
-    })
+    }) |> 
+      shiny$bindEvent(updated())
     
     gkReroll <- shiny$reactive({
       if (input$gkReroll |> is.null()) {
@@ -571,7 +572,7 @@ server <- function(id, auth, updated, type, player = NULL) {
       } else {
         input$gkReroll == "TRUE"
       }
-    })
+    }) 
     
     # Based attributes on the input$playerType
     attributeGroups <- shiny$reactive({
@@ -654,6 +655,7 @@ server <- function(id, auth, updated, type, player = NULL) {
             input[[x]]
           }
         ),
+        updated(),
         ignoreInit = TRUE
       )
     

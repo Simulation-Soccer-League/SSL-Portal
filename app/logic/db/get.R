@@ -175,9 +175,12 @@ getOrganizationPlayers <- function(oid) {
 #' @export
 getTeamInformation <- function(oid){
   portalQuery(
-    "SELECT *
-      FROM teams
-      WHERE orgID = {oid};",
+    "SELECT t.*, muid.orgManager, muid.assManager1, 
+      muid.assManager2, m.om, m.am1, m.am2
+      FROM teams t
+      LEFT JOIN managers muid ON t.orgID = muid.orgID
+      LEFT JOIN managerview m ON t.orgID = m.orgID
+      WHERE t.orgID = {oid};",
     oid = oid
   )
 }
@@ -668,7 +671,7 @@ getLeagueIndex <- function(
 }
 
 #' @export
-getSeasonalTotal <- function(outfield = TRUE, season) {
+getSeasonalTotal <- function(outfield = TRUE, season, league) {
   if (outfield) {
     indexQuery(
       query = "
@@ -728,13 +731,15 @@ getSeasonalTotal <- function(outfield = TRUE, season) {
         JOIN schedule AS s
           ON gd.gid = s.gid
         WHERE
-          ( {season} = 'ALL' OR s.Season = {season} )
+          ( {season} = 'ALL' OR s.Season = {season} ) AND
+              s.Matchtype = {league}
         GROUP BY
           name, club
         ORDER BY
           name, club;
       ",
-      season = season
+      season = season,
+      league = league
     )
   } else {
     indexQuery(
@@ -760,13 +765,15 @@ getSeasonalTotal <- function(outfield = TRUE, season) {
         JOIN schedule AS s
           ON gd.gid = s.gid
         WHERE
-          ( {season} = 'ALL' OR s.Season = {season} )
+          ( {season} = 'ALL' OR s.Season = {season} ) AND
+              s.Matchtype = {league}
         GROUP BY
           name, club
         ORDER BY
           name, club;
       ",
-      season = season
+      season = season,
+      league = league
     )
   }
 }
@@ -830,5 +837,26 @@ getCurrentSeason <- function() {
     "SELECT * 
     FROM seasoninfo 
     ORDER BY startDate DESC LIMIT 1"
+  )
+}
+
+#' @export
+getAChistory <- function(){
+  portalQuery(
+    "SELECT 
+      CONCAT(
+        'W',
+          FLOOR(
+          DATEDIFF(
+            CONVERT_TZ(FROM_UNIXTIME(time), 'UTC', 'America/Los_Angeles'),
+            '2024-07-22' 
+          ) / 7
+        ) + 140
+      ) AS nweeks,
+      COUNT(*) AS count
+    FROM tpehistory
+    WHERE source = 'Activity Check'
+    GROUP BY nweeks
+    ORDER BY nweeks;"
   )
 }
