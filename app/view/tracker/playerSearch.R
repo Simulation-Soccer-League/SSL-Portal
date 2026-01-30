@@ -1,6 +1,6 @@
 box::use(
   bslib,
-  dplyr[arrange, desc, rename_with, select],
+  dplyr[arrange, desc, mutate, rename_with, select],
   reactable[
     colDef, 
     colFormat, 
@@ -46,7 +46,8 @@ server <- function(id) {
         select(name, username, pid, team, class, position, tpe, 
                tpebank, nationality, bankBalance, playerStatus, 
                userStatus) |> 
-        arrange(desc(tpe))
+        arrange(desc(tpe)) |> 
+        mutate(searchName = iconv(name, from = "UTF-8", , to='ASCII//TRANSLIT'))
 
       data |>
         rename_with(str_to_upper) |> 
@@ -56,6 +57,10 @@ server <- function(id) {
           showPageSizeOptions = TRUE,
           defaultColDef = colDef(searchable = FALSE),
           columns = list(
+            SEARCHNAME = colDef(
+              searchable = TRUE,
+              show = FALSE
+            ),
             NAME = colDef(
               searchable = TRUE,
               cell = function(value, rowIndex) {
