@@ -138,7 +138,7 @@ server <- function(id, updated, season) {
                 list(
                   Date = colDef(width = 100),
                   Matchtype = colDef(width = 100),
-                  Matchday = colDef(width = 100),
+                  Matchday = colDef(width = 150),
                   Home =
                   colDef(
                     cell = function(value) {
