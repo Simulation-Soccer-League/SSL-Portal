@@ -96,7 +96,8 @@ ui <- function(id) {
                 "Checking your regression plan...",
                 "Reading up on the rules...",
                 "Building the Portal from scratch...",
-                "Travelling the world...",
+                "Visiting all teams...",
+                "Scouting for new Academy players...",
                 "Finding lost awards...",
                 "Looking for the index...",
                 "Trying to load..."
