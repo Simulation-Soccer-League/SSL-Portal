@@ -1,6 +1,7 @@
 box::use(
   bslib,
-  shiny
+  shiny,
+  stringr[str_replace_all]
 )
 
 box::use(
@@ -10,59 +11,35 @@ box::use(
 # Competition keys (CSS + Logo)
 getCompetitionKeys <- function(matchType, matchDay, division) {
 
-  # Shield (comes from Matchday now)
-  if (isTRUE(matchDay == "Shield")) {
+  # Shield comes from matchday
+  if (matchDay == "Shield") {
     return(list(css = "shield", logo = "shield"))
   }
 
-  # Major League
-  if (isTRUE(matchType == "Major League")) {
-    if (!is.na(division)) {
-      return(list(css = "major", logo = paste0("major-div", division)))
-    }
-    return(list(css = "major", logo = "major"))
+  key <- tolower(matchType)
+  key <- gsub(" ", "-", key)
+
+  css <- key
+  logo <- key
+
+  # Only customize when division exists
+  if (!is.na(division)) {
+    logo <- paste0(logo, "-div", division)
   }
 
-  # Minor League
-  if (isTRUE(matchType == "Minor League")) {
-    if (!is.na(division)) {
-      return(list(css = "minor", logo = paste0("minor-div", division)))
-    }
-    return(list(css = "minor", logo = "minor"))
-  }
-
-  # Cup
-  if (isTRUE(matchType == "The Cup")) {
-    return(list(css = "cup", logo = "cup"))
-  }
-
-  # WSFC
-  if (isTRUE(matchType == "WSFC")) {
-    return(list(css = "wsfc", logo = "wsfc"))
-  }
-
-  # Friendlies
-  if (isTRUE(matchType == "Friendlies")) {
-    return(list(css = "friendlies", logo = "friendlies"))
-  }
-
-  # fallback
-  list(css = "friendlies", logo = "friendlies")
+  list(css = css, logo = logo)
 }
-
-
-
 
 # Result Card
 #' @export
 resultCard <- function(data, i) {
 
   matchType <- data[i, "Matchtype"]
-  matchDay <- data[i, "Matchday"]
+  matchDay  <- data[i, "Matchday"]
   division  <- data[i, "Division"]
-  homeTeam <- data[i, "Home"]
-  awayTeam <- data[i, "Away"]
-  irlDate  <- data[i, "IRLDate"]
+  homeTeam  <- data[i, "Home"]
+  awayTeam  <- data[i, "Away"]
+  irlDate   <- data[i, "IRLDate"]
   homeScore <- data[i, "HomeScore"]
   awayScore <- data[i, "AwayScore"]
 
@@ -130,7 +107,7 @@ resultCard <- function(data, i) {
     )
   )
 
-  shiny::tagAppendAttributes(
+  shiny$tagAppendAttributes(
     card,
     class = "result-card",
     `data-league` = cssLeagueKey

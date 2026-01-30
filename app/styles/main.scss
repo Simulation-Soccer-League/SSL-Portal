@@ -18,14 +18,14 @@
   --sub-menu-color: #eeeeee;
   --background-color: #393E46;
   /* League colours (same thing as Discord bot but darker) */
---majors-gold-dark: #9f8a24;   
---minors-red-dark:  #7a1c26;  
---cup-green-dark:   #2f6b14;   
---wsfc-blue-dark:   #1f5f8f;   
---friendlies-dark:  #7a5f1d;
---shield-dark:    #676666;
+--major-gold-d: #9f8a24;   
+--minor-red-d:  #7a1c26;  
+--cup-green-d:   #2f6b14;   
+--wsfc-blue-d:   #1f5f8f;   
+--friendlies-d:  #7a5f1d;
+--shield-d:    #676666;
   /* Shared gradient base */
-  --gradient-dark: #2e2e2e;
+  --gradient-d: #2e2e2e;
 }
 /* stylelint-enable color-function-notation */
 
@@ -627,6 +627,12 @@ $navbar-items-width: 112px;
 
 /* RESULT CARDS - Custom match result cards used in latest results scroller */
 
+/* Allow league gradient + border to show by removing inner card background */
+.results .result-card > .card {
+  background: transparent !important;
+  border: none !important;
+}
+
 /* Base card structure & interaction */
 .results .result-card {
   position: relative;
@@ -638,6 +644,7 @@ $navbar-items-width: 112px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   isolation: isolate;
 }
+
 
 .results .result-card .result-card-inner,
 .results .result-card > .card {
@@ -677,8 +684,7 @@ $navbar-items-width: 112px;
   max-height: 70%;
   object-fit: contain;
   opacity: 1 ;
-  filter: 
-  blur(0.2px)
+  filter:
   drop-shadow(0 2px 6px rgba(0,0,0,0.4));
 }
 
@@ -729,34 +735,34 @@ $navbar-items-width: 112px;
 /* League-based colour themes */
 
 /* Major League (Gold) */
-.results .result-card[data-league="major"] {
+.results .result-card[data-league="major-league"] {
   background: linear-gradient(
     180deg,
-    var(--gradient-dark) 0%,
-    var(--majors-gold-dark) 50%,
-    var(--gradient-dark) 100%
+    var(--gradient-d) 0%,
+    var(--major-gold-d) 50%,
+    var(--gradient-d) 100%
   );
-  border-color: var(--majors-gold-dark);
+  border-color: var(--ssl-gold);
 }
 
 /* Minor League (Red) */
-.results .result-card[data-league="minor"] {
+.results .result-card[data-league="minor-league"] {
   background: linear-gradient(
     180deg,
-    var(--gradient-dark) 0%,
-    var(--minors-red-dark) 50%,
-    var(--gradient-dark) 100%
+    var(--gradient-d) 0%,
+    var(--minor-red-d) 50%,
+    var(--gradient-d) 100%
   );
   border-color: var(--ssl-gold);
 }
 
 /* Cup (Green) */
-.results .result-card[data-league="cup"] {
+.results .result-card[data-league="the-cup"] {
   background: linear-gradient(
     180deg,
-    var(--gradient-dark) 0%,
-    var(--cup-green-dark) 50%,
-    var(--gradient-dark) 100%
+    var(--gradient-d) 0%,
+    var(--cup-green-d) 50%,
+    var(--gradient-d) 100%
   );
   border-color: var(--ssl-gold);
 }
@@ -765,9 +771,9 @@ $navbar-items-width: 112px;
 .results .result-card[data-league="wsfc"] {
   background: linear-gradient(
     180deg,
-    var(--gradient-dark) 0%,
-    var(--wsfc-blue-dark) 50%,
-    var(--gradient-dark) 100%
+    var(--gradient-d) 0%,
+    var(--wsfc-blue-d) 50%,
+    var(--gradient-d) 100%
   );
   border-color: var(--ssl-gold);
 }
@@ -776,9 +782,9 @@ $navbar-items-width: 112px;
 .results .result-card[data-league="friendlies"] {
   background: linear-gradient(
     180deg,
-    var(--gradient-dark) 0%,
-    var(--friendlies-dark) 50%,
-    var(--gradient-dark) 100%
+    var(--gradient-d) 0%,
+    var(--friendlies-d) 50%,
+    var(--gradient-d) 100%
   );
   border-color: var(--ssl-gold);
 }
@@ -787,9 +793,9 @@ $navbar-items-width: 112px;
 .results .result-card[data-league="shield"] {
   background: linear-gradient(
     180deg,
-    var(--gradient-dark) 0%,
-    var(--shield-dark) 50%,
-    var(--gradient-dark) 100%
+    var(--gradient-d) 0%,
+    var(--shield-d) 50%,
+    var(--gradient-d) 100%
   );
   border-color: var(--ssl-gold);
 }
@@ -1200,4 +1206,3 @@ $navbar-items-width: 112px;
   background: var(--lighter-text);  
   color: var(--menu-color);
 }
-

@@ -25,14 +25,9 @@ createConnection <- function(schema) {
 }
 
 getQuery <- function(query, ..., schema) {
-  con <- createConnection(schema)
-
-  if (is.null(con)) {
-    message("⚠️ LOCAL MODE: Skipping DB query")
-    return(data.frame())
-  }
-
-  tryCatch({  
+  tryCatch({ 
+    con <- createConnection(schema) 
+    
     DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
     DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")
@@ -64,14 +59,9 @@ getQuery <- function(query, ..., schema) {
 }
 
 setQuery <- function(query, ..., schema) {
-  con <- createConnection(schema)
-    
-  if (is.null(con)) {
-    message("⚠️ LOCAL MODE: Skipping DB write")
-    return(invisible(TRUE))
-  }
-
   tryCatch({
+    con <- createConnection(schema)
+
     DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
     DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")
