@@ -66,7 +66,12 @@ server <- function(id, updated, season) {
         league <- input$selectedLeague
 
         data <- schedule()
-
+        
+        if (season < 24) {
+          data <- data |> 
+            dplyr$select(!Division)
+        }
+          
         if (data |> is_empty()) {
           NULL
         } else {
@@ -123,13 +128,6 @@ server <- function(id, updated, season) {
                   AwayScore,
                   sep = " - "
                 )
-              ),
-              MatchType = dplyr$case_when(
-                MatchType == -1 ~ "Friendlies",
-                MatchType == 0 ~ "Cup",
-                MatchType == 1 ~ "Major League",
-                MatchType == 5 ~ "WSFC",
-                TRUE ~ "Minor League"
               )
             ) |>
             dplyr$select(!c(HomeScore, AwayScore, ExtraTime, Penalties)) |>
@@ -139,8 +137,8 @@ server <- function(id, updated, season) {
               columns =
                 list(
                   Date = colDef(width = 100),
-                  MatchType = colDef(width = 100),
-                  MatchDay = colDef(width = 100),
+                  Matchtype = colDef(width = 100),
+                  Matchday = colDef(width = 100),
                   Home =
                   colDef(
                     cell = function(value) {
