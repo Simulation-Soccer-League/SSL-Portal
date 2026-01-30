@@ -311,6 +311,7 @@ getSchedule <- function(league, season) {
     SELECT
       IRLDate,
       MatchType,
+      Division,
       MatchDay,
       Home,
       Away,
@@ -319,7 +320,7 @@ getSchedule <- function(league, season) {
       ExtraTime,
       Penalties,
       gid
-    FROM schedule
+    FROM scheduleview
     WHERE
       ( {season} = 'ALL'       OR season    = {season} )
       AND
