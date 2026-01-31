@@ -106,6 +106,6 @@ resultCard <- function(data, i) {
   shiny$tagAppendAttributes(
     card,
     class = "result-card",
-    `data-league` = cssLeagueKey
+    `data-league` = str_replace_all(" ", "-", key)
   )
 }
