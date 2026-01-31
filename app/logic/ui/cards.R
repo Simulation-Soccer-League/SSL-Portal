@@ -48,7 +48,7 @@ resultCard <- function(data, i) {
 
   competitionLogo <- paste0(
     "/static/competition/",
-    gsub("-", "_", logoKey),
+    str_replace_all(" ", "_", key),
     ".png"
   )
 
