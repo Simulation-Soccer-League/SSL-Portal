@@ -18,7 +18,7 @@ getCompetitionKeys <- function(matchType, matchDay, division) {
 
   key <- str_to_lower(matchType)
 
-  css <- key
+  
   logo <- key
 
   # Only customize when division exists
