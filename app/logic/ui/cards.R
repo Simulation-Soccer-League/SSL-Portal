@@ -41,7 +41,7 @@ resultCard <- function(data, i) {
   homeScore <- data[i, "HomeScore"]
   awayScore <- data[i, "AwayScore"]
 
-  keys <- getCompetitionKeys(matchType, matchDay, division)
+  key <- getCompetitionKeys(matchType, matchDay, division)
 
 
   competitionLogo <- paste0(
