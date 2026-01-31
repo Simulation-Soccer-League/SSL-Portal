@@ -1,7 +1,7 @@
 box::use(
   bslib,
   shiny,
-  stringr[str_replace_all]
+  stringr[str_to_lower, str_to_title, str_replace_all]
 )
 
 box::use(
