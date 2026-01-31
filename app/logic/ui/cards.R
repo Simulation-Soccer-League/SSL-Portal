@@ -17,7 +17,6 @@ getCompetitionKeys <- function(matchType, matchDay, division) {
   }
 
   key <- tolower(matchType)
-  key <- gsub(" ", "-", key)
 
   css <- key
   logo <- key
