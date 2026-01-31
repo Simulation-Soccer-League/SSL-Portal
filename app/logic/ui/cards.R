@@ -13,7 +13,7 @@ getCompetitionKeys <- function(matchType, matchDay, division) {
 
   # Shield comes from matchday
   if (matchDay == "Shield") {
-    return(list(css = "shield", logo = "shield"))
+    return("shield")
   }
 
   key <- tolower(matchType)
