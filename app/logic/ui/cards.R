@@ -18,8 +18,6 @@ getCompetitionKeys <- function(matchType, matchDay, division) {
 
   key <- str_to_lower(matchType)
 
-  
-
   # Only customize when division exists
   if (!is.na(division)) {
     key<- paste(key, paste0("div", division))
@@ -46,7 +44,7 @@ resultCard <- function(data, i) {
 
   competitionLogo <- paste0(
     "/static/competition/",
-    str_replace_all(" ", "_", key),
+    str_replace_all(key, " ", "_"),
     ".png"
   )
 
@@ -106,6 +104,6 @@ resultCard <- function(data, i) {
   shiny$tagAppendAttributes(
     card,
     class = "result-card",
-    `data-league` = str_replace_all(" ", "-", key)
+    `data-league` = str_replace_all(key, " ", "-")
   )
 }

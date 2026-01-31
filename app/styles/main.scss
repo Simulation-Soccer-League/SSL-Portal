@@ -735,7 +735,7 @@ $navbar-items-width: 112px;
 /* League-based colour themes */
 
 /* Major League (Gold) */
-.results .result-card[data-league="major-league"] {
+.results .result-card[data-league^="major-league"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -746,7 +746,7 @@ $navbar-items-width: 112px;
 }
 
 /* Minor League (Red) */
-.results .result-card[data-league="minor-league"] {
+.results .result-card[data-league^="minor-league"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -757,7 +757,7 @@ $navbar-items-width: 112px;
 }
 
 /* Cup (Green) */
-.results .result-card[data-league="the-cup"] {
+.results .result-card[data-league^="the-cup"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -768,7 +768,7 @@ $navbar-items-width: 112px;
 }
 
 /* WSFC (Blue) */
-.results .result-card[data-league="wsfc"] {
+.results .result-card[data-league^="wsfc"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -779,7 +779,7 @@ $navbar-items-width: 112px;
 }
 
 /* Friendlies (SSL Gold) */
-.results .result-card[data-league="friendlies"] {
+.results .result-card[data-league^="friendlies"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -790,7 +790,7 @@ $navbar-items-width: 112px;
 }
 
 /* SSL Shield (Dark neutral theme) */
-.results .result-card[data-league="shield"] {
+.results .result-card[data-league^="shield"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
