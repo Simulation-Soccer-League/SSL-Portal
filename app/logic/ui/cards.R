@@ -23,7 +23,7 @@ getCompetitionKeys <- function(matchType, matchDay, division) {
 
   # Only customize when division exists
   if (!is.na(division)) {
-    logo <- paste0(logo, "-div", division)
+    key<- paste(key, paste0("div", division))
   }
 
   list(css = css, logo = logo)
