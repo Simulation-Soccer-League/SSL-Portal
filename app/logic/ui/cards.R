@@ -51,7 +51,7 @@ resultCard <- function(data, i) {
   )
 
   stageLabel <- if (!is.na(matchDay)) matchDay else ""
-  hasScore <- !is.na(homeScore) && !is.na(awayScore)
+  hasScore <- !is.na(homeScore) & !is.na(awayScore)
   scoreText <- if (hasScore) {
     paste(homeScore, awayScore, sep = " - ")
   } else {
