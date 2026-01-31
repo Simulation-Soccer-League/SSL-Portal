@@ -16,7 +16,7 @@ getCompetitionKeys <- function(matchType, matchDay, division) {
     return("shield")
   }
 
-  key <- tolower(matchType)
+  key <- str_to_lower(matchType)
 
   css <- key
   logo <- key
