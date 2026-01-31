@@ -25,7 +25,7 @@ getCompetitionKeys <- function(matchType, matchDay, division) {
     key<- paste(key, paste0("div", division))
   }
 
-  list(css = css, logo = logo)
+  key
 }
 
 # Result Card
