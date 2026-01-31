@@ -101,7 +101,7 @@ resultCard <- function(data, i) {
       class = "competition-overlay",
       shiny$img(
         src = competitionLogo,
-        alt = paste("Competition:", logoKey)
+        alt = paste("Competition:", str_to_title(key))
       )
     )
   )
