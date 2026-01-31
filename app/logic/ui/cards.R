@@ -43,7 +43,6 @@ resultCard <- function(data, i) {
 
   keys <- getCompetitionKeys(matchType, matchDay, division)
 
-  logoKey <- keys$logo
 
   competitionLogo <- paste0(
     "/static/competition/",
