@@ -1,49 +1,109 @@
 box::use(
   bslib,
-  dplyr[if_else],
   shiny,
-  stringr[str_replace_all],
+  stringr[str_to_lower, str_to_title, str_replace_all]
 )
 
 box::use(
   app/logic/ui/reactableHelper[linkOrganization],
 )
 
+# Competition keys (CSS + Logo)
+getCompetitionKeys <- function(matchType, matchDay, division) {
+
+  # Shield comes from matchday
+  if (matchDay == "Shield") {
+    return("shield")
+  }
+
+  key <- str_to_lower(matchType)
+
+  # Only customize when division exists
+  if (!is.na(division)) {
+    key<- paste(key, paste0("div", division))
+  }
+
+  key
+}
+
+# Result Card
 #' @export
 resultCard <- function(data, i) {
-  bslib$card(
-    bslib$card_header(
-      shiny$div(
+
+  matchType <- data[i, "Matchtype"]
+  matchDay  <- data[i, "Matchday"]
+  division  <- data[i, "Division"]
+  homeTeam  <- data[i, "Home"]
+  awayTeam  <- data[i, "Away"]
+  irlDate   <- data[i, "IRLDate"]
+  homeScore <- data[i, "HomeScore"]
+  awayScore <- data[i, "AwayScore"]
+
+  key <- getCompetitionKeys(matchType, matchDay, division)
+
+
+  competitionLogo <- paste0(
+    "/static/competition/",
+    str_replace_all(key, " ", "_"),
+    ".png"
+  )
+
+  stageLabel <- if (!is.na(matchDay)) matchDay else ""
+  hasScore <- !is.na(homeScore) & !is.na(awayScore)
+  scoreText <- if (hasScore) {
+    paste(homeScore, awayScore, sep = " - ")
+  } else {
+    "-"
+  }
+
+  card <- bslib$card(
+
+    shiny$div(
+      class = "result-card-inner",
+
+      bslib$card_header(
         shiny$div(
-          style = "display: inline-block; width: 40px;",
-          linkOrganization(data[i, "Home"], onlyImg = TRUE, height = 40)
-        ),
-        shiny$strong(" - "),
+          shiny$div(
+            style = "display: inline-block; width: 40px;",
+            linkOrganization(homeTeam, onlyImg = TRUE, height = 40)
+          ),
+          shiny$strong(" - "),
+          shiny$div(
+            style = "display: inline-block; width: 40px;",
+            linkOrganization(awayTeam, onlyImg = TRUE, height = 40)
+          ),
+          align = "center"
+        )
+      ),
+
+      bslib$card_body(
+        shiny$h4(
+          scoreText,
+          class = paste("score", if (hasScore) "" else "is-empty")
+        )
+      ),
+
+      bslib$card_footer(
         shiny$div(
-          style = "display: inline-block; width: 40px;",
-          linkOrganization(data[i, "Away"], onlyImg = TRUE, height = 40)
-        ),
-        align = "center"
+          align = "center",
+          shiny$div(stageLabel),
+          shiny$div(irlDate)
+        )
       )
     ),
-    bslib$card_body(
-      shiny$h4(paste(data[i, "HomeScore"], data[i, "AwayScore"], sep = "-") |>
-                 str_replace_all(pattern = "NA", replacement = " "))
-    ),
-    bslib$card_footer(
-      paste(
-        paste(
-          data[i, "Matchtype"],
-          data[i, "Matchday"],
-          sep = ", "
-        ),
-        paste(
-          data[i, "IRLDate"]
-        ),
-        sep = "<br>"
-      ) |>
-        shiny$HTML() |>
-        shiny$div(align = "center")
+
+    shiny$div(
+      class = "competition-overlay",
+      shiny$img(
+        src = competitionLogo,
+        alt = paste("Competition:", str_to_title(key))
+      )
     )
+  )
+
+  shiny$tagAppendAttributes(
+    card,
+    class = "result-card",
+    `data-league` = str_replace_all(key, " ", "-")
   )
 }

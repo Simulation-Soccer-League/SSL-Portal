@@ -331,7 +331,6 @@ getSchedule <- function(league, season) {
     league = league
   )
 }
-
 #' @export
 getPlayer <- function(pid) {
   portalQuery(
