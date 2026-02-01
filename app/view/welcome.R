@@ -167,7 +167,7 @@ server <- function(id, usergroup, season) {
             standings <- standings() |> 
               filter(matchtype == division)
               
-            if (standings |> is_empty()) {
+            if (standings |> nrow() == 0) {
               NULL
             } else if (season() |> as.numeric() >= 24) {
               standings |>
