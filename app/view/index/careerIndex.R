@@ -226,7 +226,7 @@ server <- function(id) {
           dplyr$select(!max_season) |> 
           indexReactable()
       }) |> 
-        bindCache(
+        shiny$bindCache(
           id,
           "outfield", 
           input$selectedLeague,
@@ -254,7 +254,7 @@ server <- function(id) {
           dplyr$select(!max_season) |> 
           indexReactable()
       }) |> 
-        bindCache(
+        shiny$bindCache(
           id,
           "outfieldAdv", 
           input$selectedLeague,
@@ -278,7 +278,7 @@ server <- function(id) {
           dplyr$select(!max_season) |> 
           indexReactable()
       }) |> 
-        bindCache(
+        shiny$bindCache(
           id,
           "keeper", 
           input$selectedLeague,
@@ -303,7 +303,7 @@ server <- function(id) {
           dplyr$select(!max_season) |> 
           indexReactable()
       }) |> 
-        bindCache(
+        shiny$bindCache(
           id,
           "keeperAdv", 
           input$selectedLeague,
