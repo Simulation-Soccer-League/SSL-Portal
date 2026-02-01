@@ -170,7 +170,86 @@ server <- function(id, usergroup, season) {
               
             if (standings |> nrow() == 0) {
               standings |> 
-                reactable()
+                select(team, w:l, gd, p) |> 
+                reactable(
+                  defaultColDef = colDef(
+                    minWidth = 30,
+                    align = "center",
+                    style = function(value, index) {
+                      list(
+                        background =
+                          case_when(
+                            index %in% c(7) ~ constant$standingsGreen, 
+                            index %in% c(6) ~ constant$standingsRed,
+                            index %in% c(5, 8) ~ constant$standingsBlue,
+                            TRUE ~ NA
+                          ),
+                        borderTop =
+                          case_when(
+                            index %in% c(5, 9) ~ "solid",
+                            TRUE ~ "none"
+                          )
+                      )
+                    }
+                  ),
+                  columns =
+                    list(
+                      matchday = colDef(name = ""),
+                      team = colDef(
+                        name = "", 
+                        minWidth = 100, 
+                        align = "left", 
+                        cell = function(value) {
+                          linkOrganization(value)
+                        }
+                      ),
+                      w = colDef(
+                        header = tippy(
+                          "W",
+                          "Wins",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      d = colDef(
+                        header = tippy(
+                          "D",
+                          "Draws",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      l = colDef(
+                        header = tippy(
+                          "L",
+                          "Losses",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      gd = colDef(
+                        header = tippy(
+                          "GD",
+                          "Goal difference",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      ),
+                      p = colDef(
+                        header = tippy(
+                          "P",
+                          "Points",
+                          placement = "top",
+                          theme = "ssl",
+                          arrow = TRUE
+                        )
+                      )
+                    )
+                )
             } else if (season() |> as.numeric() >= 24) {
               standings |>
                 ## Filters out stage matches for the standings
