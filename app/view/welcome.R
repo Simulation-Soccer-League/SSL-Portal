@@ -46,9 +46,9 @@ ui <- function(id) {
                   choices =
                     c(
                       "All Leagues" = "ALL",
-                      "Major" = "1",
-                      "Minor" = "2",
-                      "Cup" = "0"
+                      "Major" = "Major League",
+                      "Minor" = "Minor League",
+                      "Cup" = "The Cup"
                     ),
                   width = "150px"
                 )
