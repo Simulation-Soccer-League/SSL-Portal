@@ -57,14 +57,21 @@ clubLogos <- function(value, index, currentData, onlyLogo = FALSE) {
     div(
       class = "tableClubName",
       if (!onlyLogo & !is.na(pid)) {
-        a(
-          href = route_link(paste0("tracker/player?pid=", pid)),
-          value # Display the name as the link text
+        tagList(
+          a(
+            href = route_link(paste0("tracker/player?pid=", pid)),
+            value # Display the name as the link text
+          ),
+          div(list)
+        )
+      } else if (!onlyLogo) {
+        tagList(
+          value,
+          div(list)
         )
       } else {
-        value
-      },
-      div(list)
+        div(list)
+      }
     )
   )
 }
@@ -320,7 +327,11 @@ orgReactable <- function(data) {
   reactable(
     data,
     defaultColDef = colDef(header = function(value) {
-      tippy(str_to_upper(value), tooltip = str_to_upper(value), theme = "ssl")
+      tippy(
+        str_to_upper(value), 
+        tooltip = str_to_title(value), 
+        theme = "ssl"
+      )
     }),
     pagination = FALSE,
     columns = list(
@@ -334,17 +345,21 @@ orgReactable <- function(data) {
       ),
       team = colDef(show = FALSE),
       affiliate = colDef(show = FALSE),
-      name = colDef(width = 150, cell = function(value, rowIndex) {
-        pid <- data[rowIndex, "pid"] # Get the corresponding pid
-        tippy(
-          a(
-            href = route_link(paste0("tracker/player?pid=", pid)),
-            value # Display the name as the link text
-          ),
-          tooltip = value,
-          theme = "ssl"
-        )
-      }),
+      name = colDef(
+        width = 175, 
+        sticky = "left",
+        cell = function(value, rowIndex) {
+          pid <- data[rowIndex, "pid"] # Get the corresponding pid
+          tippy(
+            a(
+              href = route_link(paste0("tracker/player?pid=", pid)),
+              value # Display the name as the link text
+            ),
+            tooltip = value,
+            theme = "ssl"
+          )
+        }
+      ),
       username = colDef(
         width = 120, 
         cell = function(value) tippy(value, tooltip = value, theme = "ssl")
@@ -359,7 +374,6 @@ orgReactable <- function(data) {
       ),
       class = colDef(width = 75),
       tpe = colDef(width = 50),
-      tpebank = colDef(width = 75),
       userStatus = colDef(width = 125),
       playerStatus = colDef(width = 140),
       pid = colDef(show = FALSE)

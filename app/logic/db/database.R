@@ -25,8 +25,8 @@ createConnection <- function(schema) {
 }
 
 getQuery <- function(query, ..., schema) {
-  tryCatch({
-    con <- createConnection(schema)
+  tryCatch({ 
+    con <- createConnection(schema) 
     
     DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
@@ -61,7 +61,7 @@ getQuery <- function(query, ..., schema) {
 setQuery <- function(query, ..., schema) {
   tryCatch({
     con <- createConnection(schema)
-    
+
     DBI$dbSendQuery(con, "SET NAMES utf8mb4;")
     DBI$dbSendQuery(con, "SET CHARACTER SET utf8mb4;")
     DBI$dbSendQuery(con, "SET character_set_connection=utf8mb4;")

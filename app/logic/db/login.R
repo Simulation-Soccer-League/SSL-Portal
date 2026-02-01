@@ -125,7 +125,7 @@ getRefreshToken <- function(token) {
 #' Checks if the user is awaiting activation, banned or suspended
 #' @export
 isNonActiveForumUser <- function(usergroup, suspended){
-  any(c(0,5, 7) %in% usergroup) | suspended
+  any(c(0, 5, 7) %in% usergroup) | suspended
 }
 
 #' @export
@@ -156,5 +156,10 @@ isManager <- function(usergroup){
 #' @export
 isFileworker <- function(usergroup){
   14 %in% usergroup
+}
+
+#' @export
+isDepartmentHead <- function(usergroup){
+  6 %in% usergroup
 }
 

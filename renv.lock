@@ -2425,6 +2425,18 @@
       ],
       "Hash": "390f9315bc0025be03012054103d227c"
     },
+    "waiter": {
+      "Package": "waiter",
+      "Version": "0.2.5.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R6",
+        "htmltools",
+        "shiny"
+      ],
+      "Hash": "695c6fadef72d88e1ea024a5a74571bb"
+    },
     "waldo": {
       "Package": "waldo",
       "Version": "0.5.2",

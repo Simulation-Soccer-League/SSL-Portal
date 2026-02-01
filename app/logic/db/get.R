@@ -175,9 +175,12 @@ getOrganizationPlayers <- function(oid) {
 #' @export
 getTeamInformation <- function(oid){
   portalQuery(
-    "SELECT *
-      FROM teams
-      WHERE orgID = {oid};",
+    "SELECT t.*, muid.orgManager, muid.assManager1, 
+      muid.assManager2, m.om, m.am1, m.am2
+      FROM teams t
+      LEFT JOIN managers muid ON t.orgID = muid.orgID
+      LEFT JOIN managerview m ON t.orgID = m.orgID
+      WHERE t.orgID = {oid};",
     oid = oid
   )
 }
@@ -308,6 +311,7 @@ getSchedule <- function(league, season) {
     SELECT
       IRLDate,
       MatchType,
+      Division,
       MatchDay,
       Home,
       Away,
@@ -316,7 +320,7 @@ getSchedule <- function(league, season) {
       ExtraTime,
       Penalties,
       gid
-    FROM schedule
+    FROM scheduleview
     WHERE
       ( {season} = 'ALL'       OR season    = {season} )
       AND
@@ -327,7 +331,6 @@ getSchedule <- function(league, season) {
     league = league
   )
 }
-
 #' @export
 getPlayer <- function(pid) {
   portalQuery(
@@ -567,7 +570,7 @@ getLeagueIndex <- function(
               gd.`progressive passes`, gd.`successful presses`, gd.`attempted presses`,
               gd.`goals outside box`, s.season, pd.pid
             FROM `gamedataoutfield` AS gd
-            JOIN schedule AS s ON gd.gid = s.gid
+            JOIN scheduleview AS s ON gd.gid = s.gid
             LEFT JOIN portaldb.playerdata AS pd 
               ON gd.name = pd.name
             WHERE
@@ -646,7 +649,7 @@ getLeagueIndex <- function(
               gd.`xsave%`, gd.`xg prevented`, s.Home, s.Away,
               s.HomeScore, s.AwayScore, s.season, pd.pid
             FROM `gamedatakeeper` AS gd
-            JOIN schedule AS s
+            JOIN scheduleview AS s
               ON gd.gid = s.gid
             LEFT JOIN portaldb.playerdata AS pd 
               ON gd.name = pd.name
@@ -668,7 +671,7 @@ getLeagueIndex <- function(
 }
 
 #' @export
-getSeasonalTotal <- function(outfield = TRUE, season) {
+getSeasonalTotal <- function(outfield = TRUE, season, league) {
   if (outfield) {
     indexQuery(
       query = "
@@ -725,16 +728,18 @@ getSeasonalTotal <- function(outfield = TRUE, season) {
           SUM(`successful presses`)     AS `successful presses`,
           SUM(`attempted presses`)      AS `attempted presses`
         FROM gamedataoutfield AS gd
-        JOIN schedule AS s
+        JOIN scheduleview AS s
           ON gd.gid = s.gid
         WHERE
-          ( {season} = 'ALL' OR s.Season = {season} )
+          ( {season} = 'ALL' OR s.Season = {season} ) AND
+              s.Matchtype = {league}
         GROUP BY
           name, club
         ORDER BY
           name, club;
       ",
-      season = season
+      season = season,
+      league = league
     )
   } else {
     indexQuery(
@@ -757,16 +762,18 @@ getSeasonalTotal <- function(outfield = TRUE, season) {
           AVG(`xsave%`)                AS `xsave%`,
           SUM(`xg prevented`)          AS `xg prevented`
         FROM gamedatakeeper AS gd
-        JOIN schedule AS s
+        JOIN scheduleview AS s
           ON gd.gid = s.gid
         WHERE
-          ( {season} = 'ALL' OR s.Season = {season} )
+          ( {season} = 'ALL' OR s.Season = {season} ) AND
+              s.Matchtype = {league}
         GROUP BY
           name, club
         ORDER BY
           name, club;
       ",
-      season = season
+      season = season,
+      league = league
     )
   }
 }
@@ -830,5 +837,26 @@ getCurrentSeason <- function() {
     "SELECT * 
     FROM seasoninfo 
     ORDER BY startDate DESC LIMIT 1"
+  )
+}
+
+#' @export
+getAChistory <- function(){
+  portalQuery(
+    "SELECT 
+      CONCAT(
+        'W',
+          FLOOR(
+          DATEDIFF(
+            CONVERT_TZ(FROM_UNIXTIME(time), 'UTC', 'America/Los_Angeles'),
+            '2024-07-22' 
+          ) / 7
+        ) + 140
+      ) AS nweeks,
+      COUNT(*) AS count
+    FROM tpehistory
+    WHERE source = 'Activity Check'
+    GROUP BY nweeks
+    ORDER BY nweeks;"
   )
 }
