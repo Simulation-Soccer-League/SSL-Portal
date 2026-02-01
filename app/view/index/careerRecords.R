@@ -28,9 +28,9 @@ ui <- function(id) {
             choices =
               c(
                 "ALL",
-                "Major" = "1",
-                "Minor" = "2",
-                "Cup",
+                "Major / Division 1" = "Major League",
+                "Minor / Division 2" = "Minor League",
+                "The Cup",
                 "WSFC"
               )
           )
