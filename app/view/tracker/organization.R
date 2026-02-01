@@ -241,11 +241,7 @@ server <- function(id, oid = NULL, updated) {
             reactableOutput(session$ns("minor"), height = 433) |> 
               withSpinnerCustom(height = 50)
           )
-        },
-        shiny$tabPanel(
-          title = "Test",
-          "tesy"
-        )
+        }
       )
     })
     
