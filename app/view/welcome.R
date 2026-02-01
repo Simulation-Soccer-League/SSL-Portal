@@ -355,8 +355,8 @@ server <- function(id, usergroup, season) {
                     var width = 0;
                     for (var i = 0; i < div.children.length; i++) {
                       var score = $(div.children[i]).find('h4').text().trim();
-                      if (!score.match(/^\\d+-\\d+$/)) {
-                        width = div.children[i].clientWidth * (i-6);
+                      if (!score.match(/^\\d+ - \\d+$/)) {
+                        width = div.children[i].clientWidth * (i-3);
                         break;
                       } else {
                         width = div.children[i].clientWidth * i
