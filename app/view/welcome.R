@@ -168,7 +168,8 @@ server <- function(id, usergroup, season) {
               filter(matchtype == division)
               
             if (standings |> nrow() == 0) {
-              NULL
+              standings |> 
+                reactable()
             } else if (season() |> as.numeric() >= 24) {
               standings |>
                 ## Filters out stage matches for the standings
