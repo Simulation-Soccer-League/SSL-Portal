@@ -570,7 +570,7 @@ getLeagueIndex <- function(
               gd.`progressive passes`, gd.`successful presses`, gd.`attempted presses`,
               gd.`goals outside box`, s.season, pd.pid
             FROM `gamedataoutfield` AS gd
-            JOIN schedule AS s ON gd.gid = s.gid
+            JOIN scheduleview AS s ON gd.gid = s.gid
             LEFT JOIN portaldb.playerdata AS pd 
               ON gd.name = pd.name
             WHERE
@@ -649,7 +649,7 @@ getLeagueIndex <- function(
               gd.`xsave%`, gd.`xg prevented`, s.Home, s.Away,
               s.HomeScore, s.AwayScore, s.season, pd.pid
             FROM `gamedatakeeper` AS gd
-            JOIN schedule AS s
+            JOIN scheduleview AS s
               ON gd.gid = s.gid
             LEFT JOIN portaldb.playerdata AS pd 
               ON gd.name = pd.name
@@ -728,7 +728,7 @@ getSeasonalTotal <- function(outfield = TRUE, season, league) {
           SUM(`successful presses`)     AS `successful presses`,
           SUM(`attempted presses`)      AS `attempted presses`
         FROM gamedataoutfield AS gd
-        JOIN schedule AS s
+        JOIN scheduleview AS s
           ON gd.gid = s.gid
         WHERE
           ( {season} = 'ALL' OR s.Season = {season} ) AND
@@ -762,7 +762,7 @@ getSeasonalTotal <- function(outfield = TRUE, season, league) {
           AVG(`xsave%`)                AS `xsave%`,
           SUM(`xg prevented`)          AS `xg prevented`
         FROM gamedatakeeper AS gd
-        JOIN schedule AS s
+        JOIN scheduleview AS s
           ON gd.gid = s.gid
         WHERE
           ( {season} = 'ALL' OR s.Season = {season} ) AND
