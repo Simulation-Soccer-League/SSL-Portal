@@ -225,7 +225,13 @@ server <- function(id) {
         currentData |>
           dplyr$select(!max_season) |> 
           indexReactable()
-      })
+      }) |> 
+        bindCache(
+          id,
+          "outfield", 
+          input$selectedLeague,
+          input$retired
+        )
       
       output$outfieldAdvanced <- renderReactable({
         data <- outfieldData()
@@ -247,7 +253,13 @@ server <- function(id) {
         currentData |>
           dplyr$select(!max_season) |> 
           indexReactable()
-      })
+      }) |> 
+        bindCache(
+          id,
+          "outfieldAdv", 
+          input$selectedLeague,
+          input$retired
+        )
       
       output$keeperBasic <- renderReactable({
         data <- keeperData()
@@ -265,7 +277,13 @@ server <- function(id) {
         currentData |>
           dplyr$select(!max_season) |> 
           indexReactable()
-      })
+      }) |> 
+        bindCache(
+          id,
+          "keeper", 
+          input$selectedLeague,
+          input$retired
+        )
       
       output$keeperAdvanced <- renderReactable({
         data <- keeperData()
@@ -284,7 +302,13 @@ server <- function(id) {
         currentData |>
           dplyr$select(!max_season) |> 
           indexReactable()
-      })
+      }) |> 
+        bindCache(
+          id,
+          "keeperAdv", 
+          input$selectedLeague,
+          input$retired
+        )
     }
   )
 }
