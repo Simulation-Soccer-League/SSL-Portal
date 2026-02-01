@@ -35,17 +35,17 @@ ui <- function(id) {
           shiny$tabPanel(
             "Statistics",
             reactableOutput(ns("outfieldBasic")) |>
-              withSpinnerCustom(height = 80)
+              withSpinnerCustom(height = 100)
           ),
           shiny$tabPanel(
             "Adv. Statistics",
             reactableOutput(ns("outfieldAdvanced")) |>
-              withSpinnerCustom(height = 80)
+              withSpinnerCustom(height = 100)
           ),
           shiny$tabPanel(
             "Leaders",
             shiny$uiOutput(ns("outfieldLeaders")) |>
-              withSpinnerCustom(height = 80)
+              withSpinnerCustom(height = 100)
           )
         ),
         shiny$h1("Keeper"),
@@ -53,17 +53,17 @@ ui <- function(id) {
           shiny$tabPanel(
             "Statistics",
             reactableOutput(ns("keeperBasic")) |>
-              withSpinnerCustom(height = 80)
+              withSpinnerCustom(height = 100)
           ),
           shiny$tabPanel(
             "Adv. Statistics",
             reactableOutput(ns("keeperAdvanced")) |>
-              withSpinnerCustom(height = 80)
+              withSpinnerCustom(height = 100)
           ),
           shiny$tabPanel(
             "Leaders",
             shiny$uiOutput(ns("keeperLeaders")) |>
-              withSpinnerCustom(height = 80)
+              withSpinnerCustom(height = 100)
           )
         )
       )
