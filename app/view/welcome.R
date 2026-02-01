@@ -161,8 +161,9 @@ server <- function(id, usergroup, season) {
       })
 
       #### Latest league standings ####
-      lapply(standings()$matchtype |> unique() |> sort(),
-        FUN = function(division) {
+      lapply(1:2,
+        FUN = function(index) {
+          division <- (standings()$matchtype |> unique() |> sort())[index]
           output[[paste0("standings_", division)]] <- renderReactable({
             standings <- standings() |> 
               filter(matchtype == division)
