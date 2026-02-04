@@ -46,10 +46,10 @@ server <- function(id, updated, season) {
         shiny$req(input$selectedLeague)
         season <- season()
         league <- dplyr$case_when(
-          stringr$str_detect(input$selectedLeague, "Cup") ~ 0,
-          stringr$str_detect(input$selectedLeague, "Major") ~ 1,
-          stringr$str_detect(input$selectedLeague, "Minor") ~ 2,
-          stringr$str_detect(input$selectedLeague, "WSFC") ~ 5,
+          stringr$str_detect(input$selectedLeague, "Cup") ~ "0",
+          stringr$str_detect(input$selectedLeague, "Major") ~ "1",
+          stringr$str_detect(input$selectedLeague, "Minor") ~ "2",
+          stringr$str_detect(input$selectedLeague, "WSFC") ~ "5",
           TRUE ~ "ALL"
         )
 
