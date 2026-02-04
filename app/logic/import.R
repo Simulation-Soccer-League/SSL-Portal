@@ -155,6 +155,8 @@ parseFMdata <- function(path) {
           Club == "Eastern Europe" ~ "East Europe",
           Club == "Rapid Magyar" ~ "Rapid Magyar SC",
           Club == "Seoul Mythic FC" ~ "Seoul MFC",
+          Club == "Atlético Medellin" ~ "Atlético",
+          Club == "Victoria Falls Eagles" ~ "Victoria Falls",
           TRUE ~ Club
         )
     ) |> 
