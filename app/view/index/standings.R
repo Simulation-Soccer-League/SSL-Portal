@@ -5,6 +5,7 @@ box::use(
   rlang[is_empty],
   shiny,
   shiny.router[route_link],
+  stringr,
   tippy[tippy],
 )
 
@@ -44,7 +45,13 @@ server <- function(id, updated, season) {
       standings <- shiny$reactive({
         shiny$req(input$selectedLeague)
         season <- season()
-        league <- input$selectedLeague
+        league <- dplyr$case_when(
+          stringr$str_detect(input$selectedLeague, "Cup") ~ 0,
+          stringr$str_detect(input$selectedLeague, "Major") ~ 1,
+          stringr$str_detect(input$selectedLeague, "Minor") ~ 2,
+          stringr$str_detect(input$selectedLeague, "WSFC") ~ 5,
+          TRUE ~ "ALL"
+        )
 
         getStandings(season = season, league = league)
       }) |> 
