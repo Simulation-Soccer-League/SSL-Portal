@@ -779,7 +779,7 @@ getSeasonalTotal <- function(outfield = TRUE, season, league) {
 }
 
 #' @export
-getNextGameID <- function(season) {
+getNextGameID <- function(season, league) {
   indexQuery(
     query = "
       SELECT team, MIN(gid) AS gid
@@ -790,7 +790,7 @@ getNextGameID <- function(season) {
           ON s.gid = o.gid
         WHERE o.gid IS NULL
           AND s.season    = {season}
-          AND s.Matchtype >= 0
+          AND s.Matchtype = {league}
         GROUP BY home
 
         UNION ALL
@@ -801,13 +801,14 @@ getNextGameID <- function(season) {
           ON s.gid = o.gid
         WHERE o.gid IS NULL
           AND s.season    = {season}
-          AND s.Matchtype >= 0
+          AND s.Matchtype = {league}
         GROUP BY away
       ) AS combined
       GROUP BY team
       ORDER BY gid;
     ",
-    season = season
+    season = season,
+    league = league
   )
 }
 

@@ -94,7 +94,7 @@ server <- function(id, auth, updated) {
                   inputId = ns("league"),
                   label = "Which file/league is the view from?",
                   choices = 
-                    c("Major" = 1, "Minor" = 2, "Cup" = 0)
+                    c("Major" = 1, "Minor" = 2, "Cup" = 0, "WSFC" = 5)
                 )
               ),
               shiny$div(
@@ -217,7 +217,7 @@ server <- function(id, auth, updated) {
     nextGames <- shiny$reactive({
       shiny$req(input$season)
 
-      getNextGameID(input$season)
+      getNextGameID(input$season, league = input$league)
     }) |> 
       shiny$bindEvent(filePath())
 
