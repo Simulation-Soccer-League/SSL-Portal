@@ -94,7 +94,7 @@ server <- function(id, auth, updated) {
                   inputId = ns("league"),
                   label = "Which file/league is the view from?",
                   choices = 
-                    c("Major" = 1, "Minor" = 2, "Cup" = 0, "WSFC" = 5)
+                    c("Major League", "Minor League", "The Cup", "WSFC")
                 )
               ),
               shiny$div(
