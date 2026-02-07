@@ -785,7 +785,7 @@ getNextGameID <- function(season, league) {
       SELECT team, MIN(gid) AS gid
       FROM (
         SELECT home AS team, MIN(s.gid) AS gid
-        FROM schedule s
+        FROM scheduleview s
         LEFT JOIN gamedataoutfield o
           ON s.gid = o.gid
         WHERE o.gid IS NULL
@@ -796,7 +796,7 @@ getNextGameID <- function(season, league) {
         UNION ALL
 
         SELECT away AS team, MIN(s.gid) AS gid
-        FROM schedule s
+        FROM scheduleview s
         LEFT JOIN gamedataoutfield o
           ON s.gid = o.gid
         WHERE o.gid IS NULL
