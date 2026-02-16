@@ -52,6 +52,7 @@ box::use(
   app/view/player/myPlayer,
   app/view/player/playerUpdate,
   app/view/tracker/draftclass,
+  app/view/tracker/game,
   app/view/tracker/organization,
   app/view/tracker/organizationLanding,
   app/view/tracker/player,
@@ -137,6 +138,7 @@ ui <- function(id) {
       route("index/standings", standings$ui(ns("standings"))),
       route("index/academyStandings", academyStandings$ui(ns("academyStandings"))),
       route("tracker/draftclass", draftclass$ui(ns("draftclass"))),
+      route("tracker/game", game$ui(ns("game"))),
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/position", position$ui(ns("position"))),
       route("tracker/organizations", organizationLanding$ui(ns("organization"))),
@@ -212,7 +214,7 @@ server <- function(id) {
         draftclass = FALSE, 
         nationTracker = FALSE,
         position = FALSE, main = FALSE,
-        wsfc = FALSE
+        wsfc = FALSE, game = FALSE
       )
     
     ## Observer that checks the current page and loads the server for the page ONCE
@@ -280,6 +282,11 @@ server <- function(id) {
         
         draftclass$server("draftclass")
         loadedServer$draftclass <- TRUE
+        
+      } else if (current |> str_detect("tracker/game") & !loadedServer$game) {
+        
+        game$server("game")
+        loadedServer$game <- TRUE
         
       } else if (current |> str_detect("tracker/player") & !loadedServer$player) {
         

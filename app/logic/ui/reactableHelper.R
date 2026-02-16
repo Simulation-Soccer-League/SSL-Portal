@@ -1,5 +1,6 @@
 box::use(
   dplyr,
+  glue,
   purrr[is_empty, map, pmap],
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   shiny.router[route_link],
@@ -83,9 +84,16 @@ linkOrganization <- function(value, onlyImg = FALSE, height = 30) {
     dplyr$pull(ID) |> 
     unique()
   
+  # Grabs the higher res image if larger than 80
+  if (height > 80) {
+    version <- ""
+  } else {
+    version <- " (Custom)"
+  }
+  
   image <- 
     img(
-      src = sprintf("static/logo/%s (Custom).png", value),
+      src = sprintf("static/logo/%s%s.png", value, version),
       style = paste0("height: ", height, "px;"),
       alt = value,
       title = value
@@ -242,10 +250,33 @@ recordReactable <- function(currentData) {
               clubLogos(value, index, currentData)
             }
           ),
+          result = colDef(
+            header =
+              tippy(
+                statisticsTooltips$abbreviation[statisticsTooltips$statistic == "result"] |> str_to_upper(), 
+                statisticsTooltips$explanation[statisticsTooltips$statistic == "result"], 
+                placement = "top", 
+                theme = "ssl"
+                ),
+            html = TRUE,
+            minWidth = 50,
+            cell = function(value, index) {
+              a(
+                href = route_link(
+                  sprintf(
+                    "tracker/game?gid=%s", 
+                    currentData$gid[index]
+                    )
+                  ),
+                value
+              )
+            }
+          ),
           club = colDef(show = FALSE, searchable = TRUE),
           RANK = colDef(width = 60),
-          matchday = colDef(header = "MATCHDAY",width = 100),
-          pid = colDef(show = FALSE)
+          matchday = colDef(header = "MATCHDAY", width = 100),
+          pid = colDef(show = FALSE),
+          gid = colDef(show = FALSE)
         ) |>
         append(
           pmap(statisticsTooltips, ~ {
@@ -266,7 +297,7 @@ recordReactable <- function(currentData) {
 }
 
 #' @export
-indexReactable <- function(currentData, search = TRUE, club = FALSE) {
+indexReactable <- function(currentData, search = TRUE, club = FALSE, ...) {
   statisticsTooltips <-
     constant$statisticsLegend[constant$statisticsLegend$statistic %in% colnames(currentData), ]
 
@@ -278,7 +309,7 @@ indexReactable <- function(currentData, search = TRUE, club = FALSE) {
       )
     ) |>
     reactable(
-      pagination = TRUE,
+      ...,
       searchable = search,
       defaultColDef = colDef(minWidth = 100, maxWidth = 250, searchable = FALSE),
       columns =
@@ -469,3 +500,43 @@ attributeReactable <- function(data, session, output) {
   ) |> 
     div(class = "attribute-tables")
 }
+
+#' @export
+reactableBar <- function(value, total, side = "left", color = constant$sslBlueL){
+  pct <- if (total == 0) 0 else (value / total) * 100 
+  div(
+    style = "
+    background:var(--bottom-background);
+    width: 100%;
+    height:16px; 
+    position:relative;", 
+    div(
+      style = glue$glue(
+        "background:{color}; 
+        width:{pct}%; 
+        height:100%;
+        float:{side};"
+      )
+    ),
+    div(
+      style = glue$glue(
+        "
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 0 4px;
+        {if (side == 'right') 'right: 4px; justify-content: flex-end;' else 'left: 4px; justify-content: flex-start;'}
+        "
+      ),
+      value |> round(3)
+    )
+  )
+}
+
+
+

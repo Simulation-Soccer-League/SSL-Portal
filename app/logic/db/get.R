@@ -345,6 +345,63 @@ getPlayer <- function(pid) {
 }
 
 #' @export
+getLatestGames <- function(name, outfield = TRUE) {
+  if (outfield) {
+    indexQuery(
+      query = 
+        "SELECT 
+           g.gid,
+           CONCAT('S', s.season, ' MD', s.matchday) AS matchday,
+           ti.abbreviation AS opponent,
+           CONCAT(
+             CASE WHEN g.club = s.home THEN s.HomeScore ELSE s.AwayScore END,
+             '-',
+             CASE WHEN g.club = s.home THEN s.AwayScore ELSE s.HomeScore END
+           ) AS result,
+           g.`minutes played`,
+           g.`average rating`,
+           g.goals,
+           g.assists,
+           g.`pass%`,
+           g.`header%`,
+           g.`tackle%`
+         FROM `gamedataoutfield` AS g 
+         JOIN schedule AS s ON g.gid = s.gid
+         JOIN portaldb.teams AS ti ON ti.name = (CASE WHEN g.club = s.home THEN s.away ELSE s.home END)
+         WHERE g.name = {name}
+         ORDER BY g.gid DESC
+         LIMIT 10;",
+      name = name
+    )
+  } else {
+    indexQuery(
+      query =
+        "SELECT
+           g.gid,
+           CONCAT('S', s.season, ' MD', s.matchday) AS matchday,
+           ti.abbreviation AS opponent,
+           CONCAT(
+             CASE WHEN g.club = s.home THEN s.HomeScore ELSE s.AwayScore END,
+             '-',
+             CASE WHEN g.club = s.home THEN s.AwayScore ELSE s.HomeScore END
+           ) AS result,
+           g.`minutes played`,
+           g.`average rating`,
+           (g.`saves parried` + g.`saves parried` + g.`saves tipped`) AS `total saves`,
+           g.`save%`,
+           g.`xg prevented`
+         FROM `gamedatakeeper` AS g
+         JOIN schedule AS s ON g.gid = s.gid
+         JOIN portaldb.teams AS ti ON ti.name = (CASE WHEN g.club = s.home THEN s.away ELSE s.home END)
+         WHERE g.name = {name}
+         ORDER BY g.gid DESC
+         LIMIT 10;",
+      name = name
+    )
+  }
+}
+
+#' @export
 getOrganizations <- function() {
   portalQuery(
     "SELECT o.ID, o.name AS organization, t.abbreviation AS abbreviation, t.name, t.primaryColor, t.secondaryColor, t.city
@@ -859,5 +916,149 @@ getAChistory <- function(){
     WHERE source = 'Activity Check'
     GROUP BY nweeks
     ORDER BY nweeks;"
+  )
+}
+
+#' @export
+getGamePlayer <- function(gid){
+  indexQuery(
+    "SELECT 
+      go.`name`,
+      pd.pid,
+      go.`club`,
+      go.`position`,
+      go.`acc`,
+      go.`aer`,
+      go.`agg`,
+      go.`agi`,
+      go.`ant`,
+      go.`bal`,
+      go.`bra`,
+      go.`cmd`,
+      go.`com`,
+      go.`cmp`,
+      go.`cnt`,
+      go.`cor`,
+      go.`cro`,
+      go.`dec`,
+      go.`det`,
+      go.`dri`,
+      go.`ecc`,
+      go.`fin`,
+      go.`fir`,
+      go.`fla`,
+      go.`fre`,
+      go.`han`,
+      go.`hea`,
+      go.`jum`,
+      go.`kic`,
+      go.`ldr`,
+      go.`lon`,
+      go.`l th`,
+      go.`mar`,
+      go.`nat`,
+      go.`otb`,
+      go.`1v1`,
+      go.`pac`,
+      go.`pas`,
+      go.`pen`,
+      go.`pos`,
+      go.`pun`,
+      go.`ref`,
+      go.`tro`,
+      go.`sta`,
+      go.`str`,
+      go.`tck`,
+      go.`tea`,
+      go.`tec`,
+      go.`thr`,
+      go.`vis`,
+      go.`wor`,
+      go.`apps`,
+      go.`minutes played`,
+      go.`distance run (km)`,
+      go.`average rating`,
+      go.`player of the match`,
+      go.`goals`,
+      go.`assists`,
+      go.`xg`,
+      go.`shots on target`,
+      go.`shots`,
+      go.`penalties taken`,
+      go.`penalties scored`,
+      go.`successful passes`,
+      go.`attempted passes`,
+      go.`pass%`,
+      go.`key passes`,
+      go.`successful crosses`,
+      go.`attempted crosses`,
+      go.`cross%`,
+      go.`chances created`,
+      go.`successful headers`,
+      go.`attempted headers`,
+      go.`header%`,
+      go.`key headers`,
+      go.`dribbles`,
+      go.`tackles won`,
+      go.`attempted tackles`,
+      go.`tackle%`,
+      go.`key tackles`,
+      go.`interceptions`,
+      go.`clearances`,
+      go.`mistakes leading to goals`,
+      go.`yellow cards`,
+      go.`red cards`,
+      go.`fouls`,
+      go.`fouls against`,
+      go.`offsides`,
+      go.`xa`,
+      go.`xg overperformance`,
+      go.`goals outside box`,
+      go.`fk shots`,
+      go.`blocks`,
+      go.`open play key passes`,
+      go.`successful open play crosses`,
+      go.`attempted open play crosses`,
+      go.`shots blocked`,
+      go.`progressive passes`,
+      go.`successful presses`,
+      go.`attempted presses`,
+      gk.`clean sheets`,
+      gk.`conceded`, 
+      gk.`saves parried`, 
+      gk.`saves held`, 
+      gk.`saves tipped`, 
+      gk.`save%`, 
+      gk.`penalties faced`, 
+      gk.`penalties saved`, 
+      gk.`xsave%`, 
+      gk.`xg prevented`
+      FROM gamedataoutfield go
+      LEFT JOIN gamedatakeeper gk 
+        ON go.name = gk.name AND go.gid = gk.gid
+      LEFT JOIN portaldb.playerdata AS pd 
+        ON go.name = pd.name
+      WHERE go.gid = {gid};",
+    gid = gid
+  )
+}
+
+#' @export
+getGameTeam <- function(gid){
+  indexQuery(
+    "SELECT *
+    FROM teamBoxScore
+    WHERE gid = {gid};",
+    gid = gid
+  )
+}
+
+#' @export
+getGameSchedule <- function(gid){
+  indexQuery(
+    "SELECT * 
+    FROM scheduleview
+    WHERE gid = {gid};",
+    gid = gid
   )
 }

@@ -1,7 +1,9 @@
 box::use(
   bslib,
+  glue,
   shiny,
-  stringr[str_to_lower, str_to_title, str_replace_all]
+  shiny.router[route_link],
+  stringr[str_to_lower, str_to_title, str_trim, str_replace_all],
 )
 
 box::use(
@@ -28,7 +30,7 @@ getCompetitionKeys <- function(matchType, matchDay, division) {
 
 # Result Card
 #' @export
-resultCard <- function(data, i) {
+resultCard <- function(data, i, width = 40) {
 
   matchType <- data[i, "Matchtype"]
   matchDay  <- data[i, "Matchday"]
@@ -38,9 +40,9 @@ resultCard <- function(data, i) {
   irlDate   <- data[i, "IRLDate"]
   homeScore <- data[i, "HomeScore"]
   awayScore <- data[i, "AwayScore"]
+  gid       <- data[i, "gid"]
 
   key <- getCompetitionKeys(matchType, matchDay, division)
-
 
   competitionLogo <- paste0(
     "/static/competition/",
@@ -64,13 +66,19 @@ resultCard <- function(data, i) {
       bslib$card_header(
         shiny$div(
           shiny$div(
-            style = "display: inline-block; width: 40px;",
-            linkOrganization(homeTeam, onlyImg = TRUE, height = 40)
+            style = glue$glue(
+              "display: inline-block; width: {width}px;",
+              width = width
+            ),
+            linkOrganization(homeTeam, onlyImg = TRUE, height = width)
           ),
           shiny$strong(" - "),
           shiny$div(
-            style = "display: inline-block; width: 40px;",
-            linkOrganization(awayTeam, onlyImg = TRUE, height = 40)
+            style = glue$glue(
+              "display: inline-block; width: {width}px;",
+              width = width
+            ),
+            linkOrganization(awayTeam, onlyImg = TRUE, height = width)
           ),
           align = "center"
         )
@@ -78,7 +86,16 @@ resultCard <- function(data, i) {
 
       bslib$card_body(
         shiny$h4(
-          scoreText,
+          if ((scoreText |> str_trim()) == "-") {
+            scoreText
+          } else {
+            shiny$a(
+              href = route_link(
+                paste0("tracker/game?gid=", gid)
+                ),
+              scoreText
+            )  
+          },
           class = paste("score", if (hasScore) "" else "is-empty")
         )
       ),
@@ -105,5 +122,18 @@ resultCard <- function(data, i) {
     card,
     class = "result-card",
     `data-league` = str_replace_all(key, " ", "-")
+  )
+}
+
+#' @export
+bslibCardContainer <- function(card) {
+  shiny$div(
+    style = 
+      "display: flex;
+            justify-content: center;
+            max-width: 1000px;
+            margin: auto;
+          ",
+    card
   )
 }
