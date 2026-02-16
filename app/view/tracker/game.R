@@ -166,7 +166,8 @@ server <- function(id, gid = NULL) {
           src = sprintf(
             "static/competition/%s.png", 
             bs$Matchtype |> 
-              str_replace_all(" ", "_")
+              str_replace_all(" ", "_") |> 
+              str_to_lower()
           ),
           style = "height: 80px;",
           alt = bs$Matchtype,
