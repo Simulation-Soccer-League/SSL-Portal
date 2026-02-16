@@ -4,6 +4,8 @@ box::use(
   reactable[colDef, reactable],
   rlang[is_empty],
   shiny,
+  shiny.router[route_link],
+  stringr[str_trim],
 )
 
 box::use(
@@ -42,8 +44,7 @@ server <- function(id, updated, season) {
         season <- season()
         league <- input$selectedLeague
 
-        getSchedule(season = season, league = league) |> 
-          dplyr$select(!gid)
+        getSchedule(season = season, league = league)
       }) |> 
         shiny$bindCache(
           id,
@@ -90,7 +91,7 @@ server <- function(id, updated, season) {
                 c(HomeScore, AwayScore),
                 function(x) ifelse(is.na(x), " ", x)
               ),
-              Score = dplyr$case_when(
+              Result = dplyr$case_when(
                 Penalties == 1 & HomeScore > AwayScore ~ paste0(
                   "p",
                   paste(
@@ -168,7 +169,21 @@ server <- function(id, updated, season) {
                         shiny$div(style = "font-size: 1.2rem", value)
                       )
                     }
-                  )
+                  ),
+                  Result = 
+                    colDef(
+                      cell = function(value, index) {
+                        if ((value |> str_trim()) == "-") {
+                          value
+                        } else {
+                          shiny$a(
+                            href = route_link(paste0("tracker/game?gid=", data$gid[index])),
+                            value
+                          )  
+                        }
+                      }
+                    ),
+                  gid = colDef(show = FALSE)
                 )
             )
         }
