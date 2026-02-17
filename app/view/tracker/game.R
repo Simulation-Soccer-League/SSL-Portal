@@ -93,8 +93,7 @@ ui <- function(id) {
     bslib$card(
       bslib$card_header(shiny$h3("Team Statistics")),
       bslib$card_body(
-        reactableOutput(ns("teamStats")) |> 
-          withSpinnerCustom(height = 60)  
+        shiny$uiOutput(ns("teamOverview"))
       )
     ) |> 
       bslibCardContainer(),
@@ -204,22 +203,55 @@ server <- function(id, gid = NULL) {
     })
     
     output$playerData <- shiny$renderUI({
-      shiny$tagList(
-        shiny$h3(boxScore()$Home),
-        shiny$h5("Players"),
-        reactableOutput(session$ns("homePlayers")) |> 
-          withSpinnerCustom(height = 200),
-        shiny$h5("Goalkeeper"),
-        reactableOutput(session$ns("homeKeeper")) |> 
-          withSpinnerCustom(height = 200),
-        shiny$h3(boxScore()$Away),
-        shiny$h5("Players"),
-        reactableOutput(session$ns("awayPlayers")) |> 
-          withSpinnerCustom(height = 200),
-        shiny$h5("Goalkeeper"),
-        reactableOutput(session$ns("awayKeeper")) |> 
-          withSpinnerCustom(height = 200)
-      )
+      if (teams() |> nrow() == 0) {
+        shiny$div(
+          style = " 
+            padding: 24px; 
+            text-align: center; 
+            background: var(--bottom-background);
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 500; 
+          ", 
+          "No player statistics are available for this match."
+        )        
+      } else {
+        shiny$tagList(
+          shiny$h3(boxScore()$Home),
+          shiny$h5("Players"),
+          reactableOutput(session$ns("homePlayers")) |> 
+            withSpinnerCustom(height = 200),
+          shiny$h5("Goalkeeper"),
+          reactableOutput(session$ns("homeKeeper")) |> 
+            withSpinnerCustom(height = 200),
+          shiny$h3(boxScore()$Away),
+          shiny$h5("Players"),
+          reactableOutput(session$ns("awayPlayers")) |> 
+            withSpinnerCustom(height = 200),
+          shiny$h5("Goalkeeper"),
+          reactableOutput(session$ns("awayKeeper")) |> 
+            withSpinnerCustom(height = 200)
+        )   
+      }
+    })
+    
+    output$teamOverview <- shiny$renderUI({
+      if (teams() |> nrow() == 0) {
+        shiny$div(
+          style = " 
+            padding: 24px; 
+            text-align: center; 
+            background: var(--bottom-background); 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 500; 
+          ", 
+          "No team statistics are available for this match."
+        )        
+      } else {
+        reactableOutput(session$ns("teamStats")) |> 
+          withSpinnerCustom(height = 120)   
+      }
     })
     
     output$teamStats <- renderReactable({
