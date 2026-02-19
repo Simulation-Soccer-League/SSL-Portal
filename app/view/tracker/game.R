@@ -417,7 +417,10 @@ server <- function(id, gid = NULL) {
         dplyr$relocate(Result, .after = Away) |> 
         reactable(
           sortable = FALSE,
-          pagination = FALSE,
+          pagination = TRUE,
+          defaultPageSize = 10,
+          showPageSizeOptions = TRUE,
+          pageSizeOptions = c(5, 10, 20),
           columns = list(
             Date = colDef(
               maxWidth = 80
