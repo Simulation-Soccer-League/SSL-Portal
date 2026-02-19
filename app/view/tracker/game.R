@@ -28,6 +28,7 @@ box::use(
     getGameSchedule,
     getGameTeam,
     getOrganizations,
+    getPreviousGames
   ],
   app/logic/ui/reactableHelper[
     attributeReactable, 
@@ -105,6 +106,14 @@ ui <- function(id) {
         shiny$uiOutput(ns("playerData"))
       )
     ) |> 
+      bslibCardContainer(),
+    # --- Previous meetings
+    bslib$card(
+      bslib$card_header(shiny$h3("Previous Meetings")),
+      bslib$card_body(
+        shiny$uiOutput(ns("previous"))
+      )
+    ) |> 
       bslibCardContainer()
   )
   
@@ -154,6 +163,13 @@ server <- function(id, gid = NULL) {
       getGameSchedule(query())
     }) |> 
       shiny$bindEvent(query())
+    
+    previousMeetings <- shiny$reactive({
+      shiny$req(query())
+      shiny$req(boxScore())
+      
+      getPreviousGames(query(), boxScore()$Home, boxScore()$Away)
+    })
     
     #### Output ####
     
@@ -250,6 +266,25 @@ server <- function(id, gid = NULL) {
         )        
       } else {
         reactableOutput(session$ns("teamStats")) |> 
+          withSpinnerCustom(height = 120)   
+      }
+    })
+    
+    output$previous <- shiny$renderUI({
+      if (previousMeetings() |> nrow() == 0) {
+        shiny$div(
+          style = " 
+            padding: 24px; 
+            text-align: center; 
+            background: var(--bottom-background); 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 500; 
+          ", 
+          "No previous meetings between the two teams."
+        )        
+      } else {
+        reactableOutput(session$ns("previousTable")) |> 
           withSpinnerCustom(height = 120)   
       }
     })
@@ -369,6 +404,66 @@ server <- function(id, gid = NULL) {
         ) |> 
         indexReactable(search = FALSE, pagination = FALSE)
     })
+    
+    output$previousTable <- renderReactable({
+      previousMeetings() |> 
+        dplyr$select(Date = IRLDate, Season, League = Matchtype, 
+                     Matchday, Home, Away, HomeScore, AwayScore,
+                     ExtraTime, Penalties) |>
+        dplyr$mutate(Result = sprintf("%s - %s", HomeScore, AwayScore),
+                     ExtraTime = dplyr$if_else(ExtraTime == 1, "Yes", "No"),
+                     Penalties = dplyr$if_else(Penalties == 1, "Yes", "No")) |> 
+        dplyr$select(!c(HomeScore, AwayScore)) |> 
+        dplyr$relocate(Result, .after = Away) |> 
+        reactable(
+          sortable = FALSE,
+          pagination = FALSE,
+          columns = list(
+            Date = colDef(
+              maxWidth = 80
+            ),
+            Season = colDef(
+              maxWidth = 80
+            ),
+            Matchday = colDef(
+              maxWidth = 200
+            ),
+            League = colDef(
+              maxWidth = 100
+            ),
+            Home = colDef(
+              maxWidth = 70,
+              cell = function(value) {
+                shiny$img(
+                  src = sprintf(
+                    "static/logo/%s (Custom).png", 
+                    value
+                  ),
+                  style = "height: 30px;",
+                  alt = value,
+                  title = value
+                )
+              }
+            ),
+            Away = colDef(
+              maxWidth = 70,
+              cell = function(value) {
+                shiny$img(
+                  src = sprintf(
+                    "static/logo/%s (Custom).png", 
+                    value
+                  ),
+                  style = "height: 30px;",
+                  alt = value,
+                  title = value
+                )
+              }
+            )
+          )
+        )
+        
+    })
+    
     
     
   })
