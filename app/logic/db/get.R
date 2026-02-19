@@ -1070,7 +1070,8 @@ getPreviousGames <- function(gid, home, away){
     FROM scheduleview
     WHERE gid < {gid} AND 
       (Home = {home} OR Away = {home}) AND
-      (Home = {away} OR Away = {away});",
+      (Home = {away} OR Away = {away})
+    ORDER BY gid DESC;",
     gid = gid,
     home = home,
     away = away
