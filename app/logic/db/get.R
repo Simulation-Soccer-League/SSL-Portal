@@ -1064,15 +1064,14 @@ getGameSchedule <- function(gid){
 }
 
 #' @export
-getPreviousGames <- function(gid, home, away){
+getPreviousGames <- function(home, away){
   indexQuery(
     "SELECT * 
     FROM scheduleview
-    WHERE gid < {gid} AND 
+    WHERE 
       (Home = {home} OR Away = {home}) AND
       (Home = {away} OR Away = {away})
     ORDER BY gid DESC;",
-    gid = gid,
     home = home,
     away = away
   )
