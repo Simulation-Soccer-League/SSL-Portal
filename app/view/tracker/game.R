@@ -7,7 +7,7 @@ box::use(
   rlang[is_empty],
   scales[comma],
   shiny,
-  shiny.router[get_query_param],
+  shiny.router[get_query_param, route_link],
   stringr[
     str_detect, 
     str_remove, 
@@ -15,7 +15,8 @@ box::use(
     str_split, 
     str_to_lower,
     str_to_title,
-    str_to_upper
+    str_to_upper,
+    str_trim,
   ],
   tidyr[complete, pivot_longer, pivot_wider],
 )
@@ -165,10 +166,9 @@ server <- function(id, gid = NULL) {
       shiny$bindEvent(query())
     
     previousMeetings <- shiny$reactive({
-      shiny$req(query())
       shiny$req(boxScore())
       
-      getPreviousGames(query(), boxScore()$Home, boxScore()$Away)
+      getPreviousGames(boxScore()$Home, boxScore()$Away)
     })
     
     #### Output ####
@@ -281,7 +281,7 @@ server <- function(id, gid = NULL) {
             font-size: 16px; 
             font-weight: 500; 
           ", 
-          "No previous meetings between the two teams."
+          "No other meetings between the two teams."
         )        
       } else {
         reactableOutput(session$ns("previousTable")) |> 
@@ -409,7 +409,7 @@ server <- function(id, gid = NULL) {
       previousMeetings() |> 
         dplyr$select(Date = IRLDate, Season, League = Matchtype, 
                      Matchday, Home, Away, HomeScore, AwayScore,
-                     ExtraTime, Penalties) |>
+                     ExtraTime, Penalties, gid) |>
         dplyr$mutate(Result = sprintf("%s - %s", HomeScore, AwayScore),
                      ExtraTime = dplyr$if_else(ExtraTime == 1, "Yes", "No"),
                      Penalties = dplyr$if_else(Penalties == 1, "Yes", "No")) |> 
@@ -461,7 +461,24 @@ server <- function(id, gid = NULL) {
                   title = value
                 )
               }
-            )
+            ),
+            Result = 
+              colDef(
+                cell = function(value, index) {
+                  if ((value |> str_trim()) == "-") {
+                    value
+                  } else {
+                    shiny$a(
+                      href = route_link(
+                        paste0("tracker/game?gid=", 
+                               previousMeetings()$gid[index])
+                        ),
+                      value
+                    )  
+                  }
+                }
+              ),
+            gid = colDef(show = FALSE)
           )
         )
         
