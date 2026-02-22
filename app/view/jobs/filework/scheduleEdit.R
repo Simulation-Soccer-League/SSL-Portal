@@ -68,10 +68,6 @@ server <- function(id, auth, updated) {
             is.na(HomeScore) | is.na(AwayScore)
           )
       
-      data |> 
-        dplyr$slice(
-          seq_len(min(10, nrow(x = data)))
-        )
     }) |> 
       shiny$bindEvent(updated())
     
@@ -105,14 +101,9 @@ server <- function(id, auth, updated) {
               width = 1/7,
               shiny$h5(
                 sprintf(
-                  "%s MD%s",
-                  dplyr$case_when(
-                    game$MatchType == -1 ~ "Friendlies",
-                    game$MatchType == 0 ~ "CUP",
-                    game$MatchType == 1 ~ "MAJOR",
-                    TRUE ~ "MINOR"
-                  ),
-                  game$MatchDay
+                  "%s MD %s",
+                  game$Matchtype,
+                  game$Matchday
                 )
               ),
               shiny$selectInput(
