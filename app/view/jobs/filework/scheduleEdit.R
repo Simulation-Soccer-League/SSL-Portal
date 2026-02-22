@@ -106,7 +106,7 @@ server <- function(id, auth, updated) {
               width = 1/7,
               shiny$h5(
                 sprintf(
-                  "%s MD %s",
+                  "%s %s",
                   game$Matchtype,
                   game$Matchday
                 )
