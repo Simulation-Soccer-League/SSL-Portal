@@ -23,6 +23,7 @@ box::use(
   app/logic/db/get[getSchedule],
   app/logic/db/login[isBoD, isFileworker, isNonActiveForumUser],
   app/logic/import[importGameData, parseFMdata],
+  app/logic/ui/spinner[withSpinnerCustom],
 )
 
 #' @export
@@ -44,7 +45,11 @@ server <- function(id, auth, updated) {
             shiny$h3("Edit the schedule")
           ),
           bslib$card_body(
-            shiny$uiOutput(ns("schedule")),
+            shiny$uiOutput(ns("schedule")) |> 
+              withSpinnerCustom(
+                height = 200, 
+                caption = "Searching for empty games."
+              ),
             shiny$actionButton(
               ns("saveGame"), 
               "Save edits",
