@@ -47,7 +47,7 @@ server <- function(id) {
                tpebank, nationality, bankBalance, playerStatus, 
                userStatus) |> 
         arrange(desc(tpe)) |> 
-        mutate(searchName = iconv(name, from = "UTF-8", , to='ASCII//TRANSLIT'))
+        mutate(searchName = iconv(name, from = "UTF-8", , to = "ASCII//TRANSLIT"))
 
       data |>
         rename_with(str_to_upper) |> 

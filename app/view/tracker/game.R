@@ -1,29 +1,30 @@
 box::use(
   bslib,
   dplyr,
-  lubridate[as_date, as_datetime, floor_date, today],
-  plotly,
-  reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
-  rlang[is_empty],
-  scales[comma],
+  reactable[
+    colDef, 
+    reactable, 
+    reactableOutput, 
+    renderReactable,
+  ],
   shiny,
-  shiny.router[get_query_param, route_link],
+  shiny.router[
+    get_query_param, 
+    route_link,
+  ],
   stringr[
-    str_detect, 
-    str_remove, 
     str_replace_all,
-    str_split, 
     str_to_lower,
     str_to_title,
-    str_to_upper,
     str_trim,
   ],
-  tidyr[complete, pivot_longer, pivot_wider],
+  tidyr[
+    pivot_longer, 
+    pivot_wider,
+  ],
 )
 
 box::use(
-  app/logic/constant,
-  app/logic/ui/cards[bslibCardContainer],
   app/logic/db/get[
     getGamePlayer,
     getGameSchedule,
@@ -31,12 +32,11 @@ box::use(
     getOrganizations,
     getPreviousGames
   ],
+  app/logic/ui/cards[bslibCardContainer],
   app/logic/ui/reactableHelper[
-    attributeReactable, 
     indexReactable,
     linkOrganization,
     reactableBar,
-    recordReactable,
   ],
   app/logic/ui/spinner[withSpinnerCustom],
 )
@@ -125,7 +125,7 @@ server <- function(id, gid = NULL) {
   shiny$moduleServer(id, function(input, output, session) {
     #### Data ####
     query <- shiny$reactive({
-      if(gid |> is.null()){
+      if (gid |> is.null()) {
         gid <- get_query_param("gid")
         
         if (is.null(gid)) {
@@ -469,10 +469,7 @@ server <- function(id, gid = NULL) {
                     value
                   } else {
                     shiny$a(
-                      href = route_link(
-                        paste0("tracker/game?gid=", 
-                               previousMeetings()$gid[index])
-                        ),
+                      href = route_link(paste0("tracker/game?gid=", previousMeetings()$gid[index])),
                       value
                     )  
                   }
@@ -519,7 +516,12 @@ server <- function(id, gid = NULL) {
         lapply(seq_len(nrow(summary)), function(i) {
           shiny$div(
             style = "margin-bottom: 6px;",
-            sprintf("%s: %s %s", summary$winner[i], summary$count[i], if (summary$winner[i] != "Draws") "Wins" else "")
+            sprintf(
+              "%s: %s %s", 
+              summary$winner[i], 
+              summary$count[i], 
+              if (summary$winner[i] != "Draws") "Wins" else ""
+            )
           )
         })
       )
