@@ -487,9 +487,11 @@ server <- function(id, gid = NULL) {
     output$previousSummary <- shiny$renderUI({
       summary <- 
         previousMeetings() |> 
+        dplyr$filter(
+          !(is.na(HomeScore) & is.na(AwayScore))
+        ) |> 
         dplyr$mutate(
           winner = dplyr$case_when(
-            is.na(HomeScore) & is.na(AwayScore) ~ NA,
             HomeScore > AwayScore ~ Home,
             HomeScore < AwayScore ~ Away,
             TRUE ~ "Draws"
