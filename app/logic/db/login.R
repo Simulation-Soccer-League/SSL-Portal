@@ -14,7 +14,7 @@ box::use(
 #' Helper function to set the token
 #' @export
 setRefreshToken <- function(uid, token, session = getDefaultReactiveDomain()) {
-  expires <- (now() + hours(72)) |> as.numeric()
+  expires <- (now() + hours(168)) |> as.numeric()
 
   portalQuery(
     query = "

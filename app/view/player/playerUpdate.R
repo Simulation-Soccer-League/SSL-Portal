@@ -413,8 +413,8 @@ server <- function(id, auth, updated, type, player = NULL) {
         paste("Football Manager uses <i>roles</i> and <i>duties</i> to control what your player will do within a
       set tactic. There exists many different roles with different importances given to specific
       attributes. Selecting a role and duty you want to build towards in the list below will highlight the <span
-      class='keyAttribute'>very important</span> and
-      <span class='importantAttribute'>important</span>          attributes.") |> shiny$HTML(),
+      class='key-attribute'>very important</span> and
+      <span class='important-attribute'>important</span>          attributes.") |> shiny$HTML(),
         shiny$br(),
         bslib$layout_column_wrap(
           width = NULL,

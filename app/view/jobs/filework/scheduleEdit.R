@@ -23,6 +23,7 @@ box::use(
   app/logic/db/get[getSchedule],
   app/logic/db/login[isBoD, isFileworker, isNonActiveForumUser],
   app/logic/import[importGameData, parseFMdata],
+  app/logic/ui/spinner[withSpinnerCustom],
 )
 
 #' @export
@@ -44,7 +45,11 @@ server <- function(id, auth, updated) {
             shiny$h3("Edit the schedule")
           ),
           bslib$card_body(
-            shiny$uiOutput(ns("schedule")),
+            shiny$uiOutput(ns("schedule")) |> 
+              withSpinnerCustom(
+                height = 200, 
+                caption = "Searching for empty games."
+              ),
             shiny$actionButton(
               ns("saveGame"), 
               "Save edits",
@@ -68,10 +73,6 @@ server <- function(id, auth, updated) {
             is.na(HomeScore) | is.na(AwayScore)
           )
       
-      data |> 
-        dplyr$slice(
-          seq_len(min(10, nrow(x = data)))
-        )
     }) |> 
       shiny$bindEvent(updated())
     
@@ -105,14 +106,9 @@ server <- function(id, auth, updated) {
               width = 1/7,
               shiny$h5(
                 sprintf(
-                  "%s MD%s",
-                  dplyr$case_when(
-                    game$MatchType == -1 ~ "Friendlies",
-                    game$MatchType == 0 ~ "CUP",
-                    game$MatchType == 1 ~ "MAJOR",
-                    TRUE ~ "MINOR"
-                  ),
-                  game$MatchDay
+                  "%s %s",
+                  game$Matchtype,
+                  game$Matchday
                 )
               ),
               shiny$selectInput(

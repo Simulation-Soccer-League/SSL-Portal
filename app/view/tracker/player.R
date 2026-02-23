@@ -20,9 +20,9 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/api[readAPI],
   app/logic/db/get[
     getBankHistory,
+    getLatestGames,
     getLeagueIndex,
     getPlayer, 
     getTpeHistory, 
@@ -164,7 +164,12 @@ server <- function(id, pid = NULL, updated) {
 
       shiny$tagList(
         shiny$h2(paste(data$name, paste0("(", data$class, ")"), sep = " ")),
-        shiny$h5(paste0("(", data$pronouns, ")")),
+        if (data$pronouns == ""){
+          NULL
+        } else {
+          sprintf("(%s)", data$pronouns) |> 
+            shiny$h5()
+        },
         shiny$h3(paste0("@", data$username))
       )
     }) 
@@ -275,16 +280,10 @@ server <- function(id, pid = NULL, updated) {
 
       if (data$pos_gk == 20) {
         matches <-
-          readAPI(
-            url = "https://api.simulationsoccer.com/index/latestGames",
-            query = list(name = data$name, outfield = FALSE)
-          )
+          getLatestGames(name = data$name, outfield = FALSE)
       } else {
         matches <-
-          readAPI(
-            url = "https://api.simulationsoccer.com/index/latestGames",
-            query = list(name = data$name)
-          )
+          getLatestGames(name = data$name)
       }
 
       if (!(matches |> is_empty())) {

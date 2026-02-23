@@ -18,12 +18,12 @@
   --sub-menu-color: #eeeeee;
   --background-color: #393E46;
   /* League colours (same thing as Discord bot but darker) */
---major-gold-d: #9f8a24;   
---minor-red-d:  #7a1c26;  
---cup-green-d:   #2f6b14;   
---wsfc-blue-d:   #1f5f8f;   
---friendlies-d:  #7a5f1d;
---shield-d:    #676666;
+  --major-gold-d: #9f8a24;   
+  --minor-red-d:  #7a1c26;  
+  --cup-green-d:   #2f6b14;   
+  --wsfc-blue-d:   #1f5f8f;   
+  --friendlies-d:  #7a5f1d;
+  --shield-d:    #676666;
   /* Shared gradient base */
   --gradient-d: #2e2e2e;
 }
@@ -45,6 +45,15 @@ h5 {
   font-weight: 800;
   font-style: normal;
   color: white;
+}
+
+a {
+  color: var(--lighter-text);
+}
+
+a:hover {
+  color: var(--ssl-gold);
+  text-decoration: underline;
 }
 
 #router-page-wrapper {
@@ -405,6 +414,13 @@ $navbar-items-width: 112px;
   scrollbar-color: #666 #999;
 }
 
+.results-no-scroll {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
 .results > div {
   min-width: 140px;
 }
@@ -433,6 +449,45 @@ $navbar-items-width: 112px;
 #standings-cup-boxes > div:nth-child(n+13):nth-child(-n+15),
 #standings-cup-boxes > div:nth-child(n+19):nth-child(-n+21) {
   margin-bottom: -15px;
+}
+
+.bracket-desktop { display: block; }
+.bracket-mobile  { display: none; }
+
+@media (max-width: 1095px) {
+  .bracket-desktop { display: none; }
+  .bracket-mobile  { display: block; }
+  
+  .bracket-mobile .round-col {
+    max-width: 80%;
+    margin: auto;
+    padding-top: 10px;
+  }
+
+}
+
+.round-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.knockout-card {
+  display: grid; 
+  grid-template-columns: 1fr auto 1fr; 
+  align-items: center; 
+  gap: 12px;
+  padding: 13px 0;
+  text-align: center; 
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  border-color: var(--ssl-gold);
+  background: linear-gradient(
+    180deg,
+    var(--gradient-d) 0%,
+    var(--cup-green-d) 50%,
+    var(--gradient-d) 100%
+  );
 }
 
 .small-box.bg-orange {
@@ -628,13 +683,15 @@ $navbar-items-width: 112px;
 /* RESULT CARDS - Custom match result cards used in latest results scroller */
 
 /* Allow league gradient + border to show by removing inner card background */
-.results .result-card > .card {
+.results .result-card > .card,
+.results-no-scroll .result-card > .card{
   background: transparent !important;
   border: none !important;
 }
 
 /* Base card structure & interaction */
-.results .result-card {
+.results .result-card,
+.results-no-scroll .result-card{
   position: relative;
   border-radius: 10px;
   overflow: hidden;
@@ -645,9 +702,10 @@ $navbar-items-width: 112px;
   isolation: isolate;
 }
 
-
 .results .result-card .result-card-inner,
-.results .result-card > .card {
+.results .result-card > .card,
+.results-no-scroll .result-card .result-card-inner,
+.results-no-scroll .result-card > .card {
   position: relative;
   z-index: 1;
 }
@@ -657,13 +715,15 @@ $navbar-items-width: 112px;
 }
 
 /* Inner wrapper provides full-card positioning context */
-.results .result-card .result-card-inner {
+.results .result-card .result-card-inner,
+.results-no-scroll .result-card .result-card-inner {
   position: relative;
   z-index: 1;
 }
 
 /* Competition logo overlay */
-.results .result-card .competition-overlay {
+.results .result-card .competition-overlay,
+.results-no-scroll .result-card .competition-overlay {
   position: absolute;
   inset: auto;
   top: 50%;
@@ -674,35 +734,38 @@ $navbar-items-width: 112px;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition:
-   opacity 0.25s ease;
+  transition: opacity 0.25s ease;
   z-index: 0;
 }
 
-.results .result-card .competition-overlay img {
+.results .result-card .competition-overlay img,
+.results-no-scroll .result-card .competition-overlay img {
   max-width: 70%;
   max-height: 70%;
   object-fit: contain;
-  opacity: 1 ;
-  filter:
-  drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+  opacity: 1;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
 }
 
 /* Show competition logo only when score is empty */
-.results .result-card:has(.score.is-empty) .competition-overlay {
+.results .result-card:has(.score.is-empty) .competition-overlay,
+.results-no-scroll .result-card:has(.score.is-empty) .competition-overlay {
   opacity: 0.35;
 }
 
 /* Hide dash but preserve score layout */
-.results .result-card .score.is-empty {
+.results .result-card .score.is-empty,
+.results-no-scroll .result-card .score.is-empty {
   visibility: hidden;
 }
-
 
 /* Header / Body / Footer normalisation */
 .results .result-card .card-header,
 .results .result-card .card-body,
-.results .result-card .card-footer {
+.results .result-card .card-footer,
+.results-no-scroll .result-card .card-header,
+.results-no-scroll .result-card .card-body,
+.results-no-scroll .result-card .card-footer {
   background: transparent !important;
   border: none;
   color: white;
@@ -710,32 +773,36 @@ $navbar-items-width: 112px;
 }
 
 /* Subtle internal separators for structure */
-.results .result-card .card-header {
+.results .result-card .card-header,
+.results-no-scroll .result-card .card-header {
   border-bottom: 2px solid rgba(255, 255, 255, 0.07);
 }
-.results .result-card .card-footer {
+
+.results .result-card .card-footer,
+.results-no-scroll .result-card .card-footer {
   border-top: 2px solid rgba(255, 255, 255, 0.07);
 }
 
-
 /* Score emphasis */
-.results .result-card .card-body {
+.results .result-card .card-body,
+.results-no-scroll .result-card .card-body {
   position: relative;
   padding: 14px 0;
 }
 
-.results .result-card .card-body h4 {
+.results .result-card .card-body h4,
+.results-no-scroll .result-card .card-body h4 {
   margin: 6px 0;
   font-size: 1.8rem;
   letter-spacing: 1px;
   text-align: center;
 }
 
-
 /* League-based colour themes */
 
 /* Major League (Gold) */
-.results .result-card[data-league^="major-league"] {
+.results .result-card[data-league^="major-league"],
+.results-no-scroll .result-card[data-league^="major-league"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -746,7 +813,8 @@ $navbar-items-width: 112px;
 }
 
 /* Minor League (Red) */
-.results .result-card[data-league^="minor-league"] {
+.results .result-card[data-league^="minor-league"],
+.results-no-scroll .result-card[data-league^="minor-league"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -757,7 +825,8 @@ $navbar-items-width: 112px;
 }
 
 /* Cup (Green) */
-.results .result-card[data-league^="the-cup"] {
+.results .result-card[data-league^="the-cup"],
+.results-no-scroll .result-card[data-league^="the-cup"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -768,7 +837,8 @@ $navbar-items-width: 112px;
 }
 
 /* WSFC (Blue) */
-.results .result-card[data-league^="wsfc"] {
+.results .result-card[data-league^="wsfc"],
+.results-no-scroll .result-card[data-league^="wsfc"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -779,7 +849,8 @@ $navbar-items-width: 112px;
 }
 
 /* Friendlies (SSL Gold) */
-.results .result-card[data-league^="friendlies"] {
+.results .result-card[data-league^="friendlies"],
+.results-no-scroll .result-card[data-league^="friendlies"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -790,7 +861,8 @@ $navbar-items-width: 112px;
 }
 
 /* SSL Shield (Dark neutral theme) */
-.results .result-card[data-league^="shield"] {
+.results .result-card[data-league^="shield"],
+.results-no-scroll .result-card[data-league^="shield"] {
   background: linear-gradient(
     180deg,
     var(--gradient-d) 0%,
@@ -799,6 +871,7 @@ $navbar-items-width: 112px;
   );
   border-color: var(--ssl-gold);
 }
+
 
 .rt-th,
 .rt-th-inner,

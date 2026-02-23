@@ -4,6 +4,8 @@ box::use(
   reactable[colDef, reactable],
   rlang[is_empty],
   shiny,
+  shiny.router[route_link],
+  stringr[str_trim],
 )
 
 box::use(
@@ -42,8 +44,7 @@ server <- function(id, updated, season) {
         season <- season()
         league <- input$selectedLeague
 
-        getSchedule(season = season, league = league) |> 
-          dplyr$select(!gid)
+        getSchedule(season = season, league = league)
       }) |> 
         shiny$bindCache(
           id,
@@ -90,44 +91,12 @@ server <- function(id, updated, season) {
                 c(HomeScore, AwayScore),
                 function(x) ifelse(is.na(x), " ", x)
               ),
-              Score = dplyr$case_when(
-                Penalties == 1 & HomeScore > AwayScore ~ paste0(
-                  "p",
-                  paste(
-                    HomeScore,
-                    AwayScore,
-                    sep = " - "
-                  )
-                ),
-                Penalties == 1 & HomeScore < AwayScore ~ paste0(
-                  paste(
-                    HomeScore,
-                    AwayScore,
-                    sep = " - "
-                  ),
-                  "p"
-                ),
-                ExtraTime == 1 & HomeScore > AwayScore ~ paste0(
-                  "e",
-                  paste(
-                    HomeScore,
-                    AwayScore,
-                    sep = " - "
-                  )
-                ),
-                ExtraTime == 1 & HomeScore < AwayScore ~ paste0(
-                  paste(
-                    HomeScore,
-                    AwayScore,
-                    sep = " - "
-                  ),
-                  "p"
-                ),
-                TRUE ~ paste(
-                  HomeScore,
-                  AwayScore,
-                  sep = " - "
-                )
+              Result = dplyr$case_when(
+                Penalties == 1 & HomeScore > AwayScore ~ sprintf("p%s - %s", HomeScore, AwayScore),
+                Penalties == 1 & HomeScore < AwayScore ~ sprintf("%s - %sp", HomeScore, AwayScore),
+                ExtraTime == 1 & HomeScore > AwayScore ~ sprintf("e%s - %s", HomeScore, AwayScore),
+                ExtraTime == 1 & HomeScore < AwayScore ~ sprintf("%s - %se", HomeScore, AwayScore),
+                TRUE ~ sprintf("%s - %s", HomeScore, AwayScore)
               )
             ) |>
             dplyr$select(!c(HomeScore, AwayScore, ExtraTime, Penalties)) |>
@@ -168,7 +137,21 @@ server <- function(id, updated, season) {
                         shiny$div(style = "font-size: 1.2rem", value)
                       )
                     }
-                  )
+                  ),
+                  Result = 
+                    colDef(
+                      cell = function(value, index) {
+                        if ((value |> str_trim()) == "-") {
+                          value
+                        } else {
+                          shiny$a(
+                            href = route_link(paste0("tracker/game?gid=", data$gid[index])),
+                            value
+                          )  
+                        }
+                      }
+                    ),
+                  gid = colDef(show = FALSE)
                 )
             )
         }
