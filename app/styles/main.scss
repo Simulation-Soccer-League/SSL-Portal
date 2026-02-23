@@ -454,6 +454,10 @@ $navbar-items-width: 112px;
 .bracket-desktop { display: block; }
 .bracket-mobile  { display: none; }
 
+.bracket-desktop h5 {
+  
+}
+
 @media (max-width: 1095px) {
   .bracket-desktop { display: none; }
   .bracket-mobile  { display: block; }
@@ -470,6 +474,7 @@ $navbar-items-width: 112px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  text-align: center;
 }
 
 .knockout-card {
