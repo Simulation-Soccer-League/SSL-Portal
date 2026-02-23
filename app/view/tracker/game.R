@@ -489,6 +489,7 @@ server <- function(id, gid = NULL) {
         previousMeetings() |> 
         dplyr$mutate(
           winner = dplyr$case_when(
+            is.na(HomeScore) & is.na(AwayScore) ~ NA,
             HomeScore > AwayScore ~ Home,
             HomeScore < AwayScore ~ Away,
             TRUE ~ "Draws"
