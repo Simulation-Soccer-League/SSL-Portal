@@ -92,43 +92,11 @@ server <- function(id, updated, season) {
                 function(x) ifelse(is.na(x), " ", x)
               ),
               Result = dplyr$case_when(
-                Penalties == 1 & HomeScore > AwayScore ~ paste0(
-                  "p",
-                  paste(
-                    HomeScore,
-                    AwayScore,
-                    sep = " - "
-                  )
-                ),
-                Penalties == 1 & HomeScore < AwayScore ~ paste0(
-                  paste(
-                    HomeScore,
-                    AwayScore,
-                    sep = " - "
-                  ),
-                  "p"
-                ),
-                ExtraTime == 1 & HomeScore > AwayScore ~ paste0(
-                  "e",
-                  paste(
-                    HomeScore,
-                    AwayScore,
-                    sep = " - "
-                  )
-                ),
-                ExtraTime == 1 & HomeScore < AwayScore ~ paste0(
-                  paste(
-                    HomeScore,
-                    AwayScore,
-                    sep = " - "
-                  ),
-                  "p"
-                ),
-                TRUE ~ paste(
-                  HomeScore,
-                  AwayScore,
-                  sep = " - "
-                )
+                Penalties == 1 & HomeScore > AwayScore ~ sprintf("p%s - %s", HomeScore, AwayScore),
+                Penalties == 1 & HomeScore < AwayScore ~ sprintf("%s - %sp", HomeScore, AwayScore),
+                ExtraTime == 1 & HomeScore > AwayScore ~ sprintf("e%s - %s", HomeScore, AwayScore),
+                ExtraTime == 1 & HomeScore < AwayScore ~ sprintf("%s - %se", HomeScore, AwayScore),
+                TRUE ~ sprintf("%s - %s", HomeScore, AwayScore)
               )
             ) |>
             dplyr$select(!c(HomeScore, AwayScore, ExtraTime, Penalties)) |>
