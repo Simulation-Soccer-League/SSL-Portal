@@ -9,9 +9,8 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / get[getPlayers],
-  app / logic / ui / spinner[withSpinnerCustom],
+  app/logic/constant,
+  app/logic/db/get[getPlayers],
 )
 
 #' @export
@@ -187,7 +186,7 @@ server <- function(id) {
         )
       )
     }, 
-      deleteFile=TRUE
+    deleteFile = TRUE
     )
   })
 }

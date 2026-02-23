@@ -82,7 +82,8 @@ server <- function(id) {
             nationality == "Korea, South" ~ "South Korea",
             nationality == "Czechia" ~ "Czech Republic",
             nationality == "Serbia" ~ "Republic of Serbia",
-            nationality %in% c("England", "Scotland", "Wales", "Northern Ireland") ~ "United Kingdom",
+            nationality %in% 
+              c("England", "Scotland", "Wales", "Northern Ireland") ~ "United Kingdom",
             TRUE ~ nationality
           )
         ) |> 
@@ -116,7 +117,7 @@ server <- function(id) {
               title = org,
               flexRow(
                 shiny$uiOutput(
-                  session$ns(paste0("overview_",org))
+                  session$ns(paste0("overview_", org))
                 )
               )
             )
@@ -149,7 +150,9 @@ server <- function(id) {
             )
         ) |>
         hc_tooltip(HTML = TRUE, 
-                   pointFormat = "{point.nationality} has {point.Active} active and {point.Inactive} inactive players.<br>In total the region {point.region} has {point.roster} players.") |> 
+                   pointFormat = "{point.nationality} has {point.Active} active and 
+                   {point.Inactive} inactive players.<br>
+                   In total the region {point.region} has {point.roster} players.") |> 
         hc_mapNavigation(enabled = TRUE)
       
     })

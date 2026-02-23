@@ -7,10 +7,6 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app / logic / db / get[getPlayers],
-  app / logic / ui / reactableHelper[orgReactable],
-  app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexRow],
 )
 
 #' @export
@@ -70,10 +66,13 @@ server <- function(id) {
               target = "_self",   # open in same tab; use "_blank" for new tab
               shiny$actionButton(
                 inputId = session$ns(paste0("org_", oid)),
-                label   = 
+                label = 
                   shiny$div(
-                    style = "display: flex; align-items: center; justify-content: space-between; width: 100%;",
-                    
+                    style = 
+                      "display: flex; 
+                        align-items: center; 
+                        justify-content: space-between; 
+                        width: 100%;",
                     # left logo
                     shiny$span(
                       style = "flex: 0 0 auto;",
@@ -86,13 +85,11 @@ server <- function(id) {
                         title = maj
                       )
                     ),
-                    
                     # center text
                     shiny$span(
                       style = "flex: 1; text-align: center;",
                       org
                     ),
-                    
                     # right logo (only if different)
                     if (min != maj) {
                       shiny$span(

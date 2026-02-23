@@ -1,8 +1,27 @@
 box::use(
   bslib,
-  dplyr[arrange, case_when, desc, filter, mutate, rename_with, select],
-  plotly[config, layout, plot_ly, plotlyOutput, renderPlotly],
-  reactable[colDef, reactable, reactableOutput, renderReactable],
+  dplyr[
+    arrange, 
+    case_when, 
+    desc, 
+    filter, 
+    mutate, 
+    rename_with, 
+    select
+  ],
+  plotly[
+    config, 
+    layout,
+    plot_ly, 
+    plotlyOutput, 
+    renderPlotly
+  ],
+  reactable[
+    colDef, 
+    reactable, 
+    reactableOutput, 
+    renderReactable
+  ],
   rlang[is_empty],
   shiny,
   shiny.router[route_link],
@@ -12,18 +31,18 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / get[
+  app/logic/constant,
+  app/logic/db/get[
     getAChistory, 
     getRecentCreates, 
     getSchedule, 
     getStandings, 
     getTopEarners,
   ],
-  app / logic / ui / cards[resultCard],
-  app / logic / ui / reactableHelper[linkOrganization],
-  app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexRow],
+  app/logic/ui/cards[resultCard],
+  app/logic/ui/reactableHelper[linkOrganization],
+  app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/ui/tags[flexRow],
 )
 
 #' @export
