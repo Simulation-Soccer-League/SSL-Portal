@@ -110,7 +110,7 @@ ui <- function(id) {
       bslibCardContainer(),
     # --- Previous meetings
     bslib$card(
-      bslib$card_header(shiny$h3("Previous Meetings")),
+      bslib$card_header(shiny$h3("Head-to-Head")),
       bslib$card_body(
         shiny$uiOutput(ns("previous"))
       )
@@ -271,6 +271,7 @@ server <- function(id, gid = NULL) {
     })
     
     output$previous <- shiny$renderUI({
+      
       if (previousMeetings() |> nrow() == 0) {
         shiny$div(
           style = " 
@@ -284,8 +285,11 @@ server <- function(id, gid = NULL) {
           "No other meetings between the two teams."
         )        
       } else {
-        reactableOutput(session$ns("previousTable")) |> 
-          withSpinnerCustom(height = 120)   
+        shiny$tagList(
+          shiny$uiOutput(session$ns("previousSummary")),
+          reactableOutput(session$ns("previousTable")) |> 
+            withSpinnerCustom(height = 120)  
+        )
       }
     })
     
@@ -421,7 +425,7 @@ server <- function(id, gid = NULL) {
               TRUE ~ sprintf("%s - %s", HomeScore, AwayScore)
             )
         ) |> 
-        dplyr$select(!c(HomeScore, AwayScore)) |> 
+        dplyr$select(!c(HomeScore, AwayScore, Penalties, ExtraTime)) |> 
         dplyr$relocate(Result, .after = Away) |> 
         reactable(
           sortable = FALSE,
@@ -430,18 +434,6 @@ server <- function(id, gid = NULL) {
           showPageSizeOptions = TRUE,
           pageSizeOptions = c(5, 10, 20),
           columns = list(
-            Date = colDef(
-              maxWidth = 80
-            ),
-            Season = colDef(
-              maxWidth = 80
-            ),
-            Matchday = colDef(
-              maxWidth = 200
-            ),
-            League = colDef(
-              maxWidth = 100
-            ),
             Home = colDef(
               maxWidth = 70,
               cell = function(value) {
@@ -492,7 +484,43 @@ server <- function(id, gid = NULL) {
         
     })
     
-    
+    output$previousSummary <- shiny$renderUI({
+      summary <- 
+        previousMeetings() |> 
+        dplyr$mutate(
+          winner = dplyr$case_when(
+            HomeScore > AwayScore ~ Home,
+            HomeScore < AwayScore ~ Away,
+            TRUE ~ "Draws"
+          ) |> 
+            factor(levels = c(sort(c(boxScore()$Home, boxScore()$Away)), "Draws"))
+        ) |> 
+        dplyr$group_by(winner) |> 
+        dplyr$summarize(count = dplyr$n()) |> 
+        dplyr$ungroup()
+      
+      shiny$div(
+        style = "
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 10px 20px;
+            width: 40%;
+            margin: 0 auto;
+            margin-bottom: 10px;
+            font-size: 15px;
+            line-height: 1.6;
+          ",
+        shiny$h5("Totals") |> 
+          shiny$div(align = "center"),
+        lapply(seq_len(nrow(summary)), function(i) {
+          shiny$div(
+            style = "margin-bottom: 6px;",
+            sprintf("%s: %s %s", summary$winner[i], summary$count[i], if (summary$winner[i] != "Draws") "Wins" else "")
+          )
+        })
+      )
+    })
     
   })
     
