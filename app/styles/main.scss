@@ -451,6 +451,45 @@ $navbar-items-width: 112px;
   margin-bottom: -15px;
 }
 
+.bracket-desktop { display: block; }
+.bracket-mobile  { display: none; }
+
+@media (max-width: 1095px) {
+  .bracket-desktop { display: none; }
+  .bracket-mobile  { display: block; }
+  
+  .bracket-mobile .round-col {
+    max-width: 80%;
+    margin: auto;
+    padding-top: 10px;
+  }
+
+}
+
+.round-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.knockout-card {
+  display: grid; 
+  grid-template-columns: 1fr auto 1fr; 
+  align-items: center; 
+  gap: 12px;
+  padding: 13px 0;
+  text-align: center; 
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  border-color: var(--ssl-gold);
+  background: linear-gradient(
+    180deg,
+    var(--gradient-d) 0%,
+    var(--cup-green-d) 50%,
+    var(--gradient-d) 100%
+  );
+}
+
 .small-box.bg-orange {
   background-color: #e08b46 !important;
   color: #000 !important;

@@ -1,5 +1,6 @@
 box::use(
   bslib,
+  dplyr,
   glue,
   shiny,
   shiny.router[route_link],
@@ -41,6 +42,8 @@ resultCard <- function(data, i, width = 40) {
   homeScore <- data[i, "HomeScore"]
   awayScore <- data[i, "AwayScore"]
   gid       <- data[i, "gid"]
+  penalties <- data[i, "Penalties"]
+  extraTime <- data[i, "ExtraTime"]
 
   key <- getCompetitionKeys(matchType, matchDay, division)
 
@@ -53,7 +56,13 @@ resultCard <- function(data, i, width = 40) {
   stageLabel <- if (!is.na(matchDay)) matchDay else ""
   hasScore <- !is.na(homeScore) & !is.na(awayScore)
   scoreText <- if (hasScore) {
-    paste(homeScore, awayScore, sep = " - ")
+    dplyr$case_when(
+      penalties == 1 & homeScore > awayScore ~ sprintf("p%s - %s", homeScore, awayScore),
+      penalties == 1 & homeScore < awayScore ~ sprintf("%s - %sp", homeScore, awayScore),
+      extraTime == 1 & homeScore > awayScore ~ sprintf("e%s - %s", homeScore, awayScore),
+      extraTime == 1 & homeScore < awayScore ~ sprintf("%s - %se", homeScore, awayScore),
+      TRUE ~ sprintf("%s - %s", homeScore, awayScore)
+    )
   } else {
     "-"
   }
@@ -135,5 +144,41 @@ bslibCardContainer <- function(card) {
             margin: auto;
           ",
     card
+  )
+}
+
+#' @export
+knockoutCard <- function(gameInfo) {
+  
+  hasScore <- !is.na(gameInfo$HomeScore) & !is.na(gameInfo$AwayScore)
+  scoreText <- if (hasScore) {
+    dplyr$case_when(
+      gameInfo$Penalties == 1 & gameInfo$HomeScore > gameInfo$AwayScore ~ sprintf("p%s - %s", gameInfo$HomeScore, gameInfo$AwayScore),
+      gameInfo$Penalties == 1 & gameInfo$HomeScore < gameInfo$AwayScore ~ sprintf("%s - %sp", gameInfo$HomeScore, gameInfo$AwayScore),
+      gameInfo$ExtraTime == 1 & gameInfo$HomeScore > gameInfo$AwayScore ~ sprintf("e%s - %s", gameInfo$HomeScore, gameInfo$AwayScore),
+      gameInfo$ExtraTime == 1 & gameInfo$HomeScore < gameInfo$AwayScore ~ sprintf("%s - %se", gameInfo$HomeScore, gameInfo$AwayScore),
+      TRUE ~ sprintf("%s - %s", gameInfo$HomeScore, gameInfo$AwayScore)
+    )
+  } else {
+    "-"
+  }
+  
+  shiny$div(
+    class = "knockout-card",
+    shiny$div(linkOrganization(gameInfo$Home, onlyImg = TRUE, height = 40)), 
+    shiny$div( 
+      style = "font-size: 22px; font-weight: 700;", 
+      if ((scoreText |> str_trim()) == "-") {
+        scoreText
+      } else {
+        shiny$a(
+          href = route_link(
+            paste0("tracker/game?gid=", gameInfo$gid)
+          ),
+          scoreText
+        )  
+      } 
+    ), 
+    shiny$div(linkOrganization(gameInfo$Away, onlyImg = TRUE, height = 40)) 
   )
 }

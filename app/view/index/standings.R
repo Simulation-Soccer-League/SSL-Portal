@@ -10,12 +10,13 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / get[getStandings],
-  app / logic / ui / reactableHelper[linkOrganization],
-  app / logic / ui / selector[leagueSelectInput],
-  app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexRow],
+  app/logic/constant,
+  app/logic/db/get[getSchedule, getStandings,],
+  app/logic/ui/cards[knockoutCard],
+  app/logic/ui/reactableHelper[linkOrganization],
+  app/logic/ui/selector[leagueSelectInput],
+  app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/ui/tags[flexRow],
 )
 
 #' @export
@@ -82,7 +83,150 @@ server <- function(id, updated, season) {
         if (data |> is_empty()) {
           ### EMPTY
           NULL
-        } else if (league == 5) {
+        } else if (league == "The Cup" & season >= 22) {
+          schedule <- getSchedule(league = league, season = season)
+          
+          qualifying <- schedule[schedule$Matchday == "Qualifying Round", ]
+          round16    <- schedule[schedule$Matchday == "Round of 16", ]
+          quarters   <- schedule[schedule$Matchday == "Quarter Final", ]
+          semis      <- schedule[schedule$Matchday == "Semi Final", ]
+          finals     <- schedule[schedule$Matchday == "Final", ]
+          
+          
+          shiny$tagList(
+            shiny$div(
+              class = "bracket-desktop",
+              bslib$layout_column_wrap(
+                widths = c("1fr", "1fr", "1fr", "1fr", "1fr"),
+                gap = "30px",
+                # Qualifying
+                shiny$div(
+                  class = "round-col",
+                  shiny$h5("Qualifying Round"),
+                  shiny$div(
+                    style = 
+                      "display: flex;
+                        flex-direction: column;
+                        gap: 10px;",
+                    lapply(seq_len(nrow(qualifying)), function(i) {
+                      knockoutCard(qualifying[i,])
+                    })
+                  )
+                ),
+                
+                # Round of 16
+                shiny$div(
+                  class = "round-col",
+                  shiny$h5("Round of 16"),
+                  shiny$div(
+                    style = 
+                      "display: flex;
+                        flex-direction: column;
+                        gap: 10px;",
+                    lapply(seq_len(nrow(round16)), function(i) {
+                      knockoutCard(round16[i,])
+                    })
+                  )
+                ),
+                
+                # Quarter Finals
+                shiny$div(
+                  class = "round-col",
+                  shiny$h5("Quarter Final"),
+                  shiny$div(
+                    style = 
+                      "display: flex;
+                        flex-direction: column;
+                        gap: 91px;
+                        padding-top: 40px;",
+                    lapply(seq_len(nrow(quarters)), function(i) {
+                      knockoutCard(quarters[i,])
+                    })
+                  )
+                ),
+                
+                # Semi Finals
+                shiny$div(
+                  class = "round-col",
+                  shiny$h5("Semi Final"),
+                  shiny$div(
+                    style = 
+                      "display: flex;
+                        flex-direction: column;
+                        gap: 245px;
+                        padding-top: 125px;",
+                    lapply(seq_len(nrow(semis)), function(i) {
+                      knockoutCard(semis[i,])
+                    })
+                  )
+                ),
+                
+                # Final
+                shiny$div(
+                  class = "round-col",
+                  shiny$h5("Cup Final"),
+                  shiny$div(
+                    style = 
+                      "padding-top: 270px;",
+                    knockoutCard(finals[1,])
+                  )
+                )
+              )
+            ),
+            shiny$div(
+              class = "bracket-mobile",
+              shiny$tabsetPanel(
+                shiny$tabPanel(
+                  "Qualifying Round",
+                  shiny$div(
+                    class = "round-col",
+                    lapply(seq_len(nrow(qualifying)), function(i) {
+                      knockoutCard(qualifying[i,])
+                    })
+                  )
+                ),
+                shiny$tabPanel(
+                  "Round of 16",
+                  shiny$div(
+                    class = "round-col",
+                    lapply(seq_len(nrow(round16)), function(i) {
+                      knockoutCard(round16[i,])
+                    })
+                  )
+                ),
+                shiny$tabPanel(
+                  "Quarter Finals",
+                  shiny$div(
+                    class = "round-col",
+                    lapply(seq_len(nrow(quarters)), function(i) {
+                      knockoutCard(quarters[i,])
+                    })
+                  )
+                ),
+                shiny$tabPanel(
+                  "Semi Finals",
+                  shiny$div(
+                    class = "round-col",
+                    lapply(seq_len(nrow(semis)), function(i) {
+                      knockoutCard(semis[i,])
+                    })
+                  )
+                ),
+                shiny$tabPanel(
+                  "Final",
+                  shiny$div(
+                    class = "round-col",
+                    knockoutCard(finals[1,])
+                  )
+                )
+              )
+            )
+            
+          )
+          
+          
+          
+        } else if (league == "WSFC") {
           ### WSFC
           data |> 
             dplyr$select(!c(matchtype, season)) |>
