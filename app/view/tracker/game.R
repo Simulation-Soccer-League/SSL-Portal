@@ -410,9 +410,17 @@ server <- function(id, gid = NULL) {
         dplyr$select(Date = IRLDate, Season, League = Matchtype, 
                      Matchday, Home, Away, HomeScore, AwayScore,
                      ExtraTime, Penalties, gid) |>
-        dplyr$mutate(Result = sprintf("%s - %s", HomeScore, AwayScore),
-                     ExtraTime = dplyr$if_else(ExtraTime == 1, "Yes", "No"),
-                     Penalties = dplyr$if_else(Penalties == 1, "Yes", "No")) |> 
+        dplyr$mutate(
+          Result = 
+            dplyr$case_when(
+              is.na(HomeScore) & is.na(AwayScore) ~ "-",
+              Penalties == 1 & HomeScore > AwayScore ~ sprintf("p%s - %s", HomeScore, AwayScore),
+              Penalties == 1 & HomeScore < AwayScore ~ sprintf("%s - %sp", HomeScore, AwayScore),
+              ExtraTime == 1 & HomeScore > AwayScore ~ sprintf("e%s - %s", HomeScore, AwayScore),
+              ExtraTime == 1 & HomeScore < AwayScore ~ sprintf("%s - %se", HomeScore, AwayScore),
+              TRUE ~ sprintf("%s - %s", HomeScore, AwayScore)
+            )
+        ) |> 
         dplyr$select(!c(HomeScore, AwayScore)) |> 
         dplyr$relocate(Result, .after = Away) |> 
         reactable(
