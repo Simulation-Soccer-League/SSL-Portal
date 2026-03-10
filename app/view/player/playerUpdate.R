@@ -87,7 +87,7 @@ server <- function(id, auth, updated, type, player = NULL) {
           )
         ) |> 
           shiny$div(class = "frozen-bottom"),
-        shiny$div(style = "min-height:100px;")
+        shiny$div(class = "frozen-bottom-buffer")
       )
     })
     

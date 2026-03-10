@@ -467,7 +467,7 @@ $navbar-items-width: 112px;
     margin: auto;
     padding-top: 10px;
   }
-
+  
 }
 
 .round-col {
@@ -991,6 +991,14 @@ $navbar-items-width: 112px;
   justify-content: space-evenly;
   align-items: center;
   z-index: 10;
+}
+
+.frozen-bottom-buffer {
+  min-height: 100px;
+  
+  @media (max-width: 767px) {
+    min-height: 175px;
+  }
 }
 
 .rank-list-item {

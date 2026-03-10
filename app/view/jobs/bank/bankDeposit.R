@@ -119,7 +119,7 @@ server <- function(id, auth, updated) {
         ) |> 
           disabled() |> 
           shiny$div(class = "frozen-bottom"),
-        shiny$div(style = "min-height:100px;")
+        shiny$div(class = "frozen-bottom-buffer")
       )
       
     })

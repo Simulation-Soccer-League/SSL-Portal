@@ -216,7 +216,7 @@ server <- function(id, auth, updated) {
             shiny$actionButton(ns("submit"), label = "Submit Player")
           ) |> 
             shiny$div(class = "frozen-bottom"),
-          shiny$div(style = "min-height:100px;")
+          shiny$div(class = "frozen-bottom-buffer")
         )
       })
       
