@@ -91,7 +91,8 @@ server <- function(id, season) {
           id,
           "outfield", 
           season(), 
-          input$selectedLeague
+          input$selectedLeague,
+          input$selectedDivision
         )
 
       keeperData <- shiny$reactive({
@@ -107,7 +108,8 @@ server <- function(id, season) {
           id,
           "keeper", 
           season(), 
-          input$selectedLeague
+          input$selectedLeague,
+          input$selectedDivision
         )
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
