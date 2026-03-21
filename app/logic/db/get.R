@@ -524,6 +524,7 @@ getAcademyIndex <- function(outfield = TRUE, season) {
 getLeagueIndex <- function(
     outfield = TRUE, 
     season, 
+    division = "ALL",
     league = "ALL", 
     name = "ALL",
     career = FALSE
@@ -635,12 +636,15 @@ getLeagueIndex <- function(
               AND
               ( {season} = 'ALL' OR s.season    = {season} )
               AND
+              ( {division} = 'ALL' OR s.division  = {division} )
+              AND
               ( {name} = 'ALL' OR gd.name       = {name} )
           ) AS q01
           GROUP BY ", grouping, "
         ) AS q02;"),
       league = league,
       season = season,
+      division = division,
       name = name
     ) |>
       suppressWarnings()
@@ -715,12 +719,15 @@ getLeagueIndex <- function(
               AND
               ( {season} = 'ALL' OR s.season    = {season} )
               AND
+              ( {division} = 'ALL' OR s.division  = {division} )
+              AND
               ( {name} = 'ALL' OR gd.name       = {name} )
           ) AS q01
           GROUP BY ", grouping, "
         ) AS q02;"),
       league = league,
       season = season,
+      division = division,
       name = name
     ) |>
       suppressWarnings()

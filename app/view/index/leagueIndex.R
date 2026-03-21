@@ -21,7 +21,14 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        shiny$uiOutput(ns("leagueSelector"))
+        shiny$uiOutput(ns("leagueSelector")),
+        shiny$selectInput(
+          inputId = ns("selectedDivision"),
+          label = "Division",
+          choices = 
+            c("ALL", 1:2)
+        ) |> 
+          shinyjs$hidden()
       ),
       bslib$card_body(
         shiny$h1("Outfield"),
@@ -73,10 +80,12 @@ server <- function(id, season) {
       #### DATA GENERATION ####
       outfieldData <- shiny$reactive({
         shiny$req(input$selectedLeague)
+        shiny$req(input$selectedDivision)
         season <- season()
         league <- input$selectedLeague
+        division <- input$selectedDivision
 
-        getLeagueIndex(season = season, league = league)
+        getLeagueIndex(season = season, league = league, division = division)
       }) |>
         shiny$bindCache(
           id,
@@ -87,10 +96,12 @@ server <- function(id, season) {
 
       keeperData <- shiny$reactive({
         shiny$req(input$selectedLeague)
+        shiny$req(input$selectedDivision)
         season <- season()
         league <- input$selectedLeague
-
-        getLeagueIndex(season = season, league = league, outfield = FALSE)
+        division <- input$selectedDivision
+        
+        getLeagueIndex(season = season, league = league, division = division, outfield = FALSE)
       }) |>
         shiny$bindCache(
           id,
@@ -100,9 +111,35 @@ server <- function(id, season) {
         )
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
-        leagueSelectInput(season = season(), session = session)
+        leagueSelectInput(season = season(), session = session)        
       }) |>
         shiny$bindCache(id, season())
+      
+      shiny$observe({
+        shiny$req(input$selectedLeague)
+        
+        if (
+          season() >= 24 &
+          input$selectedLeague %in% c("Major League", "Minor League")
+          ) {
+          shiny$updateSelectInput(
+            session = session,
+            "selectedDivision",
+            selected = 1
+          )
+          
+          shinyjs$show("selectedDivision")
+        } else {
+          shinyjs$hide("selectedDivision")
+          
+          shiny$updateSelectInput(
+            session = session,
+            "selectedDivision",
+            selected = "ALL"
+          )
+        }
+      }) |> 
+        shiny$bindEvent(input$selectedLeague, season())
       
       outstatistics <- c(
         "goals",
