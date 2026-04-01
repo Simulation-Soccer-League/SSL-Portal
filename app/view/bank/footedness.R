@@ -46,30 +46,47 @@ ui <- function(id) {
 #' @export
 server <- function(id, cost, playerData) {
   shiny$moduleServer(id, function(input, output, session) {
-    
     #### Reactives ####
+    leftChoices <- shiny$reactive({
+      left <- playerData()$`left foot` |> as.numeric()
+      right <- playerData()$`right foot` |> as.numeric()
+      
+      if (right == 20) {
+        choices <- c(10, 15, 19)
+      } else {
+        choices <- 20
+      }
+      
+      choices[choices >= left]
+    })
+    
+    rightChoices <- shiny$reactive({
+      left <- playerData()$`left foot` |> as.numeric()
+      right <- playerData()$`right foot` |> as.numeric()
+      
+      if (left == 20) {
+        choices <- c(10, 15, 19)
+      } else {
+        choices <- 20
+      }
+      
+      choices[choices >= right]
+    })
     
     #### Observers ####
     ## Updates the selector based on current footedness
     shiny$observe({
+      print(leftChoices())
+      print(rightChoices())
+      
       shiny$updateSelectInput(
         inputId = "left",
-        choices = 
-          seq(
-            playerData()$`left foot`,
-            20,
-            by = 5
-          )
+        choices = leftChoices()
       )
       
       shiny$updateSelectInput(
         inputId = "right",
-        choices = 
-          seq(
-            playerData()$`right foot`,
-            20,
-            by = 5
-          )
+        choices = rightChoices()
       )
     })
     
@@ -80,9 +97,13 @@ server <- function(id, cost, playerData) {
       left <- input$left |> as.numeric()
       right <- input$right |> as.numeric()
       
-      cost(
-        ((left - playerData()$`left foot`) + (right - playerData()$`right foot`)) / 5 * 7500000
-      )
+      changes <- 
+        which(leftChoices() == left) - 
+        which(leftChoices() == playerData()$`left foot`) + 
+        which(rightChoices() == right) - 
+        which(rightChoices() == playerData()$`right foot`)
+      
+      cost(7.5E6 * changes)
     }) |> 
       shiny$bindEvent(
         input$left, input$right,

@@ -212,7 +212,14 @@ server <- function(id, gid = NULL) {
         if (any(bs$HomeScore, bs$AwayScore) |> is.na()) {
           " - "
         } else {
-          sprintf("%s - %s", bs$HomeScore, bs$AwayScore)  
+          dplyr$case_when(
+            is.na(bs$HomeScore) & is.na(bs$AwayScore) ~ "-",
+            bs$Penalties == 1 & bs$HomeScore > bs$AwayScore ~ sprintf("p%s - %s", bs$HomeScore, bs$AwayScore),
+            bs$Penalties == 1 & bs$HomeScore < bs$AwayScore ~ sprintf("%s - %sp", bs$HomeScore, bs$AwayScore),
+            bs$ExtraTime == 1 & bs$HomeScore > bs$AwayScore ~ sprintf("e%s - %s", bs$HomeScore, bs$AwayScore),
+            bs$ExtraTime == 1 & bs$HomeScore < bs$AwayScore ~ sprintf("%s - %se", bs$HomeScore, bs$AwayScore),
+            TRUE ~ sprintf("%s - %s", bs$HomeScore, bs$AwayScore)
+          ) 
         }
       })
       

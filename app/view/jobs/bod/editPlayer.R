@@ -89,12 +89,12 @@ server <- function(id, auth, updated) {
                   shiny$selectInput(
                     ns("left"), 
                     "Change left foot",
-                    choices = c(10, 15, 20)
+                    choices = c(10, 15, 19, 20)
                   ),
                   shiny$selectInput(
                     ns("right"), 
                     "Change right foot",
-                    choices = c(10, 15, 20)
+                    choices = c(10, 15, 19, 20)
                   )
                 )
               )
