@@ -295,8 +295,8 @@ server <- function(id, auth, updated) {
             )
             
             assertthat$assert_that(
-              inputFoot$left %in% c(10, 15, 20),
-              inputFoot$right %in% c(10, 15, 20),
+              inputFoot$left %in% c(10, 15, 19, 20),
+              inputFoot$right %in% c(10, 15, 19, 20),
               msg = "You are trying to purchase footedness that does not exist."
             )
             
