@@ -325,7 +325,7 @@ getSchedule <- function(league, season) {
       ( {season} = 'ALL'       OR season    = {season} )
       AND
       ( {league} = 'ALL'       OR MatchType = {league} )
-    ORDER BY IRLDate;
+    ORDER BY gid;
   ",
     season = season,
     league = league
