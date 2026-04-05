@@ -6,7 +6,7 @@ box::use(
 )
 
 box::use(
-  app / logic / db / database[indexQuery, portalQuery],
+  app/logic/db/database[budgetQuery, indexQuery, portalQuery],
 )
 
 #' @export
@@ -1081,5 +1081,18 @@ getPreviousGames <- function(home, away){
     ORDER BY gid DESC;",
     home = home,
     away = away
+  )
+}
+
+#' @export
+getOrgBudget <- function(oid) {
+  budgetQuery(
+    "SELECT pd.team, pd.affiliate, pd.pid, pd.name, cs.season, cs.salary, cs.vet, cs.maj, cs.nmc, cs.rcc, cs.ia
+    FROM contractseasons cs
+    LEFT JOIN contract c ON cs.cid = c.cid
+    LEFT JOIN portaldb.allplayersview pd ON c.pid = pd.pid
+    WHERE c.orgid = {oid} AND cs.season > {season};",
+    oid = oid,
+    season = getCurrentSeason()$season
   )
 }

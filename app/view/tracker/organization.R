@@ -2,18 +2,28 @@ box::use(
   bslib,
   dplyr,
   glue,
+  purrr[pmap_chr,],
   reactable[
+    colDef,
+    colFormat,
+    JS,
+    reactable,
     reactableOutput, 
     renderReactable
   ],
+  scales[dollar],
   shiny,
+  shinyjs,
   shiny.router[get_query_param],
   stringi[stri_remove_empty],
+  tidyr[pivot_wider,]
 )
 
 box::use(
+  app/logic/constant[currentSeason,],
   app/logic/db/get[
     getOrganizationPlayers, 
+    getOrgBudget,
     getTeamInformation,
   ],
   app/logic/ui/reactableHelper[
@@ -114,6 +124,37 @@ server <- function(id, oid = NULL, updated) {
       
       getTeamInformation(oid = query()) |> 
         dplyr$arrange(affiliate)
+    }) |> 
+      shiny$bindCache(id, query(), updated()) |> 
+      shiny$bindEvent(query())
+    
+    budget <- shiny$reactive({
+      shiny$req(query())
+      
+      getOrgBudget(oid = query()) |> 
+        dplyr$mutate(
+          flags = pmap_chr(
+            list(vet, maj, nmc, rcc),
+            ~ {
+              f <- c(
+                if (..1 == 1) "VET",
+                if (..2 == 1) "MAJ",
+                if (..3 == 1) "NMC",
+                if (..4 == 1) "RCC"
+              )
+              if (length(f) == 0) "" else paste0(" (", paste(f, collapse = ", "), ")")
+            }
+          ),
+          salaryText = 
+            sprintf("%s%s",
+                    salary |> dollar(),
+                    flags
+            )
+          ) |> 
+        pivot_wider(names_from = season, 
+                    names_glue = "{season}_{.value}",
+                    values_from = c(salary, salaryText)
+                  )
     }) |> 
       shiny$bindCache(id, query(), updated()) |> 
       shiny$bindEvent(query())
@@ -220,13 +261,20 @@ server <- function(id, oid = NULL, updated) {
       shiny$tabsetPanel(
         shiny$tabPanel(
           title = paste(majorName, dplyr$if_else(query() < 0, "", "(Major)")),
-          reactableOutput(session$ns("major"), height = 433) |> 
+          reactableOutput(session$ns("major"), height = (nrow(majors()) + 1.40) * 35) |> 
             withSpinnerCustom(height = 50)
         ),
         if (nrow(minors()) > 0) {
           shiny$tabPanel(
             title = paste(minorName, "(Minor)"),
-            reactableOutput(session$ns("minor"), height = 433) |> 
+            reactableOutput(session$ns("minor"), height = (nrow(minors()) + 1.40) * 35) |> 
+              withSpinnerCustom(height = 50)
+          )
+        },
+        if (query() >= 0) {
+          shiny$tabPanel(
+            title = "Budget",
+            reactableOutput(session$ns("budget"), height = (nrow(budget()) + 3) * 35) |> 
               withSpinnerCustom(height = 50)
           )
         }
@@ -239,6 +287,130 @@ server <- function(id, oid = NULL, updated) {
     
     output$minor <- renderReactable({
       orgReactable(minors())
+    })
+    
+    
+    output$budget <- renderReactable({
+      seasons <- currentSeason$season:(currentSeason$season + 4)
+      
+      seasonTextCols <- lapply(seasons, function(season) {
+        # Create a colDef for the visible text column
+        colDef(
+          name = sprintf("S%s", as.character(season)),
+          show = TRUE,
+          aggregate = JS(
+            sprintf(
+              "function(values, rows) {
+                let totalSalary = 0;
+                
+                rows.forEach(function(row)  {
+                  totalSalary += row['%s_salary'];
+                });
+                
+                return new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                  minimumFractionDigits: 0
+                }).format(totalSalary);
+              }",
+              season
+            ) 
+          ),
+          style = JS(
+            sprintf(
+              "function(rowInfo) {
+                var value = rowInfo.row['%s_salary']
+                var affiliate = rowInfo.row['affiliate']
+                
+                if ( (affiliate == 1 && value > 55E6) || 
+                      (affiliate == 2 & value > 45E6) ){
+                  color = '#a9322678'
+                } else {
+                  color = '#ffffff00'
+                }
+                
+                return { background: color }
+              }",
+              season
+            ) 
+          )
+        )
+      })
+      
+      names(seasonTextCols) <- sprintf("%s_salaryText", seasons)
+      
+      seasonCols <- lapply(seasons, function(season) {
+        # Create a colDef for the visible text column
+        colDef(
+          name = sprintf("%s_salary", as.character(season)),
+          show = FALSE,
+          aggregate = JS(
+            sprintf(
+              "function(values, rows) {
+                let totalSalary = 0;
+                
+                rows.forEach(function(row)  {
+                  totalSalary += row['%s_salary'];
+                });
+                
+                return totalSalary;
+              }",
+              season
+            ) 
+          )
+        )
+      })
+      
+      names(seasonCols) <- sprintf("%s_salary", seasons)
+      
+      budget() |> 
+        reactable(
+          groupBy = "team",
+          defaultExpanded = TRUE,
+          defaultColDef = colDef(show = FALSE),
+          pagination = FALSE,
+          columns = c(
+            list(
+              team = colDef(name = "Roster", show = TRUE),
+              name = colDef(name = "Player", show = TRUE),
+              affiliate = colDef(aggregate = "mean"),
+              ia = colDef(
+                name = "IA Contract Status", 
+                show = TRUE, 
+                aggregate = JS(
+                  "function(values, rows) {
+                    let totalIA = 0;
+                    
+                    rows.forEach(function(row)  {
+                      totalIA += row['ia'];
+                    });
+                    
+                    return totalIA;
+                  }"
+                ),
+                style = JS(
+                  "function(rowInfo) {
+                    var value = rowInfo.row['ia']
+                    var affiliate = rowInfo.row['affiliate']
+                    
+                    if (affiliate == 1 && value > 3) {
+                      color = '#a9322678'
+                    } else {
+                      color = '#ffffff00'
+                    }
+                    
+                    return { background: color }
+                  }"
+                ),
+                cell = function (value) {
+                  if (value == 0) "\u2714\ufe0f No" else "\u274c Yes"
+                }
+              )
+            ), 
+            seasonTextCols,
+            seasonCols
+          )
+        )
     })
     
     output$clubLogo <- shiny$renderUI({
