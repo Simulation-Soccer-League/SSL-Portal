@@ -1087,7 +1087,7 @@ getPreviousGames <- function(home, away){
 #' @export
 getOrgBudget <- function(oid) {
   budgetQuery(
-    "SELECT pd.team, pd.affiliate, pd.pid, pd.name, cs.season, cs.salary, cs.vet, cs.maj, cs.nmc, cs.rcc, cs.ia
+    "SELECT pd.team, pd.affiliate, pd.pid, pd.name, pd.status_p, cs.season, cs.salary, cs.vet, cs.maj, cs.nmc, cs.rcc, cs.ia
     FROM contractseasons cs
     LEFT JOIN contract c ON cs.cid = c.cid
     LEFT JOIN portaldb.allplayersview pd ON c.pid = pd.pid

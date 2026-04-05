@@ -2,7 +2,14 @@ box::use(
   dplyr,
   glue,
   purrr[is_empty, map, pmap],
-  reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
+  reactable[
+    colDef, 
+    colFormat, 
+    JS, 
+    reactable, 
+    reactableOutput, 
+    renderReactable,
+  ],
   shiny.router[route_link],
   shiny[a, div, h4, img, span, tagList],
   stats[setNames],
@@ -413,6 +420,147 @@ orgReactable <- function(data) {
 }
 
 #' @export
+budgetReactable <- function(budget) {
+  
+  seasons <- constant$currentSeason$season:(constant$currentSeason$season + 4)
+  
+  seasonTextCols <- lapply(seasons, function(season) {
+    # Create a colDef for the visible text columns
+    colDef(
+      name = sprintf("S%s", as.character(season)),
+      show = TRUE,
+      aggregate = JS(
+        sprintf(
+          "function(values, rows) {
+                let totalSalary = 0;
+                
+                rows.forEach(function(row)  {
+                  totalSalary += row['%s_salary'];
+                });
+                
+                return new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                  minimumFractionDigits: 0
+                }).format(totalSalary);
+              }",
+          season
+        ) 
+      ),
+      style = JS(
+        sprintf(
+          "function(rowInfo) {
+                var value = rowInfo.row['%s_salary']
+                var affiliate = rowInfo.row['affiliate']
+                
+                if ( (affiliate == 1 && value > 55E6) || 
+                      (affiliate == 2 & value > 45E6) ){
+                  color = '#a9322678'
+                } else {
+                  color = '#ffffff00'
+                }
+                
+                return { background: color }
+              }",
+          season
+        ) 
+      )
+    )
+  })
+  
+  names(seasonTextCols) <- sprintf("%s_salaryText", seasons)
+  
+  seasonCols <- lapply(seasons, function(season) {
+    # Create a colDef for the invisible numeric columns
+    colDef(
+      name = sprintf("%s_salary", as.character(season)),
+      show = FALSE,
+      aggregate = JS(
+        sprintf(
+          "function(values, rows) {
+                let totalSalary = 0;
+                
+                rows.forEach(function(row)  {
+                  totalSalary += row['%s_salary'];
+                });
+                
+                return totalSalary;
+              }",
+          season
+        ) 
+      )
+    )
+  })
+  
+  names(seasonCols) <- sprintf("%s_salary", seasons)
+  
+  budget |> 
+    reactable(
+      groupBy = "team",
+      defaultExpanded = TRUE,
+      defaultColDef = colDef(show = FALSE),
+      pagination = FALSE,
+      columns = c(
+        list(
+          team = colDef(name = "Roster", show = TRUE),
+          name = 
+            colDef(
+              name = "Player", 
+              show = TRUE,
+              cell = function(value, rowIndex) {
+                pid <- budget[rowIndex, "pid"] # Get the corresponding pid
+                tippy(
+                  a(
+                    href = route_link(paste0("tracker/player?pid=", pid)),
+                    value # Display the name as the link text
+                  ),
+                  tooltip = value,
+                  theme = "ssl"
+                )
+              }
+            ),
+          affiliate = colDef(aggregate = "mean"),
+          ia = colDef(
+            name = "IA Contract Status", 
+            show = TRUE, 
+            aggregate = JS(
+              "function(values, rows) {
+                    let totalIA = 0;
+                    
+                    rows.forEach(function(row)  {
+                      totalIA += row['ia'];
+                    });
+                    
+                    return totalIA;
+                  }"
+            ),
+            style = JS(
+              "function(rowInfo) {
+                    var value = rowInfo.row['ia']
+                    var affiliate = rowInfo.row['affiliate']
+                    
+                    if (affiliate == 1 && value > 3) {
+                      color = '#a9322678'
+                    } else {
+                      color = '#ffffff00'
+                    }
+                    
+                    return { background: color }
+                  }"
+            ),
+            cell = function (value) {
+              if (value == 0) "\u2714\ufe0f No" else "\u274c Yes"
+            }
+          )
+        ), 
+        seasonTextCols,
+        seasonCols
+      )
+    )
+  
+}
+
+#' @export
 attributeReactable <- function(data, session, output) {
   processedData <-
     data |>
@@ -537,6 +685,7 @@ reactableBar <- function(value, total, side = "left", color = constant$sslBlueL)
     )
   )
 }
+
 
 
 

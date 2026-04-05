@@ -4,16 +4,11 @@ box::use(
   glue,
   purrr[pmap_chr,],
   reactable[
-    colDef,
-    colFormat,
-    JS,
-    reactable,
     reactableOutput, 
     renderReactable
   ],
   scales[dollar],
   shiny,
-  shinyjs,
   shiny.router[get_query_param],
   stringi[stri_remove_empty],
   tidyr[pivot_wider,]
@@ -27,6 +22,7 @@ box::use(
     getTeamInformation,
   ],
   app/logic/ui/reactableHelper[
+    budgetReactable,
     orgReactable
   ],
   app/logic/ui/spinner[withSpinnerCustom],
@@ -116,8 +112,8 @@ server <- function(id, oid = NULL, updated) {
           pid
         )
     }) |> 
-      shiny$bindCache(id, query(), updated()) |> 
-      shiny$bindEvent(query())
+      shiny$bindCache(id, query()) |> 
+      shiny$bindEvent(query(), updated())
     
     teamInfo <- shiny$reactive({
       shiny$req(query())
@@ -291,126 +287,7 @@ server <- function(id, oid = NULL, updated) {
     
     
     output$budget <- renderReactable({
-      seasons <- currentSeason$season:(currentSeason$season + 4)
-      
-      seasonTextCols <- lapply(seasons, function(season) {
-        # Create a colDef for the visible text column
-        colDef(
-          name = sprintf("S%s", as.character(season)),
-          show = TRUE,
-          aggregate = JS(
-            sprintf(
-              "function(values, rows) {
-                let totalSalary = 0;
-                
-                rows.forEach(function(row)  {
-                  totalSalary += row['%s_salary'];
-                });
-                
-                return new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                  minimumFractionDigits: 0
-                }).format(totalSalary);
-              }",
-              season
-            ) 
-          ),
-          style = JS(
-            sprintf(
-              "function(rowInfo) {
-                var value = rowInfo.row['%s_salary']
-                var affiliate = rowInfo.row['affiliate']
-                
-                if ( (affiliate == 1 && value > 55E6) || 
-                      (affiliate == 2 & value > 45E6) ){
-                  color = '#a9322678'
-                } else {
-                  color = '#ffffff00'
-                }
-                
-                return { background: color }
-              }",
-              season
-            ) 
-          )
-        )
-      })
-      
-      names(seasonTextCols) <- sprintf("%s_salaryText", seasons)
-      
-      seasonCols <- lapply(seasons, function(season) {
-        # Create a colDef for the visible text column
-        colDef(
-          name = sprintf("%s_salary", as.character(season)),
-          show = FALSE,
-          aggregate = JS(
-            sprintf(
-              "function(values, rows) {
-                let totalSalary = 0;
-                
-                rows.forEach(function(row)  {
-                  totalSalary += row['%s_salary'];
-                });
-                
-                return totalSalary;
-              }",
-              season
-            ) 
-          )
-        )
-      })
-      
-      names(seasonCols) <- sprintf("%s_salary", seasons)
-      
-      budget() |> 
-        reactable(
-          groupBy = "team",
-          defaultExpanded = TRUE,
-          defaultColDef = colDef(show = FALSE),
-          pagination = FALSE,
-          columns = c(
-            list(
-              team = colDef(name = "Roster", show = TRUE),
-              name = colDef(name = "Player", show = TRUE),
-              affiliate = colDef(aggregate = "mean"),
-              ia = colDef(
-                name = "IA Contract Status", 
-                show = TRUE, 
-                aggregate = JS(
-                  "function(values, rows) {
-                    let totalIA = 0;
-                    
-                    rows.forEach(function(row)  {
-                      totalIA += row['ia'];
-                    });
-                    
-                    return totalIA;
-                  }"
-                ),
-                style = JS(
-                  "function(rowInfo) {
-                    var value = rowInfo.row['ia']
-                    var affiliate = rowInfo.row['affiliate']
-                    
-                    if (affiliate == 1 && value > 3) {
-                      color = '#a9322678'
-                    } else {
-                      color = '#ffffff00'
-                    }
-                    
-                    return { background: color }
-                  }"
-                ),
-                cell = function (value) {
-                  if (value == 0) "\u2714\ufe0f No" else "\u274c Yes"
-                }
-              )
-            ), 
-            seasonTextCols,
-            seasonCols
-          )
-        )
+      budgetReactable(budget())
     })
     
     output$clubLogo <- shiny$renderUI({
