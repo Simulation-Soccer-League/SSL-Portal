@@ -163,3 +163,8 @@ isDepartmentHead <- function(usergroup){
   6 %in% usergroup
 }
 
+#' @export
+isBountyGrader <- function(usergroup){
+  17 %in% usergroup
+}
+

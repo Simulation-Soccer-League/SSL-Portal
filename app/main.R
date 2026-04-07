@@ -16,6 +16,7 @@ box::use(
     isBankerAccountant,
     isBoD,
     isBoDIntern,
+    isBountyGrader,
     isDepartmentHead,
     isFileworker,
     isManager,
@@ -481,7 +482,8 @@ server <- function(id) {
                 isManager(authOutput()$usergroup),
                 isPT(authOutput()$usergroup),
                 isBoD(authOutput()$usergroup),
-                isBoDIntern(authOutput()$usergroup)
+                isBoDIntern(authOutput()$usergroup),
+                isBountyGrader(authOutput()$usergroup)
               )
           ) {
             bankDeposit$server(
