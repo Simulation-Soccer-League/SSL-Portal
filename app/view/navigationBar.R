@@ -48,6 +48,7 @@ box::use(
     isFileworker,
     isManager,
     isPT,
+    isBountyGrader,
   ],
   app/logic/ui/spinner[withSpinnerCustom],
   app/logic/player/playerChecks[checkApprovingPlayer, hasActivePlayer],
@@ -220,7 +221,8 @@ server <- function(id, auth, resAuth, updated, season) {
         isBoDIntern(userGroup),
         isBankerAccountant(userGroup),
         isManager(userGroup),
-        isPT(userGroup)
+        isPT(userGroup),
+        isBountyGrader(userGroup)
       )) {
         items <- list(
           if (
@@ -230,15 +232,21 @@ server <- function(id, auth, resAuth, updated, season) {
               isPT(userGroup), 
               isBoD(userGroup),
               isBoDIntern(userGroup), 
-              isManager(userGroup)
+              isManager(userGroup),
+              isBountyGrader(userGroup)
               )
             ) {
             navMenuItem(
               label = "Bank",
               subItems = list(
                 a("Bank Deposits", href = route_link("bank/deposit")),
-                if (any(isBankerAccountant(userGroup), isBoD(userGroup),
-                        isBoDIntern(userGroup))) {
+                if (
+                  any(
+                    isBankerAccountant(userGroup), 
+                    isBoD(userGroup),
+                    isBoDIntern(userGroup)
+                  )
+                ) {
                   a("Process Transactions", href = route_link("bank/process"))
                 }
               )
