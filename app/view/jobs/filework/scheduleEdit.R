@@ -163,7 +163,8 @@ server <- function(id, auth, updated) {
           if (
             all(!is.na(input[[paste0("modalHScore", id)]]),
                 !is.na(input[[paste0("modalAScore", id)]])) |
-            (game$Home == "TBA" & input[[paste0("modalHome", id)]] != "TBA")
+            (game$Home == "TBA" & input[[paste0("modalHome", id)]] != "TBA") |
+            (game$Away == "TBA" & input[[paste0("modalAway", id)]] != "TBA")
           ) {
             tryCatch({
               indexQuery(
