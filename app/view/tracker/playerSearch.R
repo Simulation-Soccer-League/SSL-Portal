@@ -61,6 +61,9 @@ server <- function(id) {
               searchable = TRUE,
               show = FALSE
             ),
+            USERNAME = colDef(
+              searchable = TRUE
+            ),
             NAME = colDef(
               searchable = TRUE,
               cell = function(value, rowIndex) {
