@@ -1096,3 +1096,17 @@ getOrgBudget <- function(oid) {
     season = getCurrentSeason()$season
   )
 }
+
+#' @export
+getPlayerContract <- function(pid) {
+  budgetQuery(
+    "SELECT pd.organization, pd.affiliate, c.pid, pd.name, pd.status_p, cs.season, cs.salary, cs.vet, cs.maj, cs.nmc, cs.rcc, cs.ia, 
+      c.*
+    FROM contractseasons cs
+    LEFT JOIN contract c ON cs.cid = c.cid
+    LEFT JOIN portaldb.allplayersview pd ON c.pid = pd.pid
+    WHERE c.pid = {pid} AND cs.season >= {season};",
+    pid = pid,
+    season = getCurrentSeason()$season
+  )
+}

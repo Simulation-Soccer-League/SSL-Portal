@@ -255,6 +255,15 @@ server <- function(id, auth, resAuth, updated, season) {
               )
             )
           },
+          if (any(isBoD(userGroup), isBankerAccountant(userGroup))) {
+            navMenuItem(
+              label = "Budget",
+              subItems = list(
+                a("Add contracts", href = route_link("budget/add")),
+                a("Edit contracts", href = route_link("budget/edit"))
+              )
+            )
+          },
           if (any(isFileworker(userGroup), isBoD(userGroup), isBoDIntern(userGroup))) {
             navMenuItem(
               label = "File Work",

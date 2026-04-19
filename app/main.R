@@ -42,6 +42,8 @@ box::use(
   app/view/jobs/bod/approvePlayer,
   app/view/jobs/bod/assignManager,
   app/view/jobs/bod/editPlayer,
+  app/view/jobs/budget/editContract,
+  app/view/jobs/budget/addContract,
   app/view/jobs/filework/export,
   app/view/jobs/filework/import,
   app/view/jobs/filework/scheduleEdit,
@@ -150,6 +152,8 @@ ui <- function(id) {
       route("myBank", myBank$ui(ns("myBank"))),
       route("bank/deposit", bankDeposit$ui(ns("bankDeposit"))),
       route("bank/process", bankProcess$ui(ns("bankProcess"))),
+      route("budget/edit", editContract$ui(ns("editContract"))),
+      route("budget/add", editContract$ui(ns("addContract"))),
       route("myPlayer/", myPlayer$ui(ns("myPlayer"))),
       route("myPlayer/update", playerUpdate$ui(ns("update"))),
       route("myPlayer/reroll", playerUpdate$ui(ns("reroll"))),
@@ -216,7 +220,8 @@ server <- function(id) {
         draftclass = FALSE, 
         nationTracker = FALSE,
         position = FALSE, main = FALSE,
-        wsfc = FALSE, game = FALSE, budget = FALSE
+        wsfc = FALSE, game = FALSE, budget = FALSE, 
+        editContract = FALSE, addContract = FALSE
       )
     
     ## Observer that checks the current page and loads the server for the page ONCE
@@ -518,6 +523,46 @@ server <- function(id) {
               updated = updated
             )
             loadedServer$bankProcess <- TRUE
+          }
+        } else {
+          change_page("")
+        }
+        
+      } else if (current == "budget/edit") {
+        
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$editContract & 
+              any(
+                isBankerAccountant(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup)
+              )
+          ) {
+            editContract$server(
+              "editContract",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$editContract <- TRUE
+          }
+        } else {
+          change_page("")
+        }
+        
+      } else if (current == "budget/add") {
+        
+        if (navigationCheck(authOutput())) {
+          if (!loadedServer$addContract & 
+              any(
+                isBankerAccountant(authOutput()$usergroup),
+                isBoD(authOutput()$usergroup)
+              )
+          ) {
+            addContract$server(
+              "addContract",
+              auth    = authOutput(),
+              updated = updated
+            )
+            loadedServer$addContract <- TRUE
           }
         } else {
           change_page("")
