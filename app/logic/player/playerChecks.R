@@ -188,16 +188,19 @@ checkDuplicatedNames <- function(first, last){
   first <- str_trim(first)
   last <- str_trim(last)
   
-  portalQuery(
-    query = "
-      SELECT *
-      FROM playerdata
-      WHERE first = {first}
-        AND last  = {last};
-    ",
-    first = first,
-    last  = last
-  ) |> 
+  duplicates <- 
+    portalQuery(
+      query = "
+        SELECT *
+        FROM playerdata
+        WHERE `first` = {first}
+          AND `last`  = {last};
+      ",
+      first = first,
+      last  = last
+    ) 
+  
+  duplicates |> 
     nrow() > 0
 }
 

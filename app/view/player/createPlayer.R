@@ -819,7 +819,8 @@ server <- function(id, auth, updated) {
               "You can select two (2) secondary positions."
             )
           }
-        } else if (checkDuplicatedNames(input$first, input$last)){
+        } else if (checkDuplicatedNames(input$firstName, input$lastName)){
+          
           showToast(
             .options = constant$sslToastOptions,
             "error", 
