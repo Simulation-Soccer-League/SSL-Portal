@@ -218,6 +218,13 @@ server <- function(id, auth, updated) {
             "You have (accidentally we hope) clicked the AC button more times than allowed.
             You have already claimed your Activity Check for this week."
           )
+        } else if (completedAC(playerData()$pid)) {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "You have (accidentally we hope) clicked the AC button more times than allowed.
+            You have already claimed your Activity Check for this week."
+          )
         } else {
           tpe <- 
             dplyr$tibble(
@@ -273,6 +280,13 @@ server <- function(id, auth, updated) {
         }
         
         if ((now() |> as.numeric()) - recentPost$time < 600) {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "You have (accidentally we hope) clicked the TC button more times than allowed.
+            You have already claimed your Training Camp for this season."
+          )
+        } else if (completedTC(playerData()$pid)) {
           showToast(
             .options = constant$sslToastOptions,
             "warning",
