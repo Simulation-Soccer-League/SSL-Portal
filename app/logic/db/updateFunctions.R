@@ -19,7 +19,7 @@ box::use(
     portalQuery,
   ],
   app/logic/db/discord[sendApprovedCreate, sendRetiredPlayer],
-  app/logic/db/get[getActivePlayer,],
+  app/logic/db/get[getActivePid,],
   app/logic/db/logFunctions[
     logBankTransaction,
   ]
@@ -594,7 +594,7 @@ retirePlayer <- function(data, uid) {
               VALUES (UNIX_TIMESTAMP(), {uid}, {pid}, 'Player Status', 'Active', 'Retiring');
             ",
       uid = uid,
-      pid = getActivePlayer(uid),
+      pid = getActivePid(uid),
       type = "set"
     )
     
@@ -602,7 +602,7 @@ retirePlayer <- function(data, uid) {
       query = "UPDATE playerdata 
             SET status_p = 2 
             WHERE pid = {pid};",
-      pid = getActivePlayer(uid),
+      pid = getActivePid(uid),
       type = "set"
     )
     

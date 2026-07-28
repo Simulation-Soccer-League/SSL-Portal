@@ -35,7 +35,7 @@ box::use(
   app/logic/db/get[
     getAChistory, 
     getRecentCreates, 
-    getSchedule, 
+    memoisedGetSchedule, 
     getStandings, 
     getTopEarners,
   ],
@@ -147,22 +147,19 @@ server <- function(id, usergroup, season) {
       standings <- shiny$reactive({
         getStandings(league = 'ALL', season = season()) |> 
           filter(matchtype > 0)
-      }) |> 
-        shiny$bindCache(id, season())
+      })
       
       schedule <- shiny$reactive({
         shiny$req(input$selectedLeague)
         
         league <- input$selectedLeague
         
-        getSchedule(league = league, season = season())
-      }) |> 
-        shiny$bindCache(id, input$selectedLeague, season())
+        memoisedGetSchedule(league = league, season = season())
+      })
       
       ac <- shiny$reactive({
         getAChistory()
-      }) |> 
-        shiny$bindCache(id, "ac")
+      })
       
       #### INFORMATION ####
       output$information <- shiny$renderUI({
@@ -493,8 +490,7 @@ server <- function(id, usergroup, season) {
               )
             )
           )
-      }) |> 
-        shiny$bindCache(id, "earner")
+      })
 
       #### Recently created ####
       output$created <- renderReactable({
@@ -518,8 +514,7 @@ server <- function(id, usergroup, season) {
               )
             )
           )
-      }) |> 
-        shiny$bindCache(id, "created")
+      })
 
       output$activityChecks <- renderPlotly({
          ac() |>

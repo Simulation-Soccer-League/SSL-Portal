@@ -71,7 +71,6 @@ server <- function(id, season) {
 
         getAcademyIndex(season = season)
       }) |>
-        shiny$bindCache(id, "outfield", season()) |> 
         shiny$bindEvent(season())
 
       keeperData <- shiny$reactive({
@@ -79,7 +78,6 @@ server <- function(id, season) {
 
         getAcademyIndex(season = season, outfield = FALSE)
       }) |>
-        shiny$bindCache(id, "keeper", season()) |> 
         shiny$bindEvent(season())
 
       #### REACTABLE OUTPUT ####

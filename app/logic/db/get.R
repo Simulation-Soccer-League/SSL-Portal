@@ -1,13 +1,29 @@
 # nolint: line_length_linter
 box::use(
+  cachem[cache_mem],
   dplyr[across, if_else, mutate, where],
   lubridate,
+  memoise[memoise],
   tidyr[replace_na],
 )
 
 box::use(
   app / logic / db / database[indexQuery, portalQuery],
 )
+
+# Alternative memoised function for heavy calls
+memoisedIndexQuery <- 
+  memoise(
+    indexQuery, 
+    cache = cache_mem(max_age = 60*30)
+  )
+
+# Alternative memoised function for heavy calls}
+memoisedPortalQuery <- 
+  memoise(
+    portalQuery,
+    cache = cache_mem(max_age = 60*10)
+  )
 
 #' @export
 getUpdateHistory <- function(pid) {
@@ -70,7 +86,7 @@ getBankTransactions <- function(status) {
 
 #' @export
 getRecentCreates <- function() {
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT name, username, position, pid
     FROM allplayersview
     ORDER BY created DESC
@@ -80,7 +96,7 @@ getRecentCreates <- function() {
 
 #' @export
 getTopEarners <- function() {
-  portalQuery(
+  memoisedPortalQuery(
     query = "
       WITH t AS (
         SELECT
@@ -133,7 +149,7 @@ getPlayerNames <- function(active = FALSE) {
 }
 
 #' @export
-getActivePlayer <- function(uid) {
+getActivePid <- function(uid) {
   portalQuery(
     "SELECT pid
     FROM allplayersview
@@ -147,7 +163,7 @@ getActivePlayer <- function(uid) {
 getPlayers <- function(active) {
   active <- if_else(active == "TRUE", 1, 0)
 
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT *
     FROM allplayersview
     WHERE status_p >= {active}",
@@ -161,7 +177,7 @@ getPlayers <- function(active) {
 
 #' @export
 getOrganizationPlayers <- function(oid) {
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT p.*
       FROM allplayersview p
       LEFT JOIN organizations o ON
@@ -174,7 +190,7 @@ getOrganizationPlayers <- function(oid) {
 
 #' @export
 getTeamInformation <- function(oid){
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT t.*, muid.orgManager, muid.assManager1, 
       muid.assManager2, m.om, m.am1, m.am2
       FROM teams t
@@ -244,7 +260,7 @@ getChangedBuilds <- function() {
     sum(c(-604800))
   
   
-  portalQuery(
+  memoisedPortalQuery(
     query = 
       "SELECT t.name AS teamName, t.affiliate AS currentAffiliate, wb.*, uh.attribute as Attribute, uh.old, uh.new, 
       nat.fmID AS nationalityID
@@ -266,7 +282,7 @@ getDraftClass <- function(class = NULL) {
   # If no class is given it defaults to the youngest
   if (class |> is.null()) {
     class <- 
-      indexQuery(
+      memoisedIndexQuery(
         "SELECT season 
         FROM seasoninfo 
         ORDER BY season DESC 
@@ -274,7 +290,7 @@ getDraftClass <- function(class = NULL) {
       unlist() + 1
   }
 
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT
       name, pid, tpe, team, username, userStatus, playerStatus, position, bankBalance
     FROM 
@@ -290,7 +306,7 @@ getDraftClass <- function(class = NULL) {
 
 #' @export
 getStandings <- function(league, season) {
-  indexQuery(
+  memoisedIndexQuery(
     query = "
       SELECT
         *
@@ -331,6 +347,10 @@ getSchedule <- function(league, season) {
     league = league
   )
 }
+
+#' @export
+memoisedGetSchedule <- memoise(getSchedule, cache = cache_mem(max_age = 60*30))
+
 #' @export
 getPlayer <- function(pid) {
   portalQuery(
@@ -347,7 +367,7 @@ getPlayer <- function(pid) {
 #' @export
 getLatestGames <- function(name, outfield = TRUE) {
   if (outfield) {
-    indexQuery(
+    memoisedIndexQuery(
       query = 
         "SELECT 
            g.gid,
@@ -374,7 +394,7 @@ getLatestGames <- function(name, outfield = TRUE) {
       name = name
     )
   } else {
-    indexQuery(
+    memoisedIndexQuery(
       query =
         "SELECT
            g.gid,
@@ -403,7 +423,7 @@ getLatestGames <- function(name, outfield = TRUE) {
 
 #' @export
 getOrganizations <- function() {
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT o.ID, o.name AS organization, t.abbreviation AS abbreviation, t.name, t.primaryColor, t.secondaryColor, t.city
     FROM teams AS t
     LEFT JOIN organizations AS o ON t.orgID = o.ID
@@ -414,7 +434,7 @@ getOrganizations <- function() {
 #' @export
 getAcademyIndex <- function(outfield = TRUE, season) {
   if (outfield) {
-    indexQuery(
+    memoisedIndexQuery(
       "SELECT
           ao.`name`,
           ao.`club`,
@@ -488,7 +508,7 @@ getAcademyIndex <- function(outfield = TRUE, season) {
     ) |>
       suppressWarnings()
   } else {
-    indexQuery(
+    memoisedIndexQuery(
       "SELECT
           ao.`name`,
           ao.`club`,
@@ -536,7 +556,7 @@ getLeagueIndex <- function(
       grouping <- "name"
     }
     
-    indexQuery(
+    memoisedIndexQuery(
       query = paste0("
         SELECT
           name, `club`, `position`, `apps`, `minutes played`,`average rating`, 
@@ -655,7 +675,7 @@ getLeagueIndex <- function(
       grouping <- "name"
     }
     
-    indexQuery(
+    memoisedIndexQuery(
       query = paste0("
         SELECT
           `name`, `club`, `apps`, `minutes played`, `average rating`,
@@ -898,7 +918,7 @@ getUnapprovedPlayers <- function() {
 
 #' @export
 getCurrentSeason <- function() {
-  indexQuery(
+  memoisedIndexQuery(
     "SELECT * 
     FROM seasoninfo 
     ORDER BY startDate DESC LIMIT 1"
@@ -907,7 +927,7 @@ getCurrentSeason <- function() {
 
 #' @export
 getAChistory <- function(){
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT 
       CONCAT(
         'W',
@@ -928,7 +948,7 @@ getAChistory <- function(){
 
 #' @export
 getGamePlayer <- function(gid){
-  indexQuery(
+  memoisedIndexQuery(
     "SELECT 
       go.`name`,
       pd.pid,
@@ -1052,7 +1072,7 @@ getGamePlayer <- function(gid){
 
 #' @export
 getGameTeam <- function(gid){
-  indexQuery(
+  memoisedIndexQuery(
     "SELECT *
     FROM teamBoxScore
     WHERE gid = {gid};",
@@ -1062,7 +1082,7 @@ getGameTeam <- function(gid){
 
 #' @export
 getGameSchedule <- function(gid){
-  indexQuery(
+  memoisedIndexQuery(
     "SELECT * 
     FROM scheduleview
     WHERE gid = {gid};",
@@ -1072,7 +1092,7 @@ getGameSchedule <- function(gid){
 
 #' @export
 getPreviousGames <- function(home, away){
-  indexQuery(
+  memoisedIndexQuery(
     "SELECT * 
     FROM scheduleview
     WHERE 

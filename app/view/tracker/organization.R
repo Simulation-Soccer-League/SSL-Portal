@@ -106,7 +106,6 @@ server <- function(id, oid = NULL, updated) {
           pid
         )
     }) |> 
-      shiny$bindCache(id, query(), updated()) |> 
       shiny$bindEvent(query())
     
     teamInfo <- shiny$reactive({
@@ -115,7 +114,6 @@ server <- function(id, oid = NULL, updated) {
       getTeamInformation(oid = query()) |> 
         dplyr$arrange(affiliate)
     }) |> 
-      shiny$bindCache(id, query(), updated()) |> 
       shiny$bindEvent(query())
     
     majors <- shiny$reactive({

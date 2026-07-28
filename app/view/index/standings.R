@@ -11,7 +11,7 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[getSchedule, getStandings,],
+  app/logic/db/get[memoisedGetSchedule, getStandings,],
   app/logic/ui/cards[knockoutCard],
   app/logic/ui/reactableHelper[linkOrganization],
   app/logic/ui/selector[leagueSelectInput],
@@ -56,11 +56,6 @@ server <- function(id, updated, season) {
 
         getStandings(season = season, league = league)
       }) |> 
-        shiny$bindCache(
-          id,
-          season(),
-          input$selectedLeague, 3
-        ) |> 
         shiny$bindEvent(
           season(),
           input$selectedLeague,
@@ -84,7 +79,7 @@ server <- function(id, updated, season) {
           ### EMPTY
           NULL
         } else if (league == "The Cup" & season >= 22) {
-          schedule <- getSchedule(league = league, season = season)
+          schedule <- memoisedGetSchedule(league = league, season = season)
           
           qualifying <- schedule[schedule$Matchday == "Qualifying Round", ]
           round16    <- schedule[schedule$Matchday == "Round of 16", ]

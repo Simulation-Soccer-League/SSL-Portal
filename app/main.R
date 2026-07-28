@@ -22,7 +22,7 @@ box::use(
     isManager,
     isPT,
   ],
-  app/logic/db/get[getActivePlayer, getPlayer],
+  app/logic/db/get[getActivePid, getPlayer],
   app/logic/player/playerChecks[
     checkApprovingPlayer,
     eligibleRedist,
@@ -386,7 +386,7 @@ server <- function(id) {
         
       } else if (current == "myPlayer/reroll") {
         
-        if (getActivePlayer(authOutput()$uid) |> 
+        if (getActivePid(authOutput()$uid) |> 
             getPlayer() |> 
             eligibleReroll()){
           if (navigationCheck(authOutput())) {
@@ -412,7 +412,7 @@ server <- function(id) {
         
       } else if (current == "myPlayer/redistribute") {
         
-        if (getActivePlayer(authOutput()$uid) |> 
+        if (getActivePid(authOutput()$uid) |> 
             getPlayer() |> 
             eligibleRedist()) {
           if (navigationCheck(authOutput())) {

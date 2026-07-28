@@ -20,7 +20,7 @@ box::use(
   app/logic/db/logFunctions[logRedist, logReroll],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updatePlayerData],
-  app/logic/db/get[getActivePlayer, getPlayer],
+  app/logic/db/get[getActivePid, getPlayer],
   app/logic/player/playerChecks[
     checkDuplicatedNames, 
     eligibleRedist, 
@@ -555,7 +555,7 @@ server <- function(id, auth, updated, type, player = NULL) {
     #### REACTIVES ####
     playerData <- shiny$reactive({
       if (is.null(player)) {
-        getActivePlayer(auth$uid) |> 
+        getActivePid(auth$uid) |> 
           getPlayer()  |> 
           dplyr$mutate(
             nationality = constant$sslNations[nationality] 

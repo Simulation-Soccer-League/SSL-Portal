@@ -22,7 +22,7 @@ box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
   app/logic/db/discord[sendNewCreate],
-  app/logic/db/get[getActivePlayer],
+  app/logic/db/get[getActivePid],
   app/logic/db/login[isNonActiveForumUser],
 )
 
@@ -178,7 +178,7 @@ updateSummary <- function(current, input, type = "update"){
 
 #' @export
 hasActivePlayer <- function(uid){
-  actives <- getActivePlayer(uid)
+  actives <- getActivePid(uid)
   
   !is_empty(actives)
 }

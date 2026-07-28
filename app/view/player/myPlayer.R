@@ -16,7 +16,7 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
-  app/logic/db/get[getActivePlayer, getPlayer],
+  app/logic/db/get[getActivePid, getPlayer],
   app/logic/db/updateFunctions[
     updateTPE,
     retirePlayer,
@@ -156,7 +156,7 @@ server <- function(id, auth, updated) {
     })
     
     #### OUTPUT SERVER ####
-    player$server("player", pid = getActivePlayer(auth$uid), updated = updated)
+    player$server("player", pid = getActivePid(auth$uid), updated = updated)
     
     #### REACTIVES ####
     bankedTPE <- shiny$reactive({
@@ -165,7 +165,7 @@ server <- function(id, auth, updated) {
     })
     
     playerData <- shiny$reactive({
-      getActivePlayer(auth$uid) |> 
+      getActivePid(auth$uid) |> 
         getPlayer()
     }) |> 
       shiny$bindEvent(updated())

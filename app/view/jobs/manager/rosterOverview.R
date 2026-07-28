@@ -111,9 +111,7 @@ server <- function(id, auth, updated) {
         dplyr$arrange(affiliate, created) |> 
         dplyr$select(!created)
     }) |> 
-      shiny$bindEvent(
-        updated()
-      )
+      shiny$bindEvent(updated())
     
     
     #### OUTPUT SERVER ####

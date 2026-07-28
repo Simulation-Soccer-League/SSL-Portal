@@ -28,7 +28,7 @@ box::use(
     portalQuery,
   ],
   app/logic/db/get[
-    getActivePlayer, 
+    getActivePid, 
     getPlayer, 
   ],
   app/logic/db/login[isNonActiveForumUser],
@@ -99,7 +99,7 @@ server <- function(id, auth, updated) {
       
       #### REACTIVES ####
       playerData <- shiny$reactive({
-        getActivePlayer(auth$uid) |> 
+        getActivePid(auth$uid) |> 
           getPlayer()
       }) |> 
         shiny$bindEvent(updated())

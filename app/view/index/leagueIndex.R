@@ -86,14 +86,7 @@ server <- function(id, season) {
         division <- input$selectedDivision
 
         getLeagueIndex(season = season, league = league, division = division)
-      }) |>
-        shiny$bindCache(
-          id,
-          "outfield", 
-          season(), 
-          input$selectedLeague,
-          input$selectedDivision
-        )
+      })
 
       keeperData <- shiny$reactive({
         shiny$req(input$selectedLeague)
@@ -103,14 +96,8 @@ server <- function(id, season) {
         division <- input$selectedDivision
         
         getLeagueIndex(season = season, league = league, division = division, outfield = FALSE)
-      }) |>
-        shiny$bindCache(
-          id,
-          "keeper", 
-          season(), 
-          input$selectedLeague,
-          input$selectedDivision
-        )
+      })
+      
       #### UI OUTPUT ####
       output$leagueSelector <- shiny$renderUI({
         leagueSelectInput(season = season(), session = session)        

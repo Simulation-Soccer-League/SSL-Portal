@@ -10,7 +10,7 @@ box::use(
 
 box::use(
   app / logic / constant,
-  app / logic / db / get[getSchedule],
+  app / logic / db / get[memoisedGetSchedule],
   app / logic / ui / selector[leagueSelectInput],
   app / logic / ui / spinner[withSpinnerCustom],
 )
@@ -44,13 +44,8 @@ server <- function(id, updated, season) {
         season <- season()
         league <- input$selectedLeague
 
-        getSchedule(season = season, league = league)
+        memoisedGetSchedule(season = season, league = league)
       }) |> 
-        shiny$bindCache(
-          id,
-          season(),
-          input$selectedLeague
-        ) |> 
         shiny$bindEvent(
           season(),
           input$selectedLeague

@@ -69,7 +69,6 @@ server <- function(id) {
         data
       }
     }) |> 
-      shiny$bindCache(id, input$activeStatus) |> 
       shiny$bindEvent(input$activeStatus) 
       
     
