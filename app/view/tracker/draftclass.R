@@ -5,10 +5,10 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / get[getDraftClass],
-  app / logic / ui / reactableHelper[draftClassReactable],
-  app / logic / ui / spinner[withSpinnerCustom],
+  app/logic/constant,
+  app/logic/get/getPlayer[getDraftClass],
+  app/logic/ui/reactableHelper[draftClassReactable],
+  app/logic/ui/spinner[withSpinnerCustom],
 )
 
 #' @export

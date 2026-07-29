@@ -8,11 +8,11 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / get[getLeagueIndex],
-  app / logic / ui / reactableHelper[indexReactable, recordReactable],
-  app / logic / ui / selector[leagueSelectInput],
-  app / logic / ui / spinner[withSpinnerCustom],
+  app/logic/constant,
+  app/logic/get/getIndex[getLeagueIndex],
+  app/logic/ui/reactableHelper[indexReactable, recordReactable],
+  app/logic/ui/selector[leagueSelectInput],
+  app/logic/ui/spinner[withSpinnerCustom],
 )
 
 #' @export

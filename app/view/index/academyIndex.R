@@ -6,10 +6,10 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / get[getAcademyIndex],
-  app / logic / ui / reactableHelper[indexReactable],
-  app / logic / ui / spinner[withSpinnerCustom],
+  app/logic/constant,
+  app/logic/get/getIndex[getAcademyIndex],
+  app/logic/ui/reactableHelper[indexReactable],
+  app/logic/ui/spinner[withSpinnerCustom],
 )
 
 #' @export

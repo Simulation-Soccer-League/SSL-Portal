@@ -19,13 +19,15 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[
+  app/logic/get/getPlayer[
     getBankHistory,
-    getLatestGames,
-    getLeagueIndex,
     getPlayer, 
     getTpeHistory, 
     getUpdateHistory
+  ],
+  app/logic/get/getIndex[
+    getLatestGames,
+    getLeagueIndex,
   ],
   app/logic/ui/reactableHelper[
     attributeReactable, 

@@ -11,7 +11,7 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[memoisedGetSchedule, getStandings,],
+  app/logic/get/getIndex[memoisedGetSchedule, getStandings,],
   app/logic/ui/cards[knockoutCard],
   app/logic/ui/reactableHelper[linkOrganization],
   app/logic/ui/selector[leagueSelectInput],

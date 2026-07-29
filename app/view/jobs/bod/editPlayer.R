@@ -16,12 +16,12 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[
+  app/logic/db/login[isNonActiveForumUser],
+  app/logic/db/updateFunctions[updatePlayerData],
+  app/logic/get/getPlayer[
     getPlayer,
     getPlayers,
   ],
-  app/logic/db/login[isNonActiveForumUser],
-  app/logic/db/updateFunctions[updatePlayerData],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],

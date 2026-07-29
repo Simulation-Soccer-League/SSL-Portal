@@ -22,7 +22,7 @@ box::use(
     isManager,
     isPT,
   ],
-  app/logic/db/get[getActivePid, getPlayer],
+  app/logic/get/getPlayer[getActivePid, getPlayer],
   app/logic/player/playerChecks[
     checkApprovingPlayer,
     eligibleRedist,

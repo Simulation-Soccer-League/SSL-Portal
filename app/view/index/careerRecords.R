@@ -7,10 +7,10 @@ box::use(
 )
 
 box::use(
-  app / logic / db / get[getLeagueIndex],
-  app / logic / ui / reactableHelper[recordReactable],
-  app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexCol, flexRow],
+  app/logic/get/getIndex[getLeagueIndex],
+  app/logic/ui/reactableHelper[recordReactable],
+  app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/ui/tags[flexCol, flexRow],
 )
 
 #' @export

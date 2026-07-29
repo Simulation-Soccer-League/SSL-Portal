@@ -12,7 +12,7 @@ box::use(
 )
 
 box::use(
-  app/logic/db/get[
+  app/logic/get/getPlayer[
     getOrganizationPlayers, 
     getTeamInformation,
   ],

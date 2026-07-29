@@ -32,11 +32,13 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[
-    getAChistory, 
-    getRecentCreates, 
+  app/logic/get/getIndex[
     memoisedGetSchedule, 
     getStandings, 
+  ],
+  app/logic/get/getPlayer[
+    getAChistory, 
+    getRecentCreates, 
     getTopEarners,
   ],
   app/logic/ui/cards[resultCard],

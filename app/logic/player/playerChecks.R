@@ -22,8 +22,8 @@ box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
   app/logic/db/discord[sendNewCreate],
-  app/logic/db/get[getActivePid],
   app/logic/db/login[isNonActiveForumUser],
+  app/logic/get/getPlayer[getActivePid,],
 )
 
 #' @export

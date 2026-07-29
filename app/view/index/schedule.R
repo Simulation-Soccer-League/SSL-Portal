@@ -9,10 +9,10 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / get[memoisedGetSchedule],
-  app / logic / ui / selector[leagueSelectInput],
-  app / logic / ui / spinner[withSpinnerCustom],
+  app/logic/constant,
+  app/logic/get/getIndex[memoisedGetSchedule],
+  app/logic/ui/selector[leagueSelectInput],
+  app/logic/ui/spinner[withSpinnerCustom],
 )
 
 #' @export

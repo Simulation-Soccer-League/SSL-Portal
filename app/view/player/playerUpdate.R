@@ -20,7 +20,7 @@ box::use(
   app/logic/db/logFunctions[logRedist, logReroll],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updatePlayerData],
-  app/logic/db/get[getActivePid, getPlayer],
+  app/logic/get/getPlayer[getActivePid, getPlayer],
   app/logic/player/playerChecks[
     checkDuplicatedNames, 
     eligibleRedist, 

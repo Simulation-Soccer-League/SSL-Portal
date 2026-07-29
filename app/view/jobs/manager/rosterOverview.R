@@ -18,9 +18,7 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[
-    getManagedPlayers,
-  ],
+  app/logic/get/getPlayer[getManagedPlayers,],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/player/playerChecks[
     hasActivePlayer,

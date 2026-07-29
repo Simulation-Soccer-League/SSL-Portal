@@ -14,8 +14,8 @@ box::use(
 )
 
 box::use(
-  app / logic / db / get[getPlayers],
-  app / logic / ui / reactableHelper[linkOrganization],
+  app/logic/get/getPlayer[getPlayers],
+  app/logic/ui/reactableHelper[linkOrganization],
 )
 
 #' @export

@@ -19,10 +19,10 @@ box::use(
     portalQuery,
   ],
   app/logic/db/discord[sendApprovedCreate, sendRetiredPlayer],
-  app/logic/db/get[getActivePid,],
   app/logic/db/logFunctions[
     logBankTransaction,
-  ]
+  ],
+  app/logic/get/getPlayer[getActivePid,],
 )
 
 

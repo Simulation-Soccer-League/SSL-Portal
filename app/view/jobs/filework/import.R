@@ -33,8 +33,8 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/discord[sendAcademyIndexUpdate, sendIndexUpdate,],
-  app/logic/db/get[getNextGameID, getSeasonalTotal],
   app/logic/db/login[isBoD, isFileworker],
+  app/logic/get/getIndex[getNextGameID, getSeasonalTotal],
   app/logic/import[importAcademyData, importGameData, parseFMdata],
 )
 

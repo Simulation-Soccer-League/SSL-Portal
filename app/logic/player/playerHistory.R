@@ -10,7 +10,7 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[getActivePid, getTpeHistory, getUpdateHistory, getBankHistory],
+  app/logic/get/getPlayer[getActivePid, getTpeHistory, getUpdateHistory, getBankHistory],
 )
 
 #' @export

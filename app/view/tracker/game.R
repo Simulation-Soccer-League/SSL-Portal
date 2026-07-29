@@ -25,13 +25,13 @@ box::use(
 )
 
 box::use(
-  app/logic/db/get[
+  app/logic/get/getIndex[
     getGamePlayer,
     getGameSchedule,
     getGameTeam,
-    getOrganizations,
-    getPreviousGames
+    getPreviousGames,
   ],
+  app/logic/get/getPlayer[getOrganizations,],
   app/logic/ui/cards[bslibCardContainer],
   app/logic/ui/reactableHelper[
     indexReactable,

@@ -6,7 +6,8 @@ box::use(
 
 box::use(
   app/logic/db/database[indexQuery, portalQuery],
-  app/logic/db/get[getOrganizations, getCurrentSeason],
+  app/logic/get/getIndex[getCurrentSeason],
+  app/logic/get/getPlayer[getOrganizations],
 )
 
 #' @export
