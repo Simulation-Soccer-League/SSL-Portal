@@ -85,7 +85,7 @@ ui <- function(id) {
     ),
     bslib$layout_column_wrap(
       width = 1 / 2,
-      heights_equal = "row",
+      # heights_equal = "row",
       bslib$card(
         bslib$card_header(
           shiny$h5("Major League Standings")
@@ -103,14 +103,16 @@ ui <- function(id) {
           reactableOutput(ns("standings_2")) |>
             withSpinnerCustom(height = 200)
         )
-      ),
+      )
+    ),
+    bslib$layout_column_wrap(
+      width = 1 / 2,
       bslib$card(
         bslib$card_header(
           shiny$h4("Weekly top earners")
         ),
         bslib$card_body(
-          reactableOutput(ns("weeklyLeaders")) |>
-            withSpinnerCustom(height = 100)
+          reactableOutput(ns("weeklyLeaders"))
         )
       ),
       bslib$card(
@@ -118,8 +120,7 @@ ui <- function(id) {
           shiny$h4("Recent creates")
         ),
         bslib$card_body(
-          reactableOutput(ns("created")) |>
-            withSpinnerCustom(height = 100)
+          reactableOutput(ns("created"))
         )
       )
     ),
@@ -137,7 +138,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, usergroup, season) {
+server <- function(id, usergroup, season, updated) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
@@ -156,6 +157,18 @@ server <- function(id, usergroup, season) {
         
         memoisedGetSchedule(league = league, season = season())
       })
+      
+      earners <- shiny$reactive({
+        
+        print("Earners")
+        getTopEarners()
+      })
+      
+      creates <- shiny$reactive({
+        print("Creates")
+        getRecentCreates()
+      })
+      
       
       ac <- shiny$reactive({
         getAChistory()
@@ -470,10 +483,10 @@ server <- function(id, usergroup, season) {
 
       #### Weekly TPE Leaders ####
       output$weeklyLeaders <- renderReactable({
-        data <- getTopEarners() 
+        data <- earners() 
         
         data |>
-          rename_with(str_to_upper) |> 
+          rename_with(str_to_upper) |>
           reactable(
             defaultColDef = colDef(minWidth = 75),
             columns = list(
@@ -494,7 +507,7 @@ server <- function(id, usergroup, season) {
 
       #### Recently created ####
       output$created <- renderReactable({
-        data <- getRecentCreates() 
+        data <- creates() 
         
         data |>
           rename_with(str_to_upper) |> 

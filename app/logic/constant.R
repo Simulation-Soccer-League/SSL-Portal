@@ -5,7 +5,7 @@ box::use(
 )
 
 box::use(
-  app/logic/db/api,
+  app/logic/db/database[indexQuery, portalQuery],
   app/logic/db/get[getOrganizations, getCurrentSeason],
 )
 
@@ -598,10 +598,10 @@ sslNations <-
   )
 
 #' @export
-tpeCost <- api$readAPI(url = "https://api.simulationsoccer.com/admin/tpeTable")
+tpeCost <- portalQuery("SELECT * FROM tpetable")
 
 #' @export
-attributes <- api$readAPI(url = "https://api.simulationsoccer.com/admin/attributes") |> 
+attributes <- portalQuery("SELECT * FROM attributes") |> 
   mutate(
     group = factor(group, levels = c("Physical", "Mental", "Technical", "Goalkeeper"))
   )
@@ -610,7 +610,7 @@ attributes <- api$readAPI(url = "https://api.simulationsoccer.com/admin/attribut
 currentSeason <- getCurrentSeason()
 
 #' @export
-statisticsLegend <- api$readAPI(url = "https://api.simulationsoccer.com/admin/statistics")
+statisticsLegend <- indexQuery("SELECT * FROM statlegend")
 
 #' @export
 organizations <- getOrganizations()

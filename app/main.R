@@ -194,8 +194,6 @@ server <- function(id) {
     
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated, season = season)
     
-    playerSearch$server("search")
-
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
@@ -215,7 +213,8 @@ server <- function(id) {
         draftclass = FALSE, 
         nationTracker = FALSE,
         position = FALSE, main = FALSE,
-        wsfc = FALSE, game = FALSE
+        wsfc = FALSE, game = FALSE,
+        playerSearch = FALSE
       )
     
     ## Observer that checks the current page and loads the server for the page ONCE
@@ -226,7 +225,7 @@ server <- function(id) {
       
       if (current == "" & !loadedServer$main) {
         
-        welcome$server("welcome", usergroup = authOutput()$usergroup, season = season)
+        welcome$server("welcome", usergroup = authOutput()$usergroup, season = season, updated = updated)
         loadedServer$main <- TRUE
         
       } else if (current == "index/records" & !loadedServer$records) {
@@ -298,6 +297,11 @@ server <- function(id) {
         
         position$server("position")
         loadedServer$position <- TRUE
+        
+      } else if (current |> str_detect("search") & !loadedServer$playerSearch) {
+        
+        playerSearch$server("search")
+        loadedServer$playerSearch <- TRUE
         
       } else if (current == "myPlayer/") {
         
