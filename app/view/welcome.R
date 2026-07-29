@@ -159,16 +159,12 @@ server <- function(id, usergroup, season, updated) {
       })
       
       earners <- shiny$reactive({
-        
-        print("Earners")
         getTopEarners()
       })
       
       creates <- shiny$reactive({
-        print("Creates")
         getRecentCreates()
       })
-      
       
       ac <- shiny$reactive({
         getAChistory()

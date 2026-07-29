@@ -37,7 +37,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, auth, updated) {
+server <- function(id, auth, updated, playerData) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -163,12 +163,6 @@ server <- function(id, auth, updated) {
       playerData() |>  
       dplyr$select(tpebank)
     })
-    
-    playerData <- shiny$reactive({
-      getActivePid(auth$uid) |> 
-        getPlayer()
-    }) |> 
-      shiny$bindEvent(updated())
     
     #### OBSERVERS ####
     shiny$observe({

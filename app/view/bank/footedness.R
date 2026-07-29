@@ -76,9 +76,6 @@ server <- function(id, cost, playerData) {
     #### Observers ####
     ## Updates the selector based on current footedness
     shiny$observe({
-      print(leftChoices())
-      print(rightChoices())
-      
       shiny$updateSelectInput(
         inputId = "left",
         choices = leftChoices()

@@ -27,10 +27,6 @@ box::use(
   app/logic/db/database[
     portalQuery,
   ],
-  app/logic/db/get[
-    getActivePid, 
-    getPlayer, 
-  ],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updateFromBank],
   app/logic/player/playerChecks[hasActivePlayer,],
@@ -49,7 +45,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, auth, updated) {
+server <- function(id, auth, updated, playerData) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -98,12 +94,6 @@ server <- function(id, auth, updated) {
       })
       
       #### REACTIVES ####
-      playerData <- shiny$reactive({
-        getActivePid(auth$uid) |> 
-          getPlayer()
-      }) |> 
-        shiny$bindEvent(updated())
-      
       trainingSum <- shiny$reactiveVal(0)
       traitSum <- shiny$reactiveVal(0)
       positionSum <- shiny$reactiveVal(0)

@@ -22,7 +22,6 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/login[isNonActiveForumUser],
-  app/logic/db/get[getActivePid, getPlayer],
   app/logic/player/playerChecks[
     checkApprovingPlayer,
     checkDuplicatedNames,

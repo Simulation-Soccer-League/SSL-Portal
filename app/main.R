@@ -190,6 +190,12 @@ server <- function(id) {
     ## made that require re-loading assets
     updated <- shiny$reactiveVal(0)
     
+    activePlayer <- shiny$reactive({
+      getActivePid(authOutput()$uid) |> 
+        getPlayer()
+    }) |> 
+      shiny$bindEvent(updated())
+    
     season <- shiny$reactiveVal(constant$currentSeason$season)
     
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated, season = season)
@@ -299,7 +305,6 @@ server <- function(id) {
         loadedServer$position <- TRUE
         
       } else if (current |> str_detect("search") & !loadedServer$playerSearch) {
-        
         playerSearch$server("search")
         loadedServer$playerSearch <- TRUE
         
@@ -307,7 +312,7 @@ server <- function(id) {
         
         if (navigationCheck(authOutput())) {
           if (!loadedServer$myPlayer) {
-            myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
+            myPlayer$server("myPlayer", auth = authOutput(), updated = updated, playerData = activePlayer)
             
             loadedServer$myPlayer <- TRUE
           }
@@ -322,7 +327,8 @@ server <- function(id) {
             myBank$server(
               "myBank",
               auth    = authOutput(),
-              updated = updated
+              updated = updated,
+              playerData = activePlayer
             )
             loadedServer$myBank <- TRUE
           }
@@ -390,8 +396,7 @@ server <- function(id) {
         
       } else if (current == "myPlayer/reroll") {
         
-        if (getActivePid(authOutput()$uid) |> 
-            getPlayer() |> 
+        if (activePlayer() |> 
             eligibleReroll()){
           if (navigationCheck(authOutput())) {
             if (!loadedServer$playerReroll) {
@@ -416,8 +421,7 @@ server <- function(id) {
         
       } else if (current == "myPlayer/redistribute") {
         
-        if (getActivePid(authOutput()$uid) |> 
-            getPlayer() |> 
+        if (activePlayer() |> 
             eligibleRedist()) {
           if (navigationCheck(authOutput())) {
             if (!loadedServer$playerRedist) {

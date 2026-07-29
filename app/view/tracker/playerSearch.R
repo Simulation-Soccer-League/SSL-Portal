@@ -41,6 +41,7 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
+    
     output$players <- renderReactable({
       data <- getPlayers(active = (input$retired == "No")) |>
         select(name, username, pid, team, class, position, tpe, 
@@ -98,5 +99,6 @@ server <- function(id) {
           }
         )
     })
+    
   })
 }
