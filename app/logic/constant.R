@@ -181,7 +181,7 @@ traits <- list(
     "Dictates Tempo", "Likes To Switch Ball To Other Flank",
     "Looks For Pass Rather Than Attempting To Score", "Plays No Through Balls",
     "Plays Short Simple Passes", "Tries Killer Balls Often",
-    "Tries Long Range Passes", "Crossing Early"
+    "Tries Long Range Passes", "Crosses Early"
   ),
   "Finishing" = list(
     "Attempts Overhead Kicks", "Hits Free Kicks With Power",
