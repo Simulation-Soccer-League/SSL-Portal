@@ -86,8 +86,8 @@ getBankTransactions <- function(status) {
 
 #' @export
 getRecentCreates <- function() {
-  portalQuery(
-    "SELECT name, username, position, pid
+  memoisedPortalQuery(
+    "SELECT name, username, position, nationality, pid
     FROM allplayersview
     ORDER BY created DESC
     LIMIT 10;"
@@ -315,6 +315,133 @@ getPlayer <- function(pid) {
     mutate(
       across(where(is.numeric), ~ replace_na(.x, 5))
     )
+}
+
+#' @export
+getPlayerAttributes <- function(pid, updated) {
+  memoisedPortalQuery(
+    "WITH base AS (
+          SELECT
+              pid, pos_gk,
+              `acceleration`, `agility`, `balance`, `jumping reach`, `natural fitness`, `pace`, `stamina`, `strength`, 
+              `corners`, `crossing`, `dribbling`, `finishing`, `first touch`, `free kick`, `heading`, `long shots`, 
+              `long throws`, `marking`, `passing`, `penalty taking`, `tackling`, `technique`, `aggression`, `anticipation`, 
+              `bravery`, `composure`, `concentration`, `decisions`, `determination`, `flair`, `leadership`, `off the ball`, 
+              `positioning`, `teamwork`, `vision`, `work rate`, `aerial reach`, `command of area`, `communication`, 
+              `eccentricity`, `handling`, `kicking`, `one on ones`, `reflexes`, `tendency to rush`, 
+              `tendency to punch`, `throwing`
+          FROM allplayersview
+          WHERE pid = {pid}
+      ), pivot AS (
+          SELECT pid, pos_gk, 'Acceleration' AS attribute, `acceleration` AS value FROM base UNION ALL
+          SELECT pid, pos_gk, 'Agility', `agility` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Balance', `balance` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Jumping Reach', `jumping reach` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Natural Fitness', `natural fitness` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Pace', `pace` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Stamina', `stamina` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Strength', `strength` FROM base UNION ALL
+      
+          SELECT pid, pos_gk, 'Corners', `corners` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Crossing', `crossing` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Dribbling', `dribbling` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Finishing', `finishing` FROM base UNION ALL
+          SELECT pid, pos_gk, 'First Touch', `first touch` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Free Kick', `free kick` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Heading', `heading` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Long Shots', `long shots` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Long Throws', `long throws` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Marking', `marking` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Passing', `passing` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Penalty Taking', `penalty taking` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Tackling', `tackling` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Technique', `technique` FROM base UNION ALL
+      
+          SELECT pid, pos_gk, 'Aggression', `aggression` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Anticipation', `anticipation` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Bravery', `bravery` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Composure', `composure` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Concentration', `concentration` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Decisions', `decisions` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Determination', `determination` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Flair', `flair` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Leadership', `leadership` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Off The Ball', `off the ball` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Positioning', `positioning` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Teamwork', `teamwork` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Vision', `vision` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Work Rate', `work rate` FROM base UNION ALL
+      
+          SELECT pid, pos_gk, 'Aerial Reach', `aerial reach` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Command Of Area', `command of area` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Communication', `communication` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Eccentricity', `eccentricity` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Handling', `handling` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Kicking', `kicking` FROM base UNION ALL
+          SELECT pid, pos_gk, 'One On Ones', `one on ones` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Reflexes', `reflexes` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Tendency To Rush', `tendency to rush` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Tendency To Punch', `tendency to punch` FROM base UNION ALL
+          SELECT pid, pos_gk, 'Throwing', `throwing` FROM base
+      ),
+      
+      filtered AS (
+          SELECT *
+          FROM pivot
+          WHERE value IS NOT NULL
+      ),
+
+      joined AS (
+          SELECT
+              f.pid,
+              f.pos_gk,
+              f.attribute,
+              f.value,
+              a.`group`,
+              a.keeper,
+              a.abbr,
+              a.explanation
+          FROM filtered f
+          LEFT JOIN attributes a
+              ON f.attribute = a.attribute
+      	WHERE
+      		CASE
+      			WHEN f.pos_gk = 20 THEN
+      				(
+      					(a.`group` IN ('Goalkeeper', 'Technical') AND a.keeper = 'TRUE')
+      					OR a.`group` IN ('Physical', 'Mental')
+      				)
+      			ELSE
+      				a.`group` IN ('Physical', 'Mental', 'Technical')
+      		END
+      ),
+      
+      valuefill AS (
+          SELECT
+              *,
+              CASE
+                  WHEN value >= 18 THEN 1
+                  WHEN value >= 13 THEN 2
+                  WHEN value >= 10 THEN 3
+                  ELSE 5
+              END AS valuefill
+          FROM joined
+      )
+      
+      SELECT
+          pid,
+          attribute,
+          value,
+          `group`,
+          keeper,
+          abbr,
+          explanation,
+          valuefill
+      FROM valuefill;
+    ",
+    pid = pid,
+    updated = updated()
+  )
 }
 
 #' @export
