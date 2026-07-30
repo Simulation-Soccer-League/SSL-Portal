@@ -3,6 +3,7 @@ box::use(
   dplyr,
   lubridate[as_date, as_datetime, floor_date, today],
   plotly,
+  purrr,
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
   scales[comma],
@@ -15,13 +16,15 @@ box::use(
     str_to_upper
   ],
   tidyr[complete, pivot_longer],
+  tippy[tippy],
 )
 
 box::use(
   app/logic/constant,
   app/logic/get/getPlayer[
     getBankHistory,
-    getPlayer, 
+    getPlayer,
+    getPlayerAttributes,
     getTpeHistory, 
     getUpdateHistory
   ],
@@ -74,7 +77,8 @@ ui <- function(id) {
             ),
             shiny$tabPanel(
               title = "Career Statistics",
-              reactableOutput(ns("careerStatistics"))
+              reactableOutput(ns("careerStatistics")) |> 
+                withSpinnerCustom(height = "400px")
             )
           )
         )
@@ -324,8 +328,81 @@ server <- function(id, pid = NULL, updated) {
 
     output$playerAttributes <- shiny$renderUI({
       data <- playerData()
+      
+      attrs <- getPlayerAttributes(data$pid, updated)
 
-      attributeReactable(data, session, output)
+      groups <- attrs$group |> unique()
+      
+      shiny$div(
+        style = "
+          display: flex;
+          flex-direction: row;
+        ",
+        purrr$map(
+          .x = seq_len(groups |> length()),
+          .f = function(groupIndex) {
+            groupData <- attrs |> 
+              dplyr$filter(group == groups[groupIndex])
+            
+            attributes <- groupData$attribute
+            
+            shiny$div(
+              style = "padding: 0px 5px;",
+              shiny$h4(groups[groupIndex]),
+              purrr$map(
+                .x = seq_len(attributes |> length()),
+                .f = function(attIndex) {
+                  attData <- groupData |> 
+                    dplyr$filter(attribute == attributes[attIndex])
+                  
+                  shiny$div(
+                    style = "
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 0 5px;
+                    margin: 5px 0px;
+                    border-radius: 8px;
+                    background: var(--bottom-background);
+                    box-shadow: 2px 2px 4px var(--middle-background);
+                  ",
+                    shiny$div(
+                      style = "width: 40%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;",
+                      tippy(
+                        attData$attribute,
+                        sprintf("%s<br/>%s", attData$attribute, attData$explanation),
+                        theme = "ssl"
+                      )
+                    ),
+                    shiny$div(
+                      style = "width: 50%;",
+                      shiny$tags$svg(
+                        style = "width: 100%; height: 10px; display: block; margin: 7.5px 0px;",
+                        shiny$tags$rect(
+                          x = 0, y = 0, 
+                          width = sprintf("%s%%", attData$value / 20 * 100), 
+                          height = 15,
+                          fill = dplyr$case_when(
+                            attData$valuefill == 1 ~ constant$blue,
+                            attData$valuefill == 2 ~ constant$green,
+                            attData$valuefill == 3 ~ constant$yellow,
+                            TRUE ~ constant$red
+                          )
+                        )
+                      )  
+                    ),
+                    shiny$div(
+                      style = "width: 10%; text-align: right;",
+                      attData$value
+                    )
+                  )
+                }
+              )
+            )
+          }
+        )
+      )
     })
     
     output$tpeProgression <- plotly$renderPlotly({
