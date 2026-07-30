@@ -33,7 +33,6 @@ box::use(
     getLeagueIndex,
   ],
   app/logic/ui/reactableHelper[
-    attributeReactable, 
     indexReactable,
     linkOrganization,
     recordReactable,
