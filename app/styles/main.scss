@@ -26,6 +26,9 @@
   --shield-d:    #676666;
   /* Shared gradient base */
   --gradient-d: #2e2e2e;
+  
+  /* Adjusting swipeR sizing */
+  --swiper-navigation-size: 32px;
 }
 /* stylelint-enable color-function-notation */
 
@@ -1291,5 +1294,24 @@ $navbar-items-width: 112px;
 .seasonDropdown .selectize-dropdown {
   background: var(--lighter-text);  
   color: var(--menu-color);
+}
+
+
+/* swipeR adjustments */
+
+.swiper-button-prev, .swiper-button-next {
+  top: var(--swiper-navigation-top-offset, 80%);
+}
+
+.swiper-pagination {
+  /* Moves the pagination object below the next/prev buttons*/
+  z-index: 9;
+}
+
+
+/* Flags */
+.flag {
+  height: 1em;
+  width: 1.3em;
 }
 
