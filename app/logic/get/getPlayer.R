@@ -86,7 +86,7 @@ getBankTransactions <- function(status) {
 
 #' @export
 getRecentCreates <- function() {
-  memoisedPortalQuery(
+  portalQuery(
     "SELECT name, username, position, pid
     FROM allplayersview
     ORDER BY created DESC

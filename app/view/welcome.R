@@ -16,16 +16,18 @@ box::use(
     plotlyOutput, 
     renderPlotly
   ],
+  purrr,
   reactable[
     colDef, 
     reactable, 
     reactableOutput, 
     renderReactable
   ],
-  rlang[is_empty],
+  rlang[is_empty, `!!!`],
   shiny,
   shiny.router[route_link],
   stringr[str_to_upper,],
+  swipeR,
   tippy[tippy],
   waiter,
 )
@@ -54,11 +56,20 @@ ui <- function(id) {
     shiny$uiOutput(ns("information")),
     bslib$card(
       bslib$card_header(
+        shiny$h5("New Players")
+      ),
+      bslib$card_body(
+        style = "scrollbar-width: none;",
+        swipeR$swipeROutput(ns("creates"), height = "100px")
+      )
+    ),
+    bslib$card(
+      bslib$card_header(
         flexRow(
           shiny$tagList(
             shiny$tags$style("align-items: center; justify-content: space-between;"),
             shiny$div(style = "width: 150px;", class = "hide-in-mobile"),
-            shiny$div(shiny$h5("Latest Results"), style = "width: 100%;"),
+            shiny$div(shiny$h5("Latest Scores"), style = "width: 100%;"),
             shiny$div(
               shiny$div(
                 shiny$selectInput(
@@ -107,25 +118,25 @@ ui <- function(id) {
         )
       )
     ),
-    bslib$layout_column_wrap(
-      width = 1 / 2,
-      bslib$card(
-        bslib$card_header(
-          shiny$h4("Weekly top earners")
-        ),
-        bslib$card_body(
-          reactableOutput(ns("weeklyLeaders"))
-        )
-      ),
-      bslib$card(
-        bslib$card_header(
-          shiny$h4("Recent creates")
-        ),
-        bslib$card_body(
-          reactableOutput(ns("created"))
-        )
-      )
-    ),
+    # bslib$layout_column_wrap(
+    #   width = 1 / 2,
+    #   bslib$card(
+    #     bslib$card_header(
+    #       shiny$h4("Weekly top earners")
+    #     ),
+    #     bslib$card_body(
+    #       reactableOutput(ns("weeklyLeaders"))
+    #     )
+    #   ),
+    #   bslib$card(
+    #     bslib$card_header(
+    #       shiny$h4("Recent creates")
+    #     ),
+    #     bslib$card_body(
+    #       reactableOutput(ns("created"))
+    #     )
+    #   )
+    # ),
     bslib$card(
       bslib$card_header(
         shiny$h4("Activity Checks")
@@ -160,14 +171,12 @@ server <- function(id, usergroup, season, updated) {
         memoisedGetSchedule(league = league, season = season())
       })
       
-      earners <- shiny$reactive({
-        getTopEarners()
-      })
-      
-      creates <- shiny$reactive({
-        getRecentCreates()
-      })
-      
+      # earners <- shiny$reactive({
+      #   getTopEarners()
+      # })
+      # 
+      creates <- getRecentCreates()
+
       ac <- shiny$reactive({
         getAChistory()
       })
@@ -480,51 +489,74 @@ server <- function(id, usergroup, season, updated) {
         shiny$bindCache(id, input$selectedLeague, season(), "schedule")
 
       #### Weekly TPE Leaders ####
-      output$weeklyLeaders <- renderReactable({
-        data <- earners() 
-        
-        data |>
-          rename_with(str_to_upper) |>
-          reactable(
-            defaultColDef = colDef(minWidth = 75),
-            columns = list(
-              PID = colDef(show = FALSE),
-              NAME = colDef(
-                searchable = TRUE,
-                cell = function(value, rowIndex) {
-                  pid <- data[rowIndex, "pid"] # Get the corresponding pid
-                  shiny$a(
-                    href = route_link(paste0("tracker/player?pid=", pid)),
-                    value # Display the name as the link text
-                  )
-                }
-              )
-            )
-          )
-      })
+      # output$weeklyLeaders <- renderReactable({
+      #   data <- earners() 
+      #   
+      #   data |>
+      #     rename_with(str_to_upper) |>
+      #     reactable(
+      #       defaultColDef = colDef(minWidth = 75),
+      #       columns = list(
+      #         PID = colDef(show = FALSE),
+      #         NAME = colDef(
+      #           searchable = TRUE,
+      #           cell = function(value, rowIndex) {
+      #             pid <- data[rowIndex, "pid"] # Get the corresponding pid
+      #             shiny$a(
+      #               href = route_link(paste0("tracker/player?pid=", pid)),
+      #               value # Display the name as the link text
+      #             )
+      #           }
+      #         )
+      #       )
+      #     )
+      # })
 
       #### Recently created ####
-      output$created <- renderReactable({
-        data <- creates() 
-        
-        data |>
-          rename_with(str_to_upper) |> 
-          reactable(
-            defaultColDef = colDef(minWidth = 25),
-            columns = list(
-              PID = colDef(show = FALSE),
-              NAME = colDef(
-                searchable = TRUE,
-                cell = function(value, rowIndex) {
-                  pid <- data[rowIndex, "pid"] # Get the corresponding pid
-                  shiny$a(
-                    href = route_link(paste0("tracker/player?pid=", pid)),
-                    value # Display the name as the link text
-                  )
-                }
+      output$creates <- swipeR$renderSwipeR({
+        data <- creates
+
+        cards <- purrr$map(
+          .x = seq_len(nrow(data)),
+          .f = function(row) {
+            player <- data[row,]
+            
+            shiny$div(
+              style = "
+                  margin: 0 8px;
+                  padding: 10px 14px;
+                  border-radius: 8px;
+                  background: var(--bottom-background);
+                  box-shadow: 2px 2px 4px var(--middle-background);
+                ",
+              shiny$a(
+                href = route_link(paste0("tracker/player?pid=", player$pid)),
+                shiny$p(player$name)
+              ),
+              shiny$p(
+                style = "
+                    font-size: 0.8em;
+                  ",
+                sprintf("@%s - %s", player$username, player$position)
               )
             )
+          }
+        ) |> 
+          do.call(
+            what = swipeR$swipeRwrapper,
+            args = _
           )
+        
+        swipeR$swipeR(
+          cards,
+          width = "80%",
+          effect = "slide",
+          slidesPerView = 3,
+          loop = TRUE,
+          rewind = TRUE,
+          autoplay = TRUE,
+          scrollbar = FALSE
+        )
       })
 
       output$activityChecks <- renderPlotly({
