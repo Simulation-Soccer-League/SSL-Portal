@@ -528,10 +528,28 @@ server <- function(id, usergroup, season, updated) {
                   border-radius: 8px;
                   background: var(--bottom-background);
                   box-shadow: 2px 2px 4px var(--middle-background);
+                  max-width: 200px;
                 ",
-              shiny$a(
-                href = route_link(paste0("tracker/player?pid=", player$pid)),
-                shiny$p(player$name)
+              shiny$div(
+                style = "
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: space-between;
+                  align-items: center;
+                ",
+                shiny$a(
+                  href = route_link(paste0("tracker/player?pid=", player$pid)),
+                  shiny$p(player$name)
+                ),
+                shiny$img(
+                  style = "
+                    height: 1em;
+                    width: 1.3em;
+                  ",
+                  src = sprintf("https://flagcdn.com/%s.svg", constant$nationsTwoLetter[player$nationality] |> tolower()),
+                  alt = player$nationality,
+                  title = player$nationality
+                )
               ),
               shiny$p(
                 style = "
@@ -555,6 +573,7 @@ server <- function(id, usergroup, season, updated) {
           loop = TRUE,
           rewind = TRUE,
           autoplay = TRUE,
+          speed = 400,
           scrollbar = FALSE
         )
       })
