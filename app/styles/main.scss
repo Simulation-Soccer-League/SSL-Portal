@@ -13,6 +13,7 @@
   --top-background: hsl(var(--color), 10%);
   --middle-background: hsl(var(--color), 20%);
   --bottom-background: hsl(var(--color), 30%);
+  --light-background: hsl(var(--color), 40%);
   --border-color: hsl(var(--color), 25%);
   --menu-color: #222831;
   --sub-menu-color: #eeeeee;
@@ -1310,3 +1311,46 @@ $navbar-items-width: 112px;
   width: 1.3em;
 }
 
+/* Information boxes */
+
+.shadow-box {
+  margin: 0 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  min-height: 40px;
+}
+
+.box-bottom {
+  background: var(--light-background);  
+  box-shadow: 2px 2px 4px var(--middle-background);
+}
+
+.box-middle {
+  background: var(--bottom-background);  
+  box-shadow: 2px 2px 4px var(--middle-background);
+}
+
+.box-top {
+  background: var(--middle-background);  
+  box-shadow: 2px 2px 4px var(--top-background);
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.flex-center {
+  align-items: center;
+}
+
+.flex-baseline {
+  align-items: baseline;
+}

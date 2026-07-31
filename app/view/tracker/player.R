@@ -47,32 +47,24 @@ ui <- function(id) {
   shiny$tagList(
     bslib$layout_column_wrap(
       width = 1 / 2,
+      heights_equal = "row",
       bslib$card(
         bslib$card_header(
-          shiny$h3("Profile Information")
+          shiny$uiOutput(ns("playerHeader")) |> 
+            withSpinnerCustom(height = 100)
         ),
         bslib$card_body(
-          bslib$layout_column_wrap(
-            width = NULL,
-            style = bslib$css(grid_template_columns = "3fr 1fr"),
-            shiny$uiOutput(ns("playerName")) |>
-              withSpinnerCustom(height = 20),
-            shiny$uiOutput(ns("clubLogo"), height = NULL) |>
-              withSpinnerCustom(height = 20)
-          ),
           shiny$uiOutput(ns("playerInfo")) |>
-            withSpinnerCustom(height = 40)
+            withSpinnerCustom(height = 400)
         )
       ),
       bslib$card(
         bslib$card_header(
-          shiny$h3("Match Statistics")
-        ),
-        bslib$card_body(
           shiny$tabsetPanel(
             shiny$tabPanel(
               title = "Last 10 games",
-              reactableOutput(ns("matchStatistics"))
+              reactableOutput(ns("matchStatistics")) |> 
+                withSpinnerCustom(height = "400px")
             ),
             shiny$tabPanel(
               title = "Career Statistics",
@@ -162,32 +154,59 @@ server <- function(id, pid = NULL, updated) {
     }) |> 
       shiny$bindEvent(query(), updated())
 
-    #### Output ####
-    output$playerName <- shiny$renderUI({
-      data <- playerData()
-
-      shiny$tagList(
-        shiny$h2(paste(data$name, paste0("(", data$class, ")"), sep = " ")),
-        if (data$pronouns == "") {
-          NULL
-        } else {
-          sprintf("(%s)", data$pronouns) |> 
-            shiny$h5()
-        },
-        shiny$h3(paste0("@", data$username))
+    fillColor <- function(value) {
+      dplyr$case_when(
+        value == 20 ~ constant$green,
+        value >= 15 ~ constant$yellow,
+        TRUE ~ "#ccc"
       )
-    }) 
+    }
     
-    output$clubLogo <- shiny$renderUI({
+    #### Output ####
+    output$playerHeader <- shiny$renderUI({
       data <- playerData()
       
-      linkOrganization(value = data$team, onlyImg = TRUE, height = 100)
+      shiny$div(
+        class = "flex-row flex-center",
+        style = "text-align: left;",
+        shiny$div(
+          shiny$h2(
+            sprintf("%s (%s)", data$name, data$class)
+          ),
+          shiny$div(
+            class = "flex-row flex-baseline",
+            shiny$em(
+              style = "font-size: 1.2em;",
+              sprintf("@%s", data$username)
+            ),
+            shiny$div(
+              class = "flex-row flex-center",
+              shiny$img(
+                style = "
+                    height: 1em;
+                    width: 2em;
+                    padding: 0px 5px;
+                  ",
+                src = sprintf("https://flagcdn.com/%s.svg", constant$nationsTwoLetter[data$nationality] |> tolower()),
+                alt = data$nationality,
+                title = data$nationality
+              ),
+              shiny$p(
+                style = "margin: auto;",
+                data$nationality
+              )
+            )
+            
+          )
+        ),
+        linkOrganization(value = data$team, onlyImg = TRUE, height = 100)
+      )
     })
-
+    
     output$playerInfo <- shiny$renderUI({
       data <- playerData()
-
-      value <-
+      
+      posValue <-
         data |>
         dplyr$select(
           dplyr$contains("pos_")
@@ -199,87 +218,171 @@ server <- function(id, pid = NULL, updated) {
           name = str_remove(name, pattern = "pos_") |>
             str_to_upper()
         )
-
-      shiny$tagList(
-        bslib$layout_columns(
-          col_widths = c(6, 6),
-          shiny$tagList(
-            shiny$h4(paste("TPE: ", data$tpe)),
-            shiny$h4(paste("Banked TPE: ", data$tpebank)),
-            shiny$h4(
-              paste("Player Status: "), 
-              data$playerStatus, 
-              class = data$playerStatus |> 
-                str_to_lower()
-            ),
-            shiny$h4(
-              paste("User Status: "), 
-              data$userStatus, 
-              class = data$userStatus |> 
-                str_to_lower()
-            ),
-            shiny$h5(paste("Nationality:"), data$nationality),
-            shiny$h5(paste("Render: "), data$render),
-            shiny$h5(
-              paste("Footedness "),
-              shiny$div(
-                style = "display: flex; gap: 5px; align-items: center; margin-top: 5px;",
-                shiny$tags$svg(
-                  xmlns = "http://www.w3.org/2000/svg",
-                  shiny$tags$title(paste0("Left foot: ", data$`left foot`)),
-                  width = "40", height = "40", viewBox = "0 0 100 100",
-                  shiny$tags$path(
-                    d = "M 65.793945 6.763916 A 8.7670002 8.7670002 0 0 0 57.0271 15.531006 A 8.7670002 8.7670002 0 0 0 65.793945 24.298096 A 8.7670002 8.7670002 0 0 0 74.561035 15.531006 A 8.7670002 8.7670002 0 0 0 65.793945 6.763916 z M 47.711914 12.860107 A 5.4689999 5.4689999 0 0 0 42.24292 18.329102 A 5.4689999 5.4689999 0 0 0 47.711914 23.798096 A 5.4689999 5.4689999 0 0 0 53.180908 18.329102 A 5.4689999 5.4689999 0 0 0 47.711914 12.860107 z M 36.160889 22.351074 A 4.342 4.342 0 0 0 31.819092 26.693115 A 4.342 4.342 0 0 0 36.160889 31.034912 A 4.342 4.342 0 0 0 40.50293 26.693115 A 4.342 4.342 0 0 0 36.160889 22.351074 z M 55.288086 27.615967 C 43.962086 27.615967 34.781006 36.797047 34.781006 48.123047 C 34.781006 50.335047 35.141039 52.461008 35.790039 54.458008 C 36.226039 56.250008 36.92891 57.932994 37.85791 59.468994 L 37.761963 59.523926 L 52.615967 85.25293 C 54.183967 89.89293 58.562957 93.237061 63.730957 93.237061 C 70.214957 93.237061 75.474121 87.981094 75.474121 81.496094 C 75.474121 78.683094 74.482055 76.102078 72.831055 74.080078 L 72.903076 74.042969 C 71.516076 71.805969 70.700928 69.176098 70.700928 66.350098 C 70.700928 63.886098 71.317066 61.568029 72.393066 59.530029 L 72.358887 59.479004 C 74.526887 56.227004 75.794922 52.324047 75.794922 48.123047 C 75.794922 36.797047 66.613086 27.615967 55.288086 27.615967 z M 28.549072 31.542969 A 4.342 4.342 0 0 0 24.207031 35.88501 A 4.342 4.342 0 0 0 28.549072 40.227051 A 4.342 4.342 0 0 0 32.891113 35.88501 A 4.342 4.342 0 0 0 28.549072 31.542969 z ",
-                    fill = dplyr$case_when(
-                      data$`left foot` >= 19 ~ constant$green,
-                      data$`left foot` == 15 ~ constant$yellow,
-                      TRUE ~ constant$red
-                    )
-                  )
-                ),
-                shiny$tags$svg(
-                  xmlns = "http://www.w3.org/2000/svg",
-                  shiny$tags$title(paste0("Right foot: ", data$`right foot`)),
-                  width = "40", height = "40", viewBox = "0 0 100 100",
-                  style = "transform: scaleX(-1);",
-                  shiny$tags$path(
-                    d = "M 65.793945 6.763916 A 8.7670002 8.7670002 0 0 0 57.0271 15.531006 A 8.7670002 8.7670002 0 0 0 65.793945 24.298096 A 8.7670002 8.7670002 0 0 0 74.561035 15.531006 A 8.7670002 8.7670002 0 0 0 65.793945 6.763916 z M 47.711914 12.860107 A 5.4689999 5.4689999 0 0 0 42.24292 18.329102 A 5.4689999 5.4689999 0 0 0 47.711914 23.798096 A 5.4689999 5.4689999 0 0 0 53.180908 18.329102 A 5.4689999 5.4689999 0 0 0 47.711914 12.860107 z M 36.160889 22.351074 A 4.342 4.342 0 0 0 31.819092 26.693115 A 4.342 4.342 0 0 0 36.160889 31.034912 A 4.342 4.342 0 0 0 40.50293 26.693115 A 4.342 4.342 0 0 0 36.160889 22.351074 z M 55.288086 27.615967 C 43.962086 27.615967 34.781006 36.797047 34.781006 48.123047 C 34.781006 50.335047 35.141039 52.461008 35.790039 54.458008 C 36.226039 56.250008 36.92891 57.932994 37.85791 59.468994 L 37.761963 59.523926 L 52.615967 85.25293 C 54.183967 89.89293 58.562957 93.237061 63.730957 93.237061 C 70.214957 93.237061 75.474121 87.981094 75.474121 81.496094 C 75.474121 78.683094 74.482055 76.102078 72.831055 74.080078 L 72.903076 74.042969 C 71.516076 71.805969 70.700928 69.176098 70.700928 66.350098 C 70.700928 63.886098 71.317066 61.568029 72.393066 59.530029 L 72.358887 59.479004 C 74.526887 56.227004 75.794922 52.324047 75.794922 48.123047 C 75.794922 36.797047 66.613086 27.615967 55.288086 27.615967 z M 28.549072 31.542969 A 4.342 4.342 0 0 0 24.207031 35.88501 A 4.342 4.342 0 0 0 28.549072 40.227051 A 4.342 4.342 0 0 0 32.891113 35.88501 A 4.342 4.342 0 0 0 28.549072 31.542969 z ",
-                    fill = dplyr$case_when(
-                      data$`right foot` >= 19 ~ constant$green,
-                      data$`right foot` == 15 ~ constant$yellow,
-                      TRUE ~ constant$red
-                    )
-                  )
-                )
-              )
-            )
-          ),
-          shiny$tagList(
-            shiny$h4("Traits"),
+      
+      shiny$div(
+        class = "flex-row",
+        shiny$div(
+          class = "flex-column",
+          shiny$p("TPE: ", data$tpe),
+          shiny$p("Banked TPE: ", data$tpebank),
+          shiny$p(shiny$span(class = data$playerStatus |> tolower(), data$playerStatus), " player"),
+          shiny$p(shiny$span(class = data$userStatus |> tolower(), data$userStatus), " user"),
+          shiny$p(tippy("Render:  ", "The player likeness", theme = "ssl"), data$render),
+          shiny$div(
+            class = "flex-column", 
+            shiny$p("Traits: "),
             data$traits |>
               str_split(pattern = constant$traitSep) |>
               unlist() |>
               paste(collapse = "<br>") |>
               shiny$HTML(),
-            shiny$br(),
-            shiny$h4("Primary Position(s)"),
-            value |>
-              dplyr$filter(value == 20) |>
-              dplyr$select(name) |>
-              unlist() |>
-              paste(collapse = ", ") |>
-              shiny$HTML(),
-            shiny$h4("Secondary Position(s)"),
-            value |>
-              dplyr$filter(value < 20, value >= 10) |>
-              dplyr$select(name) |>
-              unlist() |>
-              paste(collapse = ", ") |>
-              shiny$HTML(),
-            shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
+          ),
+          shiny$div(
+            style = "display: flex; gap: 5px; align-items: center; margin-top: 5px;",
+            shiny$tags$svg(
+              xmlns = "http://www.w3.org/2000/svg",
+              shiny$tags$title(paste0("Left foot: ", data$`left foot`)),
+              width = "40", height = "40", viewBox = "0 0 100 100",
+              shiny$tags$path(
+                d = "M 65.793945 6.763916 A 8.7670002 8.7670002 0 0 0 57.0271 15.531006 A 8.7670002 8.7670002 0 0 0 65.793945 24.298096 A 8.7670002 8.7670002 0 0 0 74.561035 15.531006 A 8.7670002 8.7670002 0 0 0 65.793945 6.763916 z M 47.711914 12.860107 A 5.4689999 5.4689999 0 0 0 42.24292 18.329102 A 5.4689999 5.4689999 0 0 0 47.711914 23.798096 A 5.4689999 5.4689999 0 0 0 53.180908 18.329102 A 5.4689999 5.4689999 0 0 0 47.711914 12.860107 z M 36.160889 22.351074 A 4.342 4.342 0 0 0 31.819092 26.693115 A 4.342 4.342 0 0 0 36.160889 31.034912 A 4.342 4.342 0 0 0 40.50293 26.693115 A 4.342 4.342 0 0 0 36.160889 22.351074 z M 55.288086 27.615967 C 43.962086 27.615967 34.781006 36.797047 34.781006 48.123047 C 34.781006 50.335047 35.141039 52.461008 35.790039 54.458008 C 36.226039 56.250008 36.92891 57.932994 37.85791 59.468994 L 37.761963 59.523926 L 52.615967 85.25293 C 54.183967 89.89293 58.562957 93.237061 63.730957 93.237061 C 70.214957 93.237061 75.474121 87.981094 75.474121 81.496094 C 75.474121 78.683094 74.482055 76.102078 72.831055 74.080078 L 72.903076 74.042969 C 71.516076 71.805969 70.700928 69.176098 70.700928 66.350098 C 70.700928 63.886098 71.317066 61.568029 72.393066 59.530029 L 72.358887 59.479004 C 74.526887 56.227004 75.794922 52.324047 75.794922 48.123047 C 75.794922 36.797047 66.613086 27.615967 55.288086 27.615967 z M 28.549072 31.542969 A 4.342 4.342 0 0 0 24.207031 35.88501 A 4.342 4.342 0 0 0 28.549072 40.227051 A 4.342 4.342 0 0 0 32.891113 35.88501 A 4.342 4.342 0 0 0 28.549072 31.542969 z ",
+                fill = dplyr$case_when(
+                  data$`left foot` >= 19 ~ constant$green,
+                  data$`left foot` == 15 ~ constant$yellow,
+                  TRUE ~ constant$red
+                )
+              )
+            ),
+            shiny$tags$svg(
+              xmlns = "http://www.w3.org/2000/svg",
+              shiny$tags$title(paste0("Right foot: ", data$`right foot`)),
+              width = "40", height = "40", viewBox = "0 0 100 100",
+              style = "transform: scaleX(-1);",
+              shiny$tags$path(
+                d = "M 65.793945 6.763916 A 8.7670002 8.7670002 0 0 0 57.0271 15.531006 A 8.7670002 8.7670002 0 0 0 65.793945 24.298096 A 8.7670002 8.7670002 0 0 0 74.561035 15.531006 A 8.7670002 8.7670002 0 0 0 65.793945 6.763916 z M 47.711914 12.860107 A 5.4689999 5.4689999 0 0 0 42.24292 18.329102 A 5.4689999 5.4689999 0 0 0 47.711914 23.798096 A 5.4689999 5.4689999 0 0 0 53.180908 18.329102 A 5.4689999 5.4689999 0 0 0 47.711914 12.860107 z M 36.160889 22.351074 A 4.342 4.342 0 0 0 31.819092 26.693115 A 4.342 4.342 0 0 0 36.160889 31.034912 A 4.342 4.342 0 0 0 40.50293 26.693115 A 4.342 4.342 0 0 0 36.160889 22.351074 z M 55.288086 27.615967 C 43.962086 27.615967 34.781006 36.797047 34.781006 48.123047 C 34.781006 50.335047 35.141039 52.461008 35.790039 54.458008 C 36.226039 56.250008 36.92891 57.932994 37.85791 59.468994 L 37.761963 59.523926 L 52.615967 85.25293 C 54.183967 89.89293 58.562957 93.237061 63.730957 93.237061 C 70.214957 93.237061 75.474121 87.981094 75.474121 81.496094 C 75.474121 78.683094 74.482055 76.102078 72.831055 74.080078 L 72.903076 74.042969 C 71.516076 71.805969 70.700928 69.176098 70.700928 66.350098 C 70.700928 63.886098 71.317066 61.568029 72.393066 59.530029 L 72.358887 59.479004 C 74.526887 56.227004 75.794922 52.324047 75.794922 48.123047 C 75.794922 36.797047 66.613086 27.615967 55.288086 27.615967 z M 28.549072 31.542969 A 4.342 4.342 0 0 0 24.207031 35.88501 A 4.342 4.342 0 0 0 28.549072 40.227051 A 4.342 4.342 0 0 0 32.891113 35.88501 A 4.342 4.342 0 0 0 28.549072 31.542969 z ",
+                fill = dplyr$case_when(
+                  data$`right foot` >= 19 ~ constant$green,
+                  data$`right foot` == 15 ~ constant$yellow,
+                  TRUE ~ constant$red
+                )
+              )
+            )
+          )
+        ),
+        shiny$div(
+          class = "flex-column",
+          shiny$tags$svg(
+            viewBox = "0 0 400 600",
+            width = "80%",
+            height = "100%",
+            xmlns = "http://www.w3.org/2000/svg",
+            shiny$tags$rect(x = 0, y = 0, width = "100%", height = "100%", fill = "#889e7a"),
+            shiny$tags$g(stroke = "white", fill = "none",
+              shiny$tags$rect(x = "2.5%", y = "2.5%", width = "95%", height = "95%"),
+              shiny$tags$line(x1 = "2.5%", y1 = "50%", x2 = "97.5%", y2 = "50%"),
+              shiny$tags$circle(cx = "50%", cy = "50%", r = "7%"),
+              shiny$tags$rect(x = "12.5%", y = "2.5%", width = "75%", height = "20%"),
+              shiny$tags$rect(x = "25%", y = "2.5%", width = "50%", height = "10%"),
+              shiny$tags$rect(x = "12.5%", y = "77.5%", width = "75%", height = "20%"),
+              shiny$tags$rect(x = "25%", y = "87.5%", width = "50%", height = "10%")
+            ),
+            shiny$tags$g(
+              stroke = "black",
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Striker: %s", data$pos_st)), 
+                cx = "50%", cy = "10%", r = "4%", 
+                fill = fillColor(data$pos_st)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Left Attacking Midfielder: %s", data$pos_lam)), 
+                cx = "20%", cy = "25%", r = "4%", 
+                fill = fillColor(data$pos_lam)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Central Attacking Midfielder: %s", data$pos_cam)),
+                cx = "50%", cy = "25%", r = "4%", 
+                fill = fillColor(data$pos_cam)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Right Attacking Midfielder: %s", data$pos_ram)), 
+                cx = "80%", cy = "25%", r = "4%", 
+                fill = fillColor(data$pos_ram)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Left Midfielder: %s", data$pos_lm)), 
+                cx = "20%", cy = "42.5%", r = "4%", 
+                fill = fillColor(data$pos_lm)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Central Midfielder: %s", data$pos_cm)), 
+                cx = "50%", cy = "42.5%", r = "4%", 
+                fill = fillColor(data$pos_cm)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Right Midfielder: %s", data$pos_rm)), 
+                cx = "80%", cy = "42.5%", r = "4%", 
+                fill = fillColor(data$pos_rm)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Left Wingback: %s", data$pos_lwb)), 
+                cx = "20%", cy = "60%", r = "4%",
+                fill = fillColor(data$pos_lwb)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Central Defensive Midfielder: %s", data$pos_cdm)), 
+                cx = "50%", cy = "60%", r = "4%", 
+                fill = fillColor(data$pos_cdm)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Right Wingback: %s", data$pos_rwb)), 
+                cx = "80%", cy = "60%", r = "4%",
+                fill = fillColor(data$pos_rwb)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Left Defender: %s", data$pos_ld)), 
+                cx = "20%", cy = "75%", r = "4%",
+                fill = fillColor(data$pos_ld)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Central Defender: %s", data$pos_cd)), 
+                cx = "50%", cy = "75%", r = "4%",
+                fill = fillColor(data$pos_cd)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Right Defender: %s", data$pos_rd)), 
+                cx = "80%", cy = "75%", r = "4%", 
+                fill = fillColor(data$pos_rd)
+              ),
+              shiny$tags$circle(
+                shiny$tags$title(sprintf("Goalkeeper: %s", data$pos_gk)), 
+                cx = "50%", cy = "90%", r = "4%",
+                fill = fillColor(data$pos_gk)
+              )
+            )
           )
         )
       )
+      #     ),
+      #     shiny$tagList(
+      #       shiny$h4("Traits"),
+      #       shiny$br(),
+      #       shiny$h4("Primary Position(s)"),
+      #       value |>
+      #         dplyr$filter(value == 20) |>
+      #         dplyr$select(name) |>
+      #         unlist() |>
+      #         paste(collapse = ", ") |>
+      #         shiny$HTML(),
+      #       shiny$h4("Secondary Position(s)"),
+      #       value |>
+      #         dplyr$filter(value < 20, value >= 10) |>
+      #         dplyr$select(name) |>
+      #         unlist() |>
+      #         paste(collapse = ", ") |>
+      #         shiny$HTML(),
+      #       shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
+      #     )
+      #   )
+      # )
     }) 
     
     output$matchStatistics <- renderReactable({
