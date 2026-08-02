@@ -5,6 +5,7 @@ box::use(
     colDef, 
     colFormat, 
     reactable, 
+    reactableLang,
     reactableOutput, 
     renderReactable
   ],
@@ -14,6 +15,7 @@ box::use(
 )
 
 box::use(
+  app/logic/constant,
   app/logic/get/getPlayer[getPlayers],
   app/logic/ui/reactableHelper[linkOrganization],
 )
@@ -54,6 +56,9 @@ server <- function(id) {
         rename_with(str_to_upper) |> 
         reactable(
           searchable = TRUE,
+          language = reactableLang(
+            searchPlaceholder = "Search/filter for player, username, team or nationality"
+          ),
           defaultPageSize = 25,
           showPageSizeOptions = TRUE,
           defaultColDef = colDef(searchable = FALSE),
@@ -77,9 +82,32 @@ server <- function(id) {
             ),
             TEAM = colDef(
               width = 200, 
-              align = "left", 
+              align = "left",
+              searchable = TRUE,
               cell = function(value) {
                 linkOrganization(value)
+              }
+            ),
+            NATIONALITY = colDef(
+              searchable = TRUE,
+              cell = function(value) {
+                shiny$div(
+                  class = "flex-row flex-center",
+                  shiny$img(
+                    style = "
+                      height: 1em;
+                      width: 2em;
+                      padding: 0px 5px;
+                    ",
+                    src = sprintf("https://flagcdn.com/%s.svg", constant$nationsTwoLetter[value] |> tolower()),
+                    alt = value,
+                    title = value
+                  ),
+                  shiny$p(
+                    style = "margin: auto;",
+                    value
+                  )
+                )
               }
             ),
             BANKBALANCE = colDef(
@@ -90,6 +118,24 @@ server <- function(id) {
                 currency = "USD"
               )
             ),
+            PLAYERSTATUS = 
+              colDef(
+                cell = function(value) {
+                  shiny$div(
+                    class = value |> tolower(),
+                    value
+                  )
+                }
+              ),
+            USERSTATUS = 
+              colDef(
+                cell = function(value) {
+                  shiny$div(
+                    class = value |> tolower(),
+                    value
+                  )
+                }
+              ),
             PID = colDef(show = FALSE)
           ),
           rowStyle = function(index) {
