@@ -20,6 +20,7 @@ box::use(
     orgReactable
   ],
   app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/ui/uiObjects[infoBox],
 )
 
 #' @export
@@ -34,25 +35,11 @@ ui <- function(id) {
       bslib$card_body(
         bslib$layout_column_wrap(
           width = NULL,
-          style = bslib$css(grid_template_columns = "1fr 1fr 1fr 1fr"),
+          style = bslib$css(grid_template_columns = "1fr 3fr"),
           shiny$uiOutput(ns("clubLogo"), height = NULL) |>
             withSpinnerCustom(height = 200),
-          shiny$tagList(
-            shiny$uiOutput(ns("city")) |> 
-              withSpinnerCustom(height = 50),
-            shiny$uiOutput(ns("orgInfo")) |>
-              withSpinnerCustom(height = 50)
-          ),
-          shiny$tagList(
-            shiny$uiOutput(ns("stadium")) |> 
-              withSpinnerCustom(height = 50),
-            shiny$uiOutput(ns("colors")) |> 
-              withSpinnerCustom(height = 50)
-          ),
-          shiny$tagList(
-            shiny$uiOutput(ns("established")) |> 
-              withSpinnerCustom(height = 50)
-          )
+          shiny$uiOutput(ns("orgInfo")) |> 
+            withSpinnerCustom(height = 200)
         )
       )
     ),
@@ -127,86 +114,6 @@ server <- function(id, oid = NULL, updated) {
     })
 
     #### Output ####
-    output$stadium <- shiny$renderUI({
-      shiny$req(teamInfo())
-      
-      data <- teamInfo()
-      
-      stadiums <- c(
-        dplyr$if_else(
-          data$stadium[1] |> is.na(),
-          "",
-          data$stadium[1]
-        ),
-        dplyr$if_else(
-          data$stadium[2] |> is.na(),
-          "",
-          data$stadium[2]
-        )
-      ) |> 
-        stri_remove_empty()
-      
-      if (stadiums |> length() > 0) {
-        # Build a nice list
-        shiny$div(
-          style = "
-          padding: 10px 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        ",
-          shiny$h4("Stadium", style = "margin-bottom: 6px;"),
-          lapply(stadiums, function(name) {
-            shiny$div(
-              style = "padding: 4px 8px;
-                width: fit-content;",
-              name
-            )
-          })
-        )
-      }
-    })
-    
-    output$established <- shiny$renderUI({
-      shiny$req(teamInfo())
-      
-      data <- teamInfo()
-      
-      established <- c(
-        dplyr$if_else(
-          data$established[1] |> is.na(),
-          "",
-          paste0("S", data$established[1])
-        ),
-        dplyr$if_else(
-          data$established[2] |> is.na(),
-          "",
-          paste0("S", data$established[2])
-        )
-      ) |> 
-        stri_remove_empty()
-      
-      if (established |> length() > 0) {
-        # Build a nice list
-        shiny$div(
-          style = "
-          padding: 10px 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        ",
-          shiny$h4("Established", style = "margin-bottom: 6px;"),
-          lapply(established, function(name) {
-            shiny$div(
-              style = "padding: 4px 8px;
-                width: fit-content;",
-              name
-            )
-          })
-        )
-      }
-    })
-    
     output$tabs <- shiny$renderUI({
       majorName <- teamInfo() |> 
         dplyr$filter(affiliate == 1) |> 
@@ -279,8 +186,6 @@ server <- function(id, oid = NULL, updated) {
           }
         )
       )
-        
-      
     })
     
     output$orgInfo <- shiny$renderUI({
@@ -304,30 +209,6 @@ server <- function(id, oid = NULL, updated) {
         )
       )
       
-      # Build a nice list
-      shiny$div(
-        style = "
-          padding: 10px 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        ",
-        shiny$h4("Management", style = "margin-bottom: 6px;"),
-        lapply(managers, function(name) {
-          shiny$div(
-            style = "padding: 4px 8px;
-                width: fit-content;",
-            name
-          )
-        })
-      )
-    })
-    
-    output$city <- shiny$renderUI({
-      shiny$req(teamInfo())
-      
-      data <- teamInfo()
-      
       cities <- c(
         dplyr$if_else(
           data$city[1] |> is.na(),
@@ -341,76 +222,171 @@ server <- function(id, oid = NULL, updated) {
         )
       ) |> 
         stri_remove_empty()
-        
-      if (cities |> length() > 0) {
-        # Build a nice list
-        shiny$div(
-          style = "
-          padding: 10px 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        ",
-          shiny$h4("Origin", style = "margin-bottom: 6px;"),
-          lapply(cities, function(name) {
-            shiny$div(
-              style = "padding: 4px 8px;
-                width: fit-content;",
-              name
-            )
-          })
+      
+      stadiums <- c(
+        dplyr$if_else(
+          data$stadium[1] |> is.na(),
+          "",
+          data$stadium[1]
+        ),
+        dplyr$if_else(
+          data$stadium[2] |> is.na(),
+          "",
+          data$stadium[2]
         )
-      }
+      ) |> 
+        stri_remove_empty()
       
-    })
-    
-    output$colors <- shiny$renderUI({
-      shiny$req(teamInfo())
+      established <- c(
+        dplyr$if_else(
+          data$established[1] |> is.na(),
+          "",
+          paste0("S", data$established[1])
+        ),
+        dplyr$if_else(
+          data$established[2] |> is.na(),
+          "",
+          paste0("S", data$established[2])
+        )
+      ) |> 
+        stri_remove_empty()
       
-      data <- teamInfo() |> 
-        dplyr$select(primaryColor, secondaryColor)
+      stadiums <- c(
+        dplyr$if_else(
+          data$stadium[1] |> is.na(),
+          "",
+          data$stadium[1]
+        ),
+        dplyr$if_else(
+          data$stadium[2] |> is.na(),
+          "",
+          data$stadium[2]
+        )
+      ) |> 
+        stri_remove_empty()
       
-      # Build a nice list
       shiny$div(
         style = "
-          padding: 10px 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.6rem;
+          margin: 0;
+          padding: 0;
         ",
-        shiny$h4("Colors", style = "margin-bottom: 6px;"),
-        lapply(seq_len(nrow(data)), function(index) {
+        infoBox(
+          "Location",
           shiny$div(
-            style = 
-              "display: flex; 
+            style = "
+              padding: 10px 0;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+            ",
+            lapply(cities, function(name) {
+              shiny$div(
+                style = "padding: 4px 8px;
+                width: fit-content;",
+                name
+              )
+            })  
+          )
+        ),
+        infoBox(
+          "Stadium",
+          shiny$div(
+            style = "
+              padding: 10px 0;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+            ",
+            lapply(stadiums, function(name) {
+              shiny$div(
+                style = "padding: 4px 8px;
+                width: fit-content;",
+                name
+              )
+            })  
+          )
+        ),
+        infoBox(
+          "Established",
+          shiny$div(
+            style = "
+              padding: 10px 0;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+            ",
+            lapply(established, function(name) {
+              shiny$div(
+                style = "padding: 4px 8px;
+                width: fit-content;",
+                name
+              )
+            })  
+          )
+        ),
+        infoBox(
+          "Management",
+          shiny$div(
+            style = "
+              padding: 10px 0;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+            ",
+            lapply(managers, function(name) {
+              shiny$div(
+                style = "padding: 4px 8px;
+                width: fit-content;",
+                name
+              )
+            })  
+          )
+        ),
+        infoBox(
+          "Colors",
+          shiny$div(
+            style = "
+              padding: 10px 0;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+            ",
+            lapply(seq_len(nrow(data)), function(index) {
+              shiny$div(
+                style = 
+                  "display: flex; 
                 flex-direction: row; 
                 gap: 8px;",
-            shiny$div(
-              style = glue$glue(
-                "padding: 4px 8px;
-                  background: {bg};
-                  color: {col};
-                  width: fit-content;",
-                bg = data$primaryColor[index],
-                col = data$secondaryColor[index]
-              ),
-              data$primaryColor[index]
-            ),
-            shiny$div(
-              style = glue$glue(
-                "padding: 4px 8px;
-                  background: {bg};
-                  color: {col};
-                  width: fit-content;",
-                bg = data$secondaryColor[index],
-                col = data$primaryColor[index]
-              ),
-              data$secondaryColor[index]
-            )
+                shiny$div(
+                  style = glue$glue(
+                    "padding: 4px 8px;
+                      background: {bg};
+                      color: {col};
+                      width: fit-content;",
+                    bg = data$primaryColor[index],
+                    col = data$secondaryColor[index]
+                  ),
+                  data$primaryColor[index]
+                ),
+                shiny$div(
+                  style = glue$glue(
+                    "padding: 4px 8px;
+                      background: {bg};
+                      color: {col};
+                      width: fit-content;",
+                    bg = data$secondaryColor[index],
+                    col = data$primaryColor[index]
+                  ),
+                  data$secondaryColor[index]
+                )
+              )
+            }) 
           )
-        })
+        )
       )
-      
     })
   })
 }

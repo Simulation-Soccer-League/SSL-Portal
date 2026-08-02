@@ -39,6 +39,7 @@ box::use(
     recordReactable,
   ],
   app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/ui/uiObjects[infoBox],
 )
 
 #' @export
@@ -155,19 +156,6 @@ server <- function(id, pid = NULL, updated) {
         value == 20 ~ constant$green,
         value >= 15 ~ constant$yellow,
         TRUE ~ "#ccc"
-      )
-    }
-    
-    infoBox <- function(header, value) {
-      shiny$div(
-        shiny$div(
-          style = "font-weight: 400; font-size: 1.2rem; line-height: 140%; white-space: nowrap;",
-          header
-        ),
-        shiny$div(
-          style = "font-size: 1.4rem; font-weight: 600; display: flex; align-items: center; gap 0.4rem;",
-          value
-        )
       )
     }
     
@@ -288,7 +276,7 @@ server <- function(id, pid = NULL, updated) {
             data$last
           ),
           shiny$h5(
-            sprintf("(%s)", data$class)
+            sprintf("(%s) - %s", data$class, data$pronouns)
           ),
           shiny$div(
             class = "flex-row flex-baseline",
