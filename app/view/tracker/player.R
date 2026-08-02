@@ -34,6 +34,7 @@ box::use(
   ],
   app/logic/ui/reactableHelper[
     indexReactable,
+    playerCareerReactable,
     linkOrganization,
     recordReactable,
   ],
@@ -46,7 +47,7 @@ ui <- function(id) {
 
   shiny$tagList(
     bslib$layout_column_wrap(
-      width = 1 / 2,
+      style = bslib$css(grid_template_columns = "1fr 2fr"),
       heights_equal = "row",
       bslib$card(
         bslib$card_header(
@@ -62,6 +63,15 @@ ui <- function(id) {
         bslib$card_header(
           shiny$tabsetPanel(
             shiny$tabPanel(
+              "Attributes",
+              style = "text-align: left;",
+              shiny$uiOutput(ns("playerAttributes"))
+            ), 
+            shiny$tabPanel(
+              "Positions",
+              shiny$uiOutput(ns("playerPositions"))
+            ),
+            shiny$tabPanel(
               title = "Last 10 games",
               reactableOutput(ns("matchStatistics")) |> 
                 withSpinnerCustom(height = "400px")
@@ -75,45 +85,31 @@ ui <- function(id) {
         )
       )
     ),
-    bslib$layout_column_wrap(
-      width = NULL,
-      style = bslib$css(grid_template_columns = "2fr 1fr"),
-      bslib$card(
-        bslib$card_header(
-          shiny$h3("Player Attributes")
-        ),
-        bslib$card_body(
-          shiny$uiOutput(ns("playerAttributes")) |>
-            withSpinnerCustom(height = 60)
-        )
-      ),
-      bslib$card(
-        bslib$card_header(
-          shiny$h3("TPE Progression")
-        ),
-        bslib$card_body(
-          plotly$plotlyOutput(ns("tpeProgression")) |>
-            withSpinnerCustom(height = 60)
-        )
-      )
-    ),
     bslib$card(
       bslib$card_header(
-        shiny$h3("Player History")
-      ),
-      bslib$card_body(
         shiny$tabsetPanel(
           shiny$tabPanel(
             title = "TPE History",
-            reactableOutput(ns("tpe"), height = 450)
+            reactableOutput(ns("tpe"), height = 450) |> 
+              withSpinnerCustom(height = 450)
           ),
           shiny$tabPanel(
             title = "Update History",
-            reactableOutput(ns("update"), height = 450)
+            reactableOutput(ns("update"), height = 450) |> 
+              withSpinnerCustom(height = 450)
           ),
           shiny$tabPanel(
             title = "Bank History",
-            reactableOutput(ns("bank"), height = 450)
+            reactableOutput(ns("bank"), height = 450) |> 
+              withSpinnerCustom(height = 450)
+          ),
+          shiny$tabPanel(
+            title = "TPE Progression Graph",
+            shiny$div(
+              style = "margin-top: 10px;",
+              plotly$plotlyOutput(ns("tpeProgression")) |>
+                withSpinnerCustom(height = 450)              
+            )
           )
         )
       )
@@ -175,6 +171,98 @@ server <- function(id, pid = NULL, updated) {
       )
     }
     
+    positionField <- function(data) {
+      shiny$tags$svg(
+        style = "max-width: 360px; width: 65%; transform: rotate(90deg); margin-top: -60px",
+        viewBox = "0 0 400 600",
+        width = "100%",
+        xmlns = "http://www.w3.org/2000/svg",
+        shiny$tags$rect(x = 0, y = 0, width = "100%", height = "100%", fill = "#889e7a"),
+        shiny$tags$g(stroke = "white", fill = "none",
+                     shiny$tags$rect(x = "2.5%", y = "2.5%", width = "95%", height = "95%"),
+                     shiny$tags$line(x1 = "2.5%", y1 = "50%", x2 = "97.5%", y2 = "50%"),
+                     shiny$tags$circle(cx = "50%", cy = "50%", r = "7%"),
+                     shiny$tags$rect(x = "12.5%", y = "2.5%", width = "75%", height = "20%"),
+                     shiny$tags$rect(x = "25%", y = "2.5%", width = "50%", height = "10%"),
+                     shiny$tags$rect(x = "12.5%", y = "77.5%", width = "75%", height = "20%"),
+                     shiny$tags$rect(x = "25%", y = "87.5%", width = "50%", height = "10%")
+        ),
+        shiny$tags$g(
+          stroke = "black",
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Striker: %s", data$pos_st)), 
+            cx = "50%", cy = "10%", r = "4%", 
+            fill = fillColor(data$pos_st)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Left Attacking Midfielder: %s", data$pos_lam)), 
+            cx = "20%", cy = "25%", r = "4%", 
+            fill = fillColor(data$pos_lam)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Central Attacking Midfielder: %s", data$pos_cam)),
+            cx = "50%", cy = "25%", r = "4%", 
+            fill = fillColor(data$pos_cam)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Right Attacking Midfielder: %s", data$pos_ram)), 
+            cx = "80%", cy = "25%", r = "4%", 
+            fill = fillColor(data$pos_ram)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Left Midfielder: %s", data$pos_lm)), 
+            cx = "20%", cy = "42.5%", r = "4%", 
+            fill = fillColor(data$pos_lm)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Central Midfielder: %s", data$pos_cm)), 
+            cx = "50%", cy = "42.5%", r = "4%", 
+            fill = fillColor(data$pos_cm)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Right Midfielder: %s", data$pos_rm)), 
+            cx = "80%", cy = "42.5%", r = "4%", 
+            fill = fillColor(data$pos_rm)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Left Wingback: %s", data$pos_lwb)), 
+            cx = "20%", cy = "60%", r = "4%",
+            fill = fillColor(data$pos_lwb)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Central Defensive Midfielder: %s", data$pos_cdm)), 
+            cx = "50%", cy = "60%", r = "4%", 
+            fill = fillColor(data$pos_cdm)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Right Wingback: %s", data$pos_rwb)), 
+            cx = "80%", cy = "60%", r = "4%",
+            fill = fillColor(data$pos_rwb)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Left Defender: %s", data$pos_ld)), 
+            cx = "20%", cy = "75%", r = "4%",
+            fill = fillColor(data$pos_ld)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Central Defender: %s", data$pos_cd)), 
+            cx = "50%", cy = "75%", r = "4%",
+            fill = fillColor(data$pos_cd)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Right Defender: %s", data$pos_rd)), 
+            cx = "80%", cy = "75%", r = "4%", 
+            fill = fillColor(data$pos_rd)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Goalkeeper: %s", data$pos_gk)), 
+            cx = "50%", cy = "90%", r = "4%",
+            fill = fillColor(data$pos_gk)
+          )
+        )
+      )
+    }
+    
     #### Output ####
     output$playerHeader <- shiny$renderUI({
       data <- playerData()
@@ -183,8 +271,24 @@ server <- function(id, pid = NULL, updated) {
         class = "flex-row flex-center",
         style = "text-align: left;",
         shiny$div(
-          shiny$h2(
-            sprintf("%s (%s)", data$name, data$class)
+          shiny$p(
+            style = "
+              font-size: 1.8rem;
+              margin-top: 20px;
+              margin-bottom: -10px;
+            ",
+            data$first
+          ),
+          shiny$p(
+            style = "
+              margin-bottom: 10px; 
+              font-weight: 800; 
+              font-size: 3.5rem;
+            ",
+            data$last
+          ),
+          shiny$h5(
+            sprintf("(%s)", data$class)
           ),
           shiny$div(
             class = "flex-row flex-baseline",
@@ -307,102 +411,6 @@ server <- function(id, pid = NULL, updated) {
                 shiny$HTML()
             )
           )
-        ),
-        shiny$div(
-          class = "flex-column",
-          style = "padding-left: 20px;",
-          infoBox(
-            "Positions",
-            shiny$tags$svg(
-              style = "min-width: 100px;",
-              viewBox = "0 0 400 600",
-              width = "100%",
-              xmlns = "http://www.w3.org/2000/svg",
-              shiny$tags$rect(x = 0, y = 0, width = "100%", height = "100%", fill = "#889e7a"),
-              shiny$tags$g(stroke = "white", fill = "none",
-                           shiny$tags$rect(x = "2.5%", y = "2.5%", width = "95%", height = "95%"),
-                           shiny$tags$line(x1 = "2.5%", y1 = "50%", x2 = "97.5%", y2 = "50%"),
-                           shiny$tags$circle(cx = "50%", cy = "50%", r = "7%"),
-                           shiny$tags$rect(x = "12.5%", y = "2.5%", width = "75%", height = "20%"),
-                           shiny$tags$rect(x = "25%", y = "2.5%", width = "50%", height = "10%"),
-                           shiny$tags$rect(x = "12.5%", y = "77.5%", width = "75%", height = "20%"),
-                           shiny$tags$rect(x = "25%", y = "87.5%", width = "50%", height = "10%")
-              ),
-              shiny$tags$g(
-                stroke = "black",
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Striker: %s", data$pos_st)), 
-                  cx = "50%", cy = "10%", r = "4%", 
-                  fill = fillColor(data$pos_st)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Left Attacking Midfielder: %s", data$pos_lam)), 
-                  cx = "20%", cy = "25%", r = "4%", 
-                  fill = fillColor(data$pos_lam)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Central Attacking Midfielder: %s", data$pos_cam)),
-                  cx = "50%", cy = "25%", r = "4%", 
-                  fill = fillColor(data$pos_cam)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Right Attacking Midfielder: %s", data$pos_ram)), 
-                  cx = "80%", cy = "25%", r = "4%", 
-                  fill = fillColor(data$pos_ram)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Left Midfielder: %s", data$pos_lm)), 
-                  cx = "20%", cy = "42.5%", r = "4%", 
-                  fill = fillColor(data$pos_lm)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Central Midfielder: %s", data$pos_cm)), 
-                  cx = "50%", cy = "42.5%", r = "4%", 
-                  fill = fillColor(data$pos_cm)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Right Midfielder: %s", data$pos_rm)), 
-                  cx = "80%", cy = "42.5%", r = "4%", 
-                  fill = fillColor(data$pos_rm)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Left Wingback: %s", data$pos_lwb)), 
-                  cx = "20%", cy = "60%", r = "4%",
-                  fill = fillColor(data$pos_lwb)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Central Defensive Midfielder: %s", data$pos_cdm)), 
-                  cx = "50%", cy = "60%", r = "4%", 
-                  fill = fillColor(data$pos_cdm)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Right Wingback: %s", data$pos_rwb)), 
-                  cx = "80%", cy = "60%", r = "4%",
-                  fill = fillColor(data$pos_rwb)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Left Defender: %s", data$pos_ld)), 
-                  cx = "20%", cy = "75%", r = "4%",
-                  fill = fillColor(data$pos_ld)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Central Defender: %s", data$pos_cd)), 
-                  cx = "50%", cy = "75%", r = "4%",
-                  fill = fillColor(data$pos_cd)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Right Defender: %s", data$pos_rd)), 
-                  cx = "80%", cy = "75%", r = "4%", 
-                  fill = fillColor(data$pos_rd)
-                ),
-                shiny$tags$circle(
-                  shiny$tags$title(sprintf("Goalkeeper: %s", data$pos_gk)), 
-                  cx = "50%", cy = "90%", r = "4%",
-                  fill = fillColor(data$pos_gk)
-                )
-              )
-            )
-          )
         )
       )
       #       shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
@@ -410,6 +418,12 @@ server <- function(id, pid = NULL, updated) {
       #   )
       # )
     }) 
+    
+    output$playerPositions <- shiny$renderUI({
+      data <- playerData()
+      
+      positionField(data)  
+    })
     
     output$matchStatistics <- renderReactable({
       data <- playerData()
@@ -448,7 +462,7 @@ server <- function(id, pid = NULL, updated) {
           dplyr$relocate(season = max_season) |> 
           dplyr$arrange(dplyr$desc(season)) |> 
           dplyr$select(!name) |> 
-          indexReactable(search = FALSE, club = TRUE)
+          playerCareerReactable()
       } else {
         NULL
       }

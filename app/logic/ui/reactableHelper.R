@@ -297,6 +297,71 @@ recordReactable <- function(currentData) {
 }
 
 #' @export
+playerCareerReactable <- function(data) {
+  statisticsTooltips <-
+    constant$statisticsLegend[constant$statisticsLegend$statistic %in% colnames(data), ]
+  
+  data |>
+    dplyr$mutate(
+      dplyr$across(
+        dplyr$where(is.numeric),
+        ~ round(.x, 2)
+      )
+    ) |> 
+    reactable(
+      searchable = FALSE,
+      defaultColDef = 
+        colDef(
+          minWidth = 60,
+          width = 75,
+          maxWidth = 250,
+          footer = 
+            function(values) {
+              if(typeof(values) != "character") sum(values) |> round(2)
+            },
+          footerStyle = 
+            list(
+              fontWeight = "bold",
+              borderTop = "4px solid var(--ssl-gold)"
+            )
+        ),
+      columns = list(
+        season =    
+          colDef(
+            footer = "Totals"
+          ),
+        club =
+          colDef(
+            name = "CLUB",
+            width = 60,
+            show = TRUE,
+            cell = function(value, index) {
+              clubLogos(value, index, data, onlyLogo = TRUE)
+            },
+            footer = NULL
+          ),
+        pid = colDef(show = FALSE)
+      ) |>
+        append(
+          pmap(statisticsTooltips, ~ {
+            if ((..1) %in% names(data)) {
+              ..1 <-
+                colDef(
+                  header =
+                    tippy(..3 |> str_to_upper(), sprintf("%s<br/>%s", ..1 |> str_to_title(), ..2), placement = "top", theme = "ssl"),
+                  html = TRUE
+                )
+            }
+          }) |>
+            setNames(statisticsTooltips$statistic) |>
+            Filter(f = Negate(is.null), x = _)
+        )
+    ) 
+  
+}
+
+
+#' @export
 indexReactable <- function(currentData, search = TRUE, club = FALSE, ...) {
   statisticsTooltips <-
     constant$statisticsLegend[constant$statisticsLegend$statistic %in% colnames(currentData), ]
