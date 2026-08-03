@@ -461,7 +461,10 @@ server <- function(id, pid = NULL, updated) {
       
       attrs <- getPlayerAttributes(data$pid, updated)
 
-      groups <- attrs$group |> unique()
+      groups <- attrs$group |> 
+        unique() |> 
+        factor(levels = c("Goalkeeper", "Physical", "Mental", "Technical")) |> 
+        sort()
       
       shiny$div(
         style = "
