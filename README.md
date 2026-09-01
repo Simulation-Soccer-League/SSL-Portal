@@ -8,8 +8,11 @@ To make sure R Studio acknowledges the version of Node installed on your MacOS s
 
 ## Install Dependencies
 
+The portal is using R version 4.4.3 due to limitations on the Ubuntu server.
+
+To install all the dependencies:
 ```
-install.packages(c("dplyr", "future", "lubridate", "magick", "plotly", "reactable", "rhino", "RMySQL", "shiny", "shiny.router", "shinycssloaders", "shinyFeedback", "shinyjs", "tippy"))
+renv::restore()
 ```
 
 ## Linting
