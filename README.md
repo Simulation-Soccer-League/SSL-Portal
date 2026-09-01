@@ -15,6 +15,10 @@ To install all the dependencies:
 renv::restore()
 ```
 
+## MySQL database
+
+The portal uses a MySQL database which needs to be installed and run locally for testing purposes. Dumps with relevant information can be provided upon request.
+
 ## Linting
 
 SASS / CSS: `rhino::lint_sass()`
