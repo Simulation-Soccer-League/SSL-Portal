@@ -161,7 +161,7 @@ parseFMdata <- function(path) {
           Club == "Seoul Mythic FC" ~ "Seoul MFC",
           Club == "Atlético Medellin" ~ "Atlético",
           Club == "Victoria Falls Eagles" ~ "Victoria Falls",
-          club == "SD Guaydaquil" ~ "SD Guayaquil",
+          Club == "SD Guaydaquil" ~ "SD Guayaquil",
           TRUE ~ Club
         )
     ) |> 
