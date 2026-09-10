@@ -294,7 +294,7 @@ server <- function(id, updated, season) {
                 style = function(value, index) {
                   list(
                     background =
-                      case_when(
+                      dplyr$case_when(
                         season |> as.numeric() > 26 & index %in% c(8) ~ constant$standingsGreen,
                         season |> as.numeric() > 26 & index %in% c(7) ~ constant$standingsRed,
                         season |> as.numeric() > 26 & index %in% c(6,9) ~ constant$standingsBlue,
@@ -304,8 +304,8 @@ server <- function(id, updated, season) {
                         TRUE ~ NA
                       ),
                     borderTop =
-                      case_when(
-                        season() > 26 & index %in% c(6, 10) ~ "solid",
+                      dplyr$case_when(
+                        season |> as.numeric() > 26 & index %in% c(6, 10) ~ "solid",
                         index %in% c(5, 9) ~ "solid",
                         TRUE ~ "none"
                       )
