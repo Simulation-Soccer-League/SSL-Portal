@@ -199,17 +199,17 @@ server <- function(id, usergroup, season) {
                         background =
                           case_when(
                             season() |> as.numeric() > 26 & index %in% c(8) ~ constant$standingsGreen,
-                            season() |> as.numeric() & index %in% c(7) ~ constant$standingsRed,
-                            season() |> as.numeric() & index %in% c(6,9) ~ constant$standingsBlue,
-                            index %in% c(7) ~ constant$standingsGreen, 
-                            index %in% c(6) ~ constant$standingsRed,
-                            index %in% c(5, 8) ~ constant$standingsBlue,
+                            season() |> as.numeric() > 26 & index %in% c(7) ~ constant$standingsRed,
+                            season() |> as.numeric() > 26 & index %in% c(6,9) ~ constant$standingsBlue,
+                            season() |> as.numeric() <= 26 & index %in% c(7) ~ constant$standingsGreen, 
+                            season() |> as.numeric() <= 26 & index %in% c(6) ~ constant$standingsRed,
+                            season() |> as.numeric() <= 26 & index %in% c(5, 8) ~ constant$standingsBlue,
                             TRUE ~ NA
                           ),
                         borderTop =
                           case_when(
-                            season() |> as.numeric() & index %in% c(6, 10) ~ "solid",
-                            index %in% c(5, 9) ~ "solid",
+                            season() |> as.numeric() > 26 & index %in% c(6, 10) ~ "solid",
+                            season() |> as.numeric() <= 26 & index %in% c(5, 9) ~ "solid",
                             TRUE ~ "none"
                           )
                       )
