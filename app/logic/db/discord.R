@@ -48,12 +48,13 @@ sendGradedTPE <- function(data){
   
   map(data$source |> unique(),
       .f = function(x){
+        
         gradedString <- 
           apply(
             data |> 
               dplyr$filter(source == x) |> 
               dplyr$select(username, tpe) |> 
-              dplyr$arrange(username |> dplyr$desc()), 
+              dplyr$arrange(username), 
             1, 
             function(row) paste(row, collapse = " - ")
           ) |> 
@@ -65,7 +66,7 @@ sendGradedTPE <- function(data){
               data |> 
                 dplyr$filter(source == x) |> 
                 dplyr$select(username, tpe) |> 
-                dplyr$arrange(username |> dplyr$desc()), 
+                dplyr$arrange(username), 
               1, 
               function(row) paste(row, collapse = " - ")
             )
