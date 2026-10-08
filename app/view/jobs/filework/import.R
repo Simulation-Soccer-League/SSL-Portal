@@ -34,7 +34,7 @@ box::use(
   app/logic/constant,
   app/logic/db/discord[sendAcademyIndexUpdate, sendIndexUpdate,],
   app/logic/db/login[isBoD, isFileworker],
-  app/logic/get/getIndex[getNextGameID, getSeasonalTotal],
+  app/logic/get/getIndex[getMatchday, getNextGameID, getSeasonalTotal],
   app/logic/import[importAcademyData, importGameData, parseFMdata],
 )
 
@@ -220,6 +220,13 @@ server <- function(id, auth, updated) {
       getNextGameID(input$season, league = input$league)
     }) |> 
       shiny$bindEvent(filePath())
+    
+    matchday <- shiny$reactive({
+      nextGames() |> 
+        min() |> 
+        getMatchday()
+    }) |> 
+      shiny$bindEvent(nextGames())
 
     processedGame <- shiny$reactive({
       currentSave <- parseFMdata(filePath()) |> 
@@ -512,7 +519,7 @@ server <- function(id, auth, updated) {
         
         importGameData(processedGame())
         
-        sendIndexUpdate(input$season)
+        sendIndexUpdate(matchday(), input$season)
         
         showToast(
           .options = constant$myToastOptions,

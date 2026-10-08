@@ -598,6 +598,25 @@ getCurrentSeason <- function() {
 }
 
 #' @export
+getMatchday <- function(gid) {
+  memoisedIndexQuery(
+    "SELECT CONCAT(
+      CASE Matchtype
+      WHEN 0 THEN 'Cup'
+      WHEN 1 THEN 'Major'
+      WHEN 2 THEN 'Minor'
+      ELSE 'Unknown'
+      END,
+      ' MD',
+      REGEXP_REPLACE(Matchday, '^[0-9]+\\.\\s*', '')
+    ) AS CompetitionRound
+    FROM schedule
+    WHERE gid = {gid};",
+    gid = gid
+  )
+}
+
+#' @export
 getGamePlayer <- function(gid){
   memoisedIndexQuery(
     "SELECT 

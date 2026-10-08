@@ -52,7 +52,8 @@ sendGradedTPE <- function(data){
           apply(
             data |> 
               dplyr$filter(source == x) |> 
-              dplyr$select(username, tpe), 
+              dplyr$select(username, tpe) |> 
+              arrange(username |> desc()), 
             1, 
             function(row) paste(row, collapse = " - ")
           ) |> 
@@ -63,7 +64,8 @@ sendGradedTPE <- function(data){
             apply(
               data |> 
                 dplyr$filter(source == x) |> 
-                dplyr$select(username, tpe), 
+                dplyr$select(username, tpe) |> 
+                arrange(username |> desc()), 
               1, 
               function(row) paste(row, collapse = " - ")
             )
@@ -173,7 +175,7 @@ sendAcademyIndexUpdate <- function(season){
 }
 
 #' @export
-sendIndexUpdate <- function(season){
+sendIndexUpdate <- function(matchday, season){
   jscode <- paste0("
     function sendMessage() {
       const request = new XMLHttpRequest();
@@ -183,7 +185,7 @@ sendIndexUpdate <- function(season){
 
       var myEmbed = {
         author: {
-          name: 'The Index has been updated!'
+          name: ", sprintf("'The Index has been updated with %s!'", matchday)," 
         },
         title: 'Season ", season, "'
       }
@@ -227,6 +229,10 @@ sendNewCreate <- function(data, username){
                    { 
                       name: 'Username',
                       value: '", username, "',
+                   },
+                   { 
+                      name: 'Discord',
+                      value: '", data$discord, "',
                    },
         ]
       }
