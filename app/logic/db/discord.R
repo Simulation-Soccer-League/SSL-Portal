@@ -53,7 +53,7 @@ sendGradedTPE <- function(data){
             data |> 
               dplyr$filter(source == x) |> 
               dplyr$select(username, tpe) |> 
-              arrange(username |> desc()), 
+              dplyr$arrange(username |> desc()), 
             1, 
             function(row) paste(row, collapse = " - ")
           ) |> 
@@ -65,7 +65,7 @@ sendGradedTPE <- function(data){
               data |> 
                 dplyr$filter(source == x) |> 
                 dplyr$select(username, tpe) |> 
-                arrange(username |> desc()), 
+                dplyr$arrange(username |> desc()), 
               1, 
               function(row) paste(row, collapse = " - ")
             )
