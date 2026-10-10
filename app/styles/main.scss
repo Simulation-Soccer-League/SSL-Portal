@@ -30,6 +30,7 @@
   
   /* Adjusting swipeR sizing */
   --swiper-navigation-size: 32px;
+  
 }
 /* stylelint-enable color-function-notation */
 
@@ -1353,4 +1354,60 @@ $navbar-items-width: 112px;
 
 .flex-baseline {
   align-items: baseline;
+}
+
+
+/* BSLIB Accordions */
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accordion-item {
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 3px 3px 4px rgba(0, 0, 0, .1);
+}
+
+.accordion-button {
+  width: 100%;
+  border: none;
+  background: #444;
+  color: var(--lighter-text);
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+}
+
+.accordion-title {
+  flex: 1;  
+}
+
+.accordion-body {
+  padding: 12px;
+  background: var(--bottom-background);
+}
+
+.accordion-button.collapsed .accordion-icon {
+  transform: rotate(-90deg);
+}
+
+.accordion-button::after {
+  content: "";
+  background-image: none;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--lighter-text);
+  border-bottom: 1.5px solid var(--lighter-text);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.accordion-button:not(.collapsed)::after {
+  transform: rotate(225deg);
 }

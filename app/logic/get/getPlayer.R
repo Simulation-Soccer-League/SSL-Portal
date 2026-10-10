@@ -18,7 +18,7 @@ memoisedIndexQuery <-
     cache = cache_mem(max_age = 60*30)
   )
 
-# Alternative memoised function for heavy calls}
+# Alternative memoised function for heavy calls
 memoisedPortalQuery <- 
   memoise(
     portalQuery,

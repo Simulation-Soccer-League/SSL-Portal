@@ -1,4 +1,5 @@
 box::use(
+  bslib[bs_add_rules, bs_theme],
   cachem,
   glue,
   shiny,
@@ -59,6 +60,7 @@ box::use(
   app/view/tracker/player,
   app/view/tracker/playerSearch,
   app/view/tracker/position,
+  app/view/tracker/user,
   app/view/tracker/wsfc,
   app/view/welcome,
 )
@@ -125,6 +127,41 @@ ui <- function(id) {
         )
       )
     ),
+    ## Adding accordion JS
+    shiny$tags$script(
+      shiny$HTML(
+        'document.addEventListener("click", (e) => {
+          const btn = e.target.closest(".accordion-button");
+          if (!btn) return;
+        
+          const accordion = btn.closest(".accordion");
+          const target = document.querySelector(btn.dataset.bsTarget);
+        
+          accordion
+            .querySelectorAll(".accordion-collapse.show")
+            .forEach((panel) => {
+              if (panel !== target) {
+                panel.classList.remove("show");
+        
+                const otherBtn = accordion.querySelector(
+                  `[data-bs-target="#${panel.id}"]`
+              );
+              
+              if (otherBtn) {
+                otherBtn.classList.add("collapsed");
+                otherBtn.setAttribute("aria-expanded", "false");
+              }
+        }
+        });
+        
+        const isOpen = target.classList.contains("show");
+        
+        target.classList.toggle("show", !isOpen);
+        btn.classList.toggle("collapsed", isOpen);
+        btn.setAttribute("aria-expanded", !isOpen);
+        });'
+      )
+    ),
     useShinyFeedback(), # include shinyFeedback
     useShinyjs(), # include shinyjs
     title = "SSL Portal",
@@ -142,6 +179,7 @@ ui <- function(id) {
       route("tracker/game", game$ui(ns("game"))),
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/position", position$ui(ns("position"))),
+      route("tracker/user", user$ui(ns("user"))),
       route("tracker/organizations", organizationLanding$ui(ns("organization"))),
       route("organization", organization$ui(ns("organization"))),
       route("tracker/wsfc", wsfc$ui(ns("wsfc"))),
@@ -220,7 +258,7 @@ server <- function(id) {
         nationTracker = FALSE,
         position = FALSE, main = FALSE,
         wsfc = FALSE, game = FALSE,
-        playerSearch = FALSE
+        playerSearch = FALSE, user = FALSE
       )
     
     ## Observer that checks the current page and loads the server for the page ONCE
@@ -298,6 +336,11 @@ server <- function(id) {
         
         player$server("player", updated = updated)
         loadedServer$player <- TRUE
+        
+      } else if (current |> str_detect("tracker/user") & !loadedServer$user) {
+          
+          user$server("user", updated = updated)
+          loadedServer$user <- TRUE
       
       } else if (current |> str_detect("tracker/position") & !loadedServer$position) {
         
