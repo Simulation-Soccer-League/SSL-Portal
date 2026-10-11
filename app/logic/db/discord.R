@@ -6,6 +6,12 @@ box::use(
   stringr[str_remove_all],
 )
 
+box::use(
+  app/logic/get/getUser[
+    getUserInformation,
+  ],
+)
+
 player <- Sys.getenv("dscplayer")
 tpe <- Sys.getenv("dsctpe")
 approve <- Sys.getenv("dscapprove")
@@ -233,7 +239,7 @@ sendNewCreate <- function(data, username){
                    },
                    { 
                       name: 'Discord',
-                      value: '", data$discord, "',
+                      value: '", getUserInformation(data$uid)$discord, "',
                    },
         ]
       }
@@ -280,7 +286,7 @@ sendApprovedCreate <- function(data){
                    },
                    { 
                       name: 'Discord',
-                      value: '", data$discord, "',
+                      value: '", getUserInformation(data$uid)$discord, "',
                    },
         ]
       }
