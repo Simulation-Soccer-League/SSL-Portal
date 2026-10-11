@@ -16,6 +16,9 @@ box::use(
     getOrganizationPlayers, 
     getTeamInformation,
   ],
+  app/logic/get/getUser[
+    createUserLink,
+  ],
   app/logic/ui/reactableHelper[
     orgReactable
   ],
@@ -79,6 +82,7 @@ server <- function(id, oid = NULL, updated) {
           tpe,
           tpebank,
           username,
+          uid,
           discord,
           bankBalance,
           nationality,
@@ -197,16 +201,28 @@ server <- function(id, oid = NULL, updated) {
       managers <- c(
         paste(
           "Organizational Manager:",
-          dplyr$if_else(data$om[1] |> is.na(), "None", data$om[1])
+          if (data$om[1] |> is.na()){
+            "None"
+          } else {
+            createUserLink(data$om[1], data$omuid[1])
+          }
         ),
         paste(
           "Assistant Manager:",
-          dplyr$if_else(data$am1[1] |> is.na(), "None", data$am1[1])
+          if (data$am1[1] |> is.na()){
+            "None"
+          } else {
+            createUserLink(data$am1[1], data$am1uid[1])
+          }
         ),
         paste(
           "Assistant Manager:",
-          dplyr$if_else(data$am2[1] |> is.na(), "None", data$am2[1])
-        )
+          if (data$am2[1] |> is.na()){
+            "None"
+          } else {
+            createUserLink(data$am2[1], data$am2uid[1])
+          }
+        ) 
       )
       
       cities <- c(
@@ -340,7 +356,8 @@ server <- function(id, oid = NULL, updated) {
               shiny$div(
                 style = "padding: 4px 8px;
                 width: fit-content;",
-                name
+                name |> 
+                  shiny$HTML()
               )
             })  
           )

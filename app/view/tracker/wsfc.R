@@ -60,6 +60,7 @@ server <- function(id) {
           tpe,
           tpebank,
           username,
+          uid,
           discord,
           bankBalance,
           nationality,

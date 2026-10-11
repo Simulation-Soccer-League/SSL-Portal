@@ -14,6 +14,9 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/ui/tags[flexRow],
+  app/logic/get/getUser[
+    createUserLink,
+  ],
 )
 
 #' @export
@@ -171,9 +174,12 @@ draftClassReactable <- function(data) {
           )
         }),
         USERNAME = colDef(
-          cell = function(value) {
+          cell = function(value, rowIndex) {
+            # Get the corresponding uid
+            uid <- data[rowIndex, "uid"]
+            
             tippy(
-              value,
+              createUserLink(value, uid),
               tooltip = value,
               theme = "ssl"
             )
@@ -219,7 +225,8 @@ draftClassReactable <- function(data) {
               )
           }
         ),
-        PID = colDef(show = FALSE)
+        PID = colDef(show = FALSE),
+        UID = colDef(show = FALSE)
       )
     )
 }
@@ -457,8 +464,17 @@ orgReactable <- function(data) {
         }
       ),
       username = colDef(
-        width = 120, 
-        cell = function(value) tippy(value, tooltip = value, theme = "ssl")
+        width = 120,
+        cell = function(value, rowIndex) {
+          # Get the corresponding uid
+          uid <- data[rowIndex, "uid"]
+          
+          tippy(
+            createUserLink(value, uid),
+            tooltip = value,
+            theme = "ssl"
+          )
+        },
       ),
       discord = colDef(
         width = 120, 
@@ -472,7 +488,8 @@ orgReactable <- function(data) {
       tpe = colDef(width = 50),
       userStatus = colDef(width = 125),
       playerStatus = colDef(width = 140),
-      pid = colDef(show = FALSE)
+      pid = colDef(show = FALSE),
+      uid = colDef(show = FALSE)
     )
   )
 }

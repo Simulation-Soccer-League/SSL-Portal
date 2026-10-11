@@ -4,6 +4,8 @@ box::use(
   dplyr[across, if_else, mutate, where],
   lubridate,
   memoise[memoise],
+  shiny,
+  shiny.router[route_link],
   tidyr[replace_na],
 )
 
@@ -21,7 +23,7 @@ memoisedPortalQuery <-
 
 #' @export
 getUserInformation <- function(uid) {
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT
         *
      FROM userInformation
@@ -32,7 +34,7 @@ getUserInformation <- function(uid) {
 
 #' @export
 getUserAwards <- function(uid) {
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT
         *
      FROM userAwards
@@ -43,11 +45,19 @@ getUserAwards <- function(uid) {
 
 #' @export
 getUserPlayers <- function(uid) {
-  portalQuery(
+  memoisedPortalQuery(
     "SELECT
         name, pid, class, pos_gk
      FROM allplayersview
      WHERE uid = {uid};",
     uid = uid
+  )
+}
+
+#' @export
+createUserLink <- function(username, uid) {
+  shiny$a(
+    href = route_link(paste0("tracker/user?uid=", uid)),
+    shiny$p(sprintf("@%s", username))
   )
 }

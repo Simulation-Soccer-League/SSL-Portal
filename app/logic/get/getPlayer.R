@@ -87,7 +87,7 @@ getBankTransactions <- function(status) {
 #' @export
 getRecentCreates <- function() {
   memoisedPortalQuery(
-    "SELECT name, username, position, nationality, pid
+    "SELECT name, username, uid, position, nationality, pid
     FROM allplayersview
     ORDER BY created DESC
     LIMIT 10;"
@@ -191,8 +191,8 @@ getOrganizationPlayers <- function(oid) {
 #' @export
 getTeamInformation <- function(oid){
   memoisedPortalQuery(
-    "SELECT t.*, muid.orgManager, muid.assManager1, 
-      muid.assManager2, m.om, m.am1, m.am2
+    "SELECT t.*, muid.orgManager AS omuid, muid.assManager1 AS am1uid, 
+      muid.assManager2 AS am2uid, m.om, m.am1, m.am2
       FROM teams t
       LEFT JOIN managers muid ON t.orgID = muid.orgID
       LEFT JOIN managerview m ON t.orgID = m.orgID
@@ -292,7 +292,7 @@ getDraftClass <- function(class = NULL) {
 
   memoisedPortalQuery(
     "SELECT
-      name, pid, tpe, team, username, userStatus, playerStatus, position, bankBalance
+      name, pid, tpe, team, username, uid, userStatus, playerStatus, position, bankBalance
     FROM 
       allplayersview
     WHERE
@@ -469,7 +469,7 @@ getManagers <- function() {
 #' @export
 getUnapprovedPlayers <- function() {
   portalQuery(
-    "SELECT pid, username, first, last, tpe, tpebank, render, position
+    "SELECT pid, username, uid, first, last, tpe, tpebank, render, position
     FROM allplayersview
     WHERE status_p = -1;"
   )

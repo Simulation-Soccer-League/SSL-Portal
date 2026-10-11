@@ -17,6 +17,9 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/get/getPlayer[getPlayers],
+  app/logic/get/getUser[
+    createUserLink,
+  ],
   app/logic/ui/reactableHelper[linkOrganization],
 )
 
@@ -46,7 +49,7 @@ server <- function(id) {
     
     output$players <- renderReactable({
       data <- getPlayers(active = (input$retired == "No")) |>
-        select(name, username, pid, team, class, position, tpe, 
+        select(name, username, uid, pid, team, class, position, tpe, 
                tpebank, nationality, bankBalance, playerStatus, 
                userStatus) |> 
         arrange(desc(tpe)) |> 
@@ -68,7 +71,12 @@ server <- function(id) {
               show = FALSE
             ),
             USERNAME = colDef(
-              searchable = TRUE
+              searchable = TRUE,
+              cell = function(value, rowIndex) {
+                # Get the corresponding uid
+                uid <- data[rowIndex, "uid"]
+                createUserLink(value, uid)
+              }
             ),
             NAME = colDef(
               searchable = TRUE,
@@ -136,7 +144,8 @@ server <- function(id) {
                   )
                 }
               ),
-            PID = colDef(show = FALSE)
+            PID = colDef(show = FALSE),
+            UID = colDef(show = FALSE)
           ),
           rowStyle = function(index) {
             if (data[index, "team"] == "Retired") {

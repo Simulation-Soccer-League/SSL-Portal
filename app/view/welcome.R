@@ -43,6 +43,9 @@ box::use(
     getRecentCreates, 
     getTopEarners,
   ],
+  app/logic/get/getUser[
+    createUserLink,
+  ],
   app/logic/ui/cards[resultCard],
   app/logic/ui/reactableHelper[linkOrganization],
   app/logic/ui/spinner[withSpinnerCustom],
@@ -541,6 +544,7 @@ server <- function(id, usergroup, season, updated) {
                   href = route_link(paste0("tracker/player?pid=", player$pid)),
                   shiny$p(player$name)
                 ),
+                sprintf("(%s)", player$position),
                 shiny$img(
                   style = "
                     height: 1em;
@@ -555,7 +559,7 @@ server <- function(id, usergroup, season, updated) {
                 style = "
                     font-size: 0.8em;
                   ",
-                sprintf("@%s - %s", player$username, player$position)
+                createUserLink(player$username, player$uid)
               )
             )
           }
