@@ -57,13 +57,19 @@ ui <- function(id) {
   ns <- shiny$NS(id)
   shiny$tagList(
     shiny$uiOutput(ns("information")),
-    bslib$card(
-      bslib$card_header(
-        shiny$h5("New Players")
-      ),
-      bslib$card_body(
-        style = "scrollbar-width: none;",
-        swipeR$swipeROutput(ns("creates"), height = "100px")
+    shiny$div(
+      style = "
+        max-width: 1000px;
+        margin: auto;
+      ",
+      bslib$card(
+        bslib$card_header(
+          shiny$h5("New Players")
+        ),
+        bslib$card_body(
+          style = "scrollbar-width: none;",
+          swipeR$swipeROutput(ns("creates"), height = "100px")
+        )
       )
     ),
     bslib$card(
@@ -532,6 +538,8 @@ server <- function(id, usergroup, season, updated) {
                   background: var(--bottom-background);
                   box-shadow: 2px 2px 4px var(--middle-background);
                   max-width: 200px;
+                  min-width: 175px;
+                  box-sizing: border-box;
                 ",
               shiny$div(
                 style = "
