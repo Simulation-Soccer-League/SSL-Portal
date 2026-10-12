@@ -333,8 +333,9 @@ playerCareerReactable <- function(data) {
             )
         ),
       columns = list(
-        season =    
+        season =
           colDef(
+            name = "SEASON",
             footer = "Totals"
           ),
         club =
