@@ -617,6 +617,9 @@ server <- function(id, pid = NULL, updated) {
           ) |>
           suppressMessages()
 
+        maxWeek <- max(visData$week, na.rm = TRUE)
+        xDtick <- min(10, ceiling(maxWeek / 10))
+        
         plotly$plot_ly(visData, hoverinfo = "text") |>
           plotly$add_trace(
             x = ~week, y = ~cumulative, type = "scatter", mode = "markers+lines",
@@ -630,10 +633,11 @@ server <- function(id, pid = NULL, updated) {
               font = list(color = "white") # Set title text color to white
             ),
             xaxis = list(
-              title = "Time",
+              title = "Time since creation",
+              range = c(0, maxWeek),
               tickfont = list(color = "white"), # Set x-axis tick labels color to white
               titlefont = list(color = "white"), # Set x-axis title color to white
-              dtick = 1,
+              dtick = xDtick,
               showgrid = FALSE
             ),
             yaxis = list(
