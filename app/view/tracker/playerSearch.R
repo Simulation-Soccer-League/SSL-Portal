@@ -18,7 +18,7 @@ box::use(
   app/logic/constant,
   app/logic/get/getPlayer[getPlayers],
   app/logic/get/getUser[
-    createUserLink,
+    linkUser,
   ],
   app/logic/ui/reactableHelper[linkOrganization],
 )
@@ -75,7 +75,7 @@ server <- function(id) {
               cell = function(value, rowIndex) {
                 # Get the corresponding uid
                 uid <- data[rowIndex, "uid"]
-                createUserLink(value, uid)
+                linkUser(value, uid)
               }
             ),
             NAME = colDef(

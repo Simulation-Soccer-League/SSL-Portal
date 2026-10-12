@@ -28,6 +28,9 @@ box::use(
     getTpeHistory, 
     getUpdateHistory
   ],
+  app/logic/get/getUser[
+    linkUser,
+  ],
   app/logic/get/getIndex[
     getLatestGames,
     getLeagueIndex,
@@ -282,7 +285,7 @@ server <- function(id, pid = NULL, updated) {
             class = "flex-row flex-baseline",
             shiny$em(
               style = "font-size: 1.7rem;",
-              sprintf("@%s", data$username)
+              linkUser(data$username, data$uid)
             )
           )
         ),

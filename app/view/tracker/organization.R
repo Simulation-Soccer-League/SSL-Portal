@@ -17,7 +17,7 @@ box::use(
     getTeamInformation,
   ],
   app/logic/get/getUser[
-    createUserLink,
+    linkUser,
   ],
   app/logic/ui/reactableHelper[
     orgReactable
@@ -204,7 +204,7 @@ server <- function(id, oid = NULL, updated) {
           if (data$om[1] |> is.na()){
             "None"
           } else {
-            createUserLink(data$om[1], data$omuid[1])
+            linkUser(data$om[1], data$omuid[1])
           }
         ),
         paste(
@@ -212,7 +212,7 @@ server <- function(id, oid = NULL, updated) {
           if (data$am1[1] |> is.na()){
             "None"
           } else {
-            createUserLink(data$am1[1], data$am1uid[1])
+            linkUser(data$am1[1], data$am1uid[1])
           }
         ),
         paste(
@@ -220,7 +220,7 @@ server <- function(id, oid = NULL, updated) {
           if (data$am2[1] |> is.na()){
             "None"
           } else {
-            createUserLink(data$am2[1], data$am2uid[1])
+            linkUser(data$am2[1], data$am2uid[1])
           }
         ) 
       )

@@ -15,7 +15,7 @@ box::use(
   app/logic/constant,
   app/logic/ui/tags[flexRow],
   app/logic/get/getUser[
-    createUserLink,
+    linkUser,
   ],
 )
 
@@ -179,7 +179,7 @@ draftClassReactable <- function(data) {
             uid <- data[rowIndex, "uid"]
             
             tippy(
-              createUserLink(value, uid),
+              linkUser(value, uid),
               tooltip = value,
               theme = "ssl"
             )
@@ -470,7 +470,7 @@ orgReactable <- function(data) {
           uid <- data[rowIndex, "uid"]
           
           tippy(
-            createUserLink(value, uid),
+            linkUser(value, uid),
             tooltip = value,
             theme = "ssl"
           )

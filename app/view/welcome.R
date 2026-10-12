@@ -44,7 +44,7 @@ box::use(
     getTopEarners,
   ],
   app/logic/get/getUser[
-    createUserLink,
+    linkUser,
   ],
   app/logic/ui/cards[resultCard],
   app/logic/ui/reactableHelper[linkOrganization],
@@ -559,7 +559,7 @@ server <- function(id, usergroup, season, updated) {
                 style = "
                     font-size: 0.8em;
                   ",
-                createUserLink(player$username, player$uid)
+                linkUser(player$username, player$uid)
               )
             )
           }
