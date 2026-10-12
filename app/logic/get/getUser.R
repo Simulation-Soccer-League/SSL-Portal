@@ -55,9 +55,10 @@ getUserPlayers <- function(uid) {
 }
 
 #' @export
-linkUser <- function(username, uid) {
+linkUser <- function(username, uid, ...) {
   shiny$a(
     href = route_link(paste0("tracker/user?uid=", uid)),
-    shiny$p(sprintf("@%s", username))
+    sprintf("@%s", username),
+    ...
   )
 }

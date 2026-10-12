@@ -407,6 +407,10 @@ $navbar-items-width: 112px;
       padding-bottom: 12px;
     }
   }
+  
+  .player-extra, img.player-extra {
+    display: none;
+  }
 }
 
 /* Makes result boxes overflow and creates a scroller */
@@ -1304,6 +1308,7 @@ $navbar-items-width: 112px;
   /* Moves the pagination object below the next/prev buttons*/
   z-index: 9;
 }
+
 
 
 /* Flags */

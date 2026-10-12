@@ -67,7 +67,11 @@ ui <- function(id) {
           shiny$h5("New Players")
         ),
         bslib$card_body(
-          style = "scrollbar-width: none;",
+          style = "
+            scrollbar-width: none;
+            display: flex;
+            flex-wrap: wrap;
+          ",
           swipeR$swipeROutput(ns("creates"), height = "100px")
         )
       )
@@ -532,43 +536,58 @@ server <- function(id, usergroup, season, updated) {
             
             shiny$div(
               style = "
-                  margin: 0 8px;
+                  flex: 0 0 45vw;
+                  max-width: 200px;
                   padding: 10px 14px;
                   border-radius: 8px;
                   background: var(--bottom-background);
                   box-shadow: 2px 2px 4px var(--middle-background);
-                  max-width: 200px;
-                  min-width: 175px;
                   box-sizing: border-box;
                 ",
               shiny$div(
                 style = "
-                  display: flex;
-                  flex-direction: row;
-                  justify-content: space-between;
-                  align-items: center;
-                ",
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    min-width: 0;
+                  ",
                 shiny$a(
                   href = route_link(paste0("tracker/player?pid=", player$pid)),
-                  shiny$p(player$name)
-                ),
-                sprintf("(%s)", player$position),
-                shiny$img(
                   style = "
-                    height: 1em;
-                    width: 1.3em;
+                    min-width: 0;
+                    flex: 1;
+                    white-space: normal;
+                    overflow-wrap: break-word;
+                    line-height: 1.1;
                   ",
-                  src = sprintf("https://flagcdn.com/%s.svg", constant$nationsTwoLetter[player$nationality] |> tolower()),
+                  player$name
+                ),
+                shiny$span(
+                  class = "player-extra",
+                  sprintf("(%s)", player$position)
+                ),
+                
+                shiny$img(
+                  class = "player-extra",
+                  src = sprintf(
+                    "https://flagcdn.com/%s.svg",
+                    tolower(constant$nationsTwoLetter[player$nationality])
+                  ),
                   alt = player$nationality,
-                  title = player$nationality
+                  title = player$nationality,
+                  style = "height:1em;width:1.3em;"
                 )
               ),
-              shiny$p(
+              linkUser(
+                player$username, 
+                player$uid, 
                 style = "
+                    display: block;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                     font-size: 0.8em;
-                  ",
-                linkUser(player$username, player$uid)
-              )
+                  ")
             )
           }
         ) |> 
