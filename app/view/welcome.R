@@ -219,7 +219,7 @@ server <- function(id, usergroup, season, updated) {
               
             if (standings |> nrow() == 0) {
               standings |> 
-                select(team, w:l, gd, p) |> 
+                select(team, mp, w:l, gd, p) |> 
                 reactable(
                   defaultColDef = colDef(
                     minWidth = 30,
@@ -251,6 +251,15 @@ server <- function(id, usergroup, season, updated) {
                         cell = function(value) {
                           linkOrganization(value)
                         }
+                      ),
+                      mp = colDef(
+                        header = tippy(
+                          "PL",
+                          "Played",
+                          placement = "top",
+                          theme = "ssl", 
+                          arrow = TRUE
+                        )
                       ),
                       w = colDef(
                         header = tippy(
@@ -304,7 +313,7 @@ server <- function(id, usergroup, season, updated) {
                 ## Filters out stage matches for the standings
                 filter(nchar(matchday) == 1) |> 
                 arrange(matchday, desc(p), desc(gd), desc(gf)) |>
-                select(team, w:l, gd, p, matchday) |> 
+                select(team, mp, w:l, gd, p, matchday) |> 
                 reactable(
                   pagination = FALSE,
                   sortable = FALSE,
@@ -340,6 +349,15 @@ server <- function(id, usergroup, season, updated) {
                         cell = function(value) {
                           linkOrganization(value)
                         }
+                      ),
+                      mp = colDef(
+                        header = tippy(
+                          "PL",
+                          "Played",
+                          placement = "top",
+                          theme = "ssl", 
+                          arrow = TRUE
+                        )
                       ),
                       w = colDef(
                         header = tippy(
@@ -391,7 +409,7 @@ server <- function(id, usergroup, season, updated) {
             } else {
               standings |>
                 arrange(desc(p), desc(gd), desc(gf)) |>
-                select(team, w:l, gd, p) |>
+                select(team, mp, w:l, gd, p) |> 
                 reactable(
                   defaultColDef = colDef(minWidth = 30),
                   pagination = FALSE,
@@ -404,6 +422,15 @@ server <- function(id, usergroup, season, updated) {
                         cell = function(value) {
                           linkOrganization(value)
                         }
+                      ),
+                      mp = colDef(
+                        header = tippy(
+                          "PL",
+                          "Played",
+                          placement = "top",
+                          theme = "ssl", 
+                          arrow = TRUE
+                        )
                       ),
                       w = colDef(
                         header = tippy(
