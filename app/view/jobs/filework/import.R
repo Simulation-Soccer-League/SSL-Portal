@@ -222,11 +222,11 @@ server <- function(id, auth, updated) {
       shiny$bindEvent(filePath())
     
     matchday <- shiny$reactive({
-      nextGames() |> 
+      nextGames()$gid |> 
         min() |> 
         getMatchday()
     }) |> 
-      shiny$bindEvent(nextGames())
+      shiny$bindEvent(filePath())
 
     processedGame <- shiny$reactive({
       currentSave <- parseFMdata(filePath()) |> 
