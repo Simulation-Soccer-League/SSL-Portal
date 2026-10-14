@@ -54,6 +54,10 @@ parseFMdata <- function(path) {
           str_detect(Name, "GFuel") ~ "A Singular Tub of FazeBerry ® GFuel ® Energy Formula - The Official Drink of ESports ®", 
           # str_detect(Name, "Liang") ~ "Kuai Liang",
           # str_detect(Name, "Princess") ~ "Princess Changshan",
+          str_detect(Name, "Princess") ~ "Princess Changshan",
+          str_detect(Name, "Ross Bob") ~ "Bob Ross",
+          str_detect(Name, "Szarekh") ~ "King Szarekh",
+          str_detect(Name, "You Jiang") ~ "Jiang You",
           TRUE ~ Name)
     ) |> 
     relocate(
@@ -157,6 +161,7 @@ parseFMdata <- function(path) {
           Club == "Seoul Mythic FC" ~ "Seoul MFC",
           Club == "Atlético Medellin" ~ "Atlético",
           Club == "Victoria Falls Eagles" ~ "Victoria Falls",
+          club == "SD Guaydaquil" ~ "SD Guayaquil",
           TRUE ~ Club
         )
     ) |> 
