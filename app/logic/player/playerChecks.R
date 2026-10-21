@@ -550,7 +550,7 @@ checkApprovingPlayer <- function(uid) {
 #' @export
 completedAC <- function(pid) {
   weekStart <- now() |>
-    with_tz("US/Pacific") |>
+    with_tz("America/Los_Angeles") |>
     floor_date("week", week_start = "Monday") |>
     as.numeric()
   
@@ -572,7 +572,7 @@ completedAC <- function(pid) {
 completedTC <- function(pid) {
   start <- constant$currentSeason$startDate |>
     as_date() |>
-    force_tz("US/Pacific") |>
+    force_tz("America/Los_Angeles") |>
     as.numeric()
   
   portalQuery(

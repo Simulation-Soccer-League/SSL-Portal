@@ -96,7 +96,7 @@ server <- function(id, auth, updated) {
       } else {
         unapprovedTransactions() |> 
           dplyr$mutate(
-            Time = as_datetime(Time, tz = "US/Pacific")
+            Time = as_datetime(Time, tz = "America/Los_Angeles")
           ) |> 
           reactable(
             selection = "multiple",
@@ -123,7 +123,7 @@ server <- function(id, auth, updated) {
     output$history <- renderReactable({
       approvedTransactions() |> 
         dplyr$mutate(
-          Time = as_datetime(Time, tz = "US/Pacific")
+          Time = as_datetime(Time, tz = "America/Los_Angeles")
         ) |> 
         reactable(
           searchable = TRUE,

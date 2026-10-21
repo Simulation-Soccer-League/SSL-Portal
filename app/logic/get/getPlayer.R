@@ -37,7 +37,7 @@ getUpdateHistory <- function(pid) {
     mutate(
       Time = Time |>
         as.numeric() |>
-        lubridate$as_datetime(tz = "US/Pacific")
+        lubridate$as_datetime(tz = "America/Los_Angeles")
     )
 }
 
@@ -53,7 +53,7 @@ getTpeHistory <- function(pid) {
     mutate(
       Time = Time |>
         as.numeric() |>
-        lubridate$as_datetime(tz = "US/Pacific")
+        lubridate$as_datetime(tz = "America/Los_Angeles")
     )
 }
 
@@ -69,7 +69,7 @@ getBankHistory <- function(pid) {
     mutate(
       Time = Time |>
         as.numeric() |>
-        lubridate$as_datetime(tz = "US/Pacific")
+        lubridate$as_datetime(tz = "America/Los_Angeles")
     )
 }
 
@@ -247,14 +247,14 @@ getChangedBuilds <- function() {
   ## Gets date of the start of the week in Pacific
   weekEnd <- 
     lubridate$now() |> 
-    lubridate$with_tz("US/Pacific") |> 
+    lubridate$with_tz("America/Los_Angeles") |> 
     lubridate$floor_date("week", week_start = "Monday") |> 
     as.numeric() |> 
     sum(c(-1))
   
   weekStart <- 
     lubridate$now() |> 
-    lubridate$with_tz("US/Pacific") |> 
+    lubridate$with_tz("America/Los_Angeles") |> 
     lubridate$floor_date("week", week_start = "Monday") |> 
     as.numeric() |> 
     sum(c(-604800))

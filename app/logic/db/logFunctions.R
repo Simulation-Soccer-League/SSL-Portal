@@ -19,10 +19,10 @@ box::use(
 #' @export
 #' MOVED TO updatePlayerData()
 logUpdate <- function(uid, pid, updates) {
-  # compute a single timestamp in US/Pacific once
+  # compute a single timestamp in America/Los_Angeles once
   ts <- 
     now() |> 
-    with_tz("US/Pacific") |>  
+    with_tz("America/Los_Angeles") |>  
     as.numeric()
   
   # uppercase the attribute column
@@ -96,7 +96,7 @@ logTPE <- function(uid, pid, tpe) {
   # one timestamp
   ts <- 
     now() |>
-    with_tz("US/Pacific") |> 
+    with_tz("America/Los_Angeles") |> 
     as.numeric()
   
   # fire one parameterized INSERT per row
@@ -136,7 +136,7 @@ logBankTransaction <- function(uid, data, status = 1, con = NULL) {
   
   
   timestamp <- now() |> 
-    with_tz("US/Pacific") |> 
+    with_tz("America/Los_Angeles") |> 
     as.numeric()
   
   DBI$dbExecute(con, "SET NAMES utf8mb4;")

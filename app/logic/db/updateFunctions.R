@@ -39,10 +39,10 @@ updatePlayerData <- function(uid, pid, updates, bankedTPE = NULL, con = NULL) {
       portalQuery(query = "START TRANSACTION;", type = "set")
       
       # one timestamp
-      # compute a single timestamp in US/Pacific once
+      # compute a single timestamp in America/Los_Angeles once
       ts <- 
         now() |> 
-        with_tz("US/Pacific") |>  
+        with_tz("America/Los_Angeles") |>  
         as.numeric()
       
       # uppercase the attribute column
@@ -147,7 +147,7 @@ updateFromBank <- function(uid, pid, updates, tpe, totalCost){
   con <- createConnection("portal")
   
   timestamp <- now() |> 
-    with_tz("US/Pacific") |> 
+    with_tz("America/Los_Angeles") |> 
     as.numeric()
   
   DBI$dbExecute(con, "SET NAMES utf8mb4;")
@@ -270,7 +270,7 @@ updateTPE <- function(uid, tpeData, con = NULL) {
   }
   
   timestamp <- now() |> 
-    with_tz("US/Pacific") |> 
+    with_tz("America/Los_Angeles") |> 
     as.numeric()
   
   DBI$dbExecute(con, "SET NAMES utf8mb4;")
@@ -370,7 +370,7 @@ updateTransaction <- function(data, uid, status = 1) {
   con <- createConnection("portal")
   
   timestamp <- now() |> 
-    with_tz("US/Pacific") |> 
+    with_tz("America/Los_Angeles") |> 
     as.numeric()
   
   DBI$dbExecute(con, "SET NAMES utf8mb4;")
@@ -415,7 +415,7 @@ updateTransaction <- function(data, uid, status = 1) {
 approvePlayer <- function(data, uid) {
   
   currentTime <- now() |> 
-    with_tz("US/Pacific") |> 
+    with_tz("America/Los_Angeles") |> 
     as.numeric()
   
   # Begin the transaction
@@ -517,7 +517,7 @@ approvePlayer <- function(data, uid) {
     
     ## Handling Catchup-TPE
     today <- now() |> 
-      with_tz("US/Pacific") |> 
+      with_tz("America/Los_Angeles") |> 
       as_date() |> 
       as.numeric()
     

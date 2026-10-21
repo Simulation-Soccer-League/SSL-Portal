@@ -602,7 +602,7 @@ server <- function(id, pid = NULL, updated) {
               min(WeekStart),
               floor_date(
                 today() |>
-                  as_date(tz = "US/Pacific"),
+                  as_date(tz = "America/Los_Angeles"),
                 "week",
                 week_start = 1
               ),
