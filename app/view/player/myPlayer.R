@@ -16,11 +16,11 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
-  app/logic/db/get[getActivePlayer, getPlayer],
   app/logic/db/updateFunctions[
     updateTPE,
     retirePlayer,
   ],
+  app/logic/get/getPlayer[getActivePid, getPlayer],
   app/logic/player/playerChecks[
     completedAC,
     completedTC, 
@@ -37,7 +37,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, auth, updated) {
+server <- function(id, auth, updated, playerData) {
   shiny$moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -156,19 +156,13 @@ server <- function(id, auth, updated) {
     })
     
     #### OUTPUT SERVER ####
-    player$server("player", pid = getActivePlayer(auth$uid), updated = updated)
+    player$server("player", pid = getActivePid(auth$uid), updated = updated)
     
     #### REACTIVES ####
     bankedTPE <- shiny$reactive({
       playerData() |>  
       dplyr$select(tpebank)
     })
-    
-    playerData <- shiny$reactive({
-      getActivePlayer(auth$uid) |> 
-        getPlayer()
-    }) |> 
-      shiny$bindEvent(updated())
     
     #### OBSERVERS ####
     shiny$observe({

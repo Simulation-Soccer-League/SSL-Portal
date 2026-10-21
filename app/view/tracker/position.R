@@ -10,7 +10,7 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[getPlayers],
+  app/logic/get/getPlayer[getPlayers],
 )
 
 #' @export
@@ -69,7 +69,6 @@ server <- function(id) {
         data
       }
     }) |> 
-      shiny$bindCache(id, input$activeStatus) |> 
       shiny$bindEvent(input$activeStatus) 
       
     

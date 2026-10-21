@@ -14,6 +14,9 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/ui/tags[flexRow],
+  app/logic/get/getUser[
+    linkUser,
+  ],
 )
 
 #' @export
@@ -171,9 +174,12 @@ draftClassReactable <- function(data) {
           )
         }),
         USERNAME = colDef(
-          cell = function(value) {
+          cell = function(value, rowIndex) {
+            # Get the corresponding uid
+            uid <- data[rowIndex, "uid"]
+            
             tippy(
-              value,
+              linkUser(value, uid),
               tooltip = value,
               theme = "ssl"
             )
@@ -219,7 +225,8 @@ draftClassReactable <- function(data) {
               )
           }
         ),
-        PID = colDef(show = FALSE)
+        PID = colDef(show = FALSE),
+        UID = colDef(show = FALSE)
       )
     )
 }
@@ -295,6 +302,72 @@ recordReactable <- function(currentData) {
         )
     )
 }
+
+#' @export
+playerCareerReactable <- function(data) {
+  statisticsTooltips <-
+    constant$statisticsLegend[constant$statisticsLegend$statistic %in% colnames(data), ]
+  
+  data |>
+    dplyr$mutate(
+      dplyr$across(
+        dplyr$where(is.numeric),
+        ~ round(.x, 2)
+      )
+    ) |> 
+    reactable(
+      searchable = FALSE,
+      defaultColDef = 
+        colDef(
+          minWidth = 60,
+          width = 75,
+          maxWidth = 250,
+          footer = 
+            function(values) {
+              if(typeof(values) != "character") sum(values) |> round(2)
+            },
+          footerStyle = 
+            list(
+              fontWeight = "bold",
+              borderTop = "4px solid var(--ssl-gold)"
+            )
+        ),
+      columns = list(
+        season =
+          colDef(
+            name = "SEASON",
+            footer = "Totals"
+          ),
+        club =
+          colDef(
+            name = "CLUB",
+            width = 60,
+            show = TRUE,
+            cell = function(value, index) {
+              clubLogos(value, index, data, onlyLogo = TRUE)
+            },
+            footer = NULL
+          ),
+        pid = colDef(show = FALSE)
+      ) |>
+        append(
+          pmap(statisticsTooltips, ~ {
+            if ((..1) %in% names(data)) {
+              ..1 <-
+                colDef(
+                  header =
+                    tippy(..3 |> str_to_upper(), sprintf("%s<br/>%s", ..1 |> str_to_title(), ..2), placement = "top", theme = "ssl"),
+                  html = TRUE
+                )
+            }
+          }) |>
+            setNames(statisticsTooltips$statistic) |>
+            Filter(f = Negate(is.null), x = _)
+        )
+    ) 
+  
+}
+
 
 #' @export
 indexReactable <- function(currentData, search = TRUE, club = FALSE, ...) {
@@ -392,8 +465,17 @@ orgReactable <- function(data) {
         }
       ),
       username = colDef(
-        width = 120, 
-        cell = function(value) tippy(value, tooltip = value, theme = "ssl")
+        width = 120,
+        cell = function(value, rowIndex) {
+          # Get the corresponding uid
+          uid <- data[rowIndex, "uid"]
+          
+          tippy(
+            linkUser(value, uid),
+            tooltip = value,
+            theme = "ssl"
+          )
+        },
       ),
       discord = colDef(
         width = 120, 
@@ -407,98 +489,10 @@ orgReactable <- function(data) {
       tpe = colDef(width = 50),
       userStatus = colDef(width = 125),
       playerStatus = colDef(width = 140),
-      pid = colDef(show = FALSE)
+      pid = colDef(show = FALSE),
+      uid = colDef(show = FALSE)
     )
   )
-}
-
-#' @export
-attributeReactable <- function(data, session, output) {
-  processedData <-
-    data |>
-    dplyr$select(acceleration:throwing) |>
-    dplyr$select(
-      dplyr$where(~ !is.na(.x))
-    ) |>
-    pivot_longer(
-      cols = dplyr$everything(),
-      values_to = "Value",
-      names_to = "Attribute"
-    ) |>
-    dplyr$mutate(
-      Attribute = str_to_title(Attribute)
-    ) |>
-    dplyr$left_join(
-      constant$attributes,
-      by = c("Attribute" = "attribute")
-    ) |>
-    dplyr$mutate(
-      Attribute = factor(Attribute, levels = sort(Attribute |> unique(), decreasing = TRUE)),
-      group = factor(group, levels = c("Physical", "Mental", "Technical", "Goalkeeper")),
-      ValueFill = dplyr$case_when(
-        Value >= 18 ~ 1,
-        Value >= 13 ~ 2,
-        Value >= 10 ~ 3,
-        TRUE ~ 5
-      ) |> factor()
-    ) |>
-    dplyr$filter(
-      if (data$pos_gk == 20) {
-        (
-          (group %in% c("Goalkeeper", "Technical") & keeper == "TRUE")
-          | (group %in% c("Physical", "Mental"))
-        )
-      } else {
-        group %in% c("Physical", "Mental", "Technical")
-      }
-    )
-
-  map(
-    .x = processedData$group |> unique() |> sort(),
-    .f = function(chosenGroup) {
-      output[[chosenGroup]] <- renderReactable({
-        temp <-
-          processedData |>
-          dplyr$filter(
-            group == chosenGroup
-          )
-
-        temp |>
-          dplyr$select(Attribute, Value) |>
-          reactable(
-            defaultColDef = colDef(
-              style = function(value, index) {
-                color <- dplyr$if_else(temp$ValueFill[index] == 1, constant$green,
-                  dplyr$if_else(temp$ValueFill[index] == 2, constant$yellow,
-                    dplyr$if_else(temp$ValueFill[index] == 3, "#ffffff", "#B6B6B6")
-                  )
-                )
-                list(background = color, color = "black")
-              }
-            ),
-            columns = list(
-              Value = colDef(name = "", width = 40)
-            ),
-            pagination = FALSE,
-            sortable = FALSE
-          )
-      })
-    }
-  )
-
-  map(
-    .x = processedData$group |> unique() |> sort(),
-    .f = function(chosenGroup) {
-      tagList(
-        div(
-          style = "width: 80%",
-          h4(chosenGroup),
-          reactableOutput(session$ns(chosenGroup))
-        )
-      )
-    }
-  ) |> 
-    div(class = "attribute-tables")
 }
 
 #' @export

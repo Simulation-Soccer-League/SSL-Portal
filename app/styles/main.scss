@@ -13,6 +13,7 @@
   --top-background: hsl(var(--color), 10%);
   --middle-background: hsl(var(--color), 20%);
   --bottom-background: hsl(var(--color), 30%);
+  --light-background: hsl(var(--color), 40%);
   --border-color: hsl(var(--color), 25%);
   --menu-color: #222831;
   --sub-menu-color: #eeeeee;
@@ -26,6 +27,10 @@
   --shield-d:    #676666;
   /* Shared gradient base */
   --gradient-d: #2e2e2e;
+  
+  /* Adjusting swipeR sizing */
+  --swiper-navigation-size: 32px;
+  
 }
 /* stylelint-enable color-function-notation */
 
@@ -402,6 +407,10 @@ $navbar-items-width: 112px;
       padding-bottom: 12px;
     }
   }
+  
+  .player-extra, img.player-extra {
+    display: none;
+  }
 }
 
 /* Makes result boxes overflow and creates a scroller */
@@ -521,11 +530,6 @@ $navbar-items-width: 112px;
 
 .scores:nth-child(even) {
   border-left: 1px solid;
-}
-
-.attribute-tables {
-  display: flex;
-  justify-content: space-around;
 }
 
 .attribute-cost {
@@ -1291,4 +1295,124 @@ $navbar-items-width: 112px;
 .seasonDropdown .selectize-dropdown {
   background: var(--lighter-text);  
   color: var(--menu-color);
+}
+
+
+/* swipeR adjustments */
+
+.swiper-button-prev, .swiper-button-next {
+  top: var(--swiper-navigation-top-offset, 80%);
+}
+
+.swiper-pagination {
+  /* Moves the pagination object below the next/prev buttons*/
+  z-index: 9;
+}
+
+
+
+/* Flags */
+.flag {
+  height: 1em;
+  width: 1.3em;
+}
+
+/* Information boxes */
+
+.shadow-box {
+  margin: 0 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  min-height: 40px;
+}
+
+.box-bottom {
+  background: var(--light-background);  
+  box-shadow: 2px 2px 4px var(--middle-background);
+}
+
+.box-middle {
+  background: var(--bottom-background);  
+  box-shadow: 2px 2px 4px var(--middle-background);
+}
+
+.box-top {
+  background: var(--middle-background);  
+  box-shadow: 2px 2px 4px var(--top-background);
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.flex-center {
+  align-items: center;
+}
+
+.flex-baseline {
+  align-items: baseline;
+}
+
+
+/* BSLIB Accordions */
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accordion-item {
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 3px 3px 4px rgba(0, 0, 0, .1);
+}
+
+.accordion-button {
+  width: 100%;
+  border: none;
+  background: #444;
+  color: var(--lighter-text);
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+}
+
+.accordion-title {
+  flex: 1;  
+}
+
+.accordion-body {
+  padding: 12px;
+  background: var(--bottom-background);
+}
+
+.accordion-button.collapsed .accordion-icon {
+  transform: rotate(-90deg);
+}
+
+.accordion-button::after {
+  content: "";
+  background-image: none;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--lighter-text);
+  border-bottom: 1.5px solid var(--lighter-text);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.accordion-button:not(.collapsed)::after {
+  transform: rotate(225deg);
 }

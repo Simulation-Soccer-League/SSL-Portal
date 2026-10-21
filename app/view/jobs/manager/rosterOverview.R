@@ -18,9 +18,7 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[
-    getManagedPlayers,
-  ],
+  app/logic/get/getPlayer[getManagedPlayers,],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/player/playerChecks[
     hasActivePlayer,
@@ -111,9 +109,7 @@ server <- function(id, auth, updated) {
         dplyr$arrange(affiliate, created) |> 
         dplyr$select(!created)
     }) |> 
-      shiny$bindEvent(
-        updated()
-      )
+      shiny$bindEvent(updated())
     
     
     #### OUTPUT SERVER ####

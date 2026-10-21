@@ -18,7 +18,6 @@ box::use(
 
 box::use(
   app / logic / constant,
-  app / logic / db / get[getStandings],
   app / logic / ui / selector[leagueSelectInput],
   app / logic / ui / spinner[withSpinnerCustom],
   app / logic / ui / tags[flexRow],

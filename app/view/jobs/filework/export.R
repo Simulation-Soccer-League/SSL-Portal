@@ -10,8 +10,8 @@ box::use(
 )
 
 box::use(
-  app/logic/db/get[getChangedBuilds, getPlayer, getPlayerNames],
   app/logic/db/login[isBoD, isFileworker],
+  app/logic/get/getPlayer[getChangedBuilds, getPlayer, getPlayerNames],
   app/logic/export[downloadPlayer],
   app/view/tracker/player,
 )

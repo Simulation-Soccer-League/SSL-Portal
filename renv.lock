@@ -1609,6 +1609,29 @@
       ],
       "Hash": "52f11089f7313ba949173cd2fc60cd4f"
     },
+    "rChoiceDialogs": {
+      "Package": "rChoiceDialogs",
+      "Version": "1.0.6.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "rJava",
+        "tcltk",
+        "utils"
+      ],
+      "Hash": "d442b88d6c3a5d573d6ff821a8b12797"
+    },
+    "rJava": {
+      "Package": "rJava",
+      "Version": "1.0-18",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "methods"
+      ],
+      "Hash": "52f11089f7313ba949173cd2fc60cd4f"
+    },
     "ragg": {
       "Package": "ragg",
       "Version": "1.5.2",
@@ -2096,6 +2119,20 @@
         "withr"
       ],
       "Hash": "d5af3fb664c987303b81f0b9afd9a621"
+    },
+    "swipeR": {
+      "Package": "swipeR",
+      "Version": "1.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "base64enc",
+        "htmltools",
+        "htmlwidgets",
+        "rChoiceDialogs",
+        "tools"
+      ],
+      "Hash": "08c835a962bece61d410a34bcfa56c27"
     },
     "swipeR": {
       "Package": "swipeR",
