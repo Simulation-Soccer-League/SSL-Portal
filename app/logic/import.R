@@ -53,6 +53,7 @@ parseFMdata <- function(path) {
         case_when(
           str_detect(Name, "GFuel") ~ "A Singular Tub of FazeBerry ® GFuel ® Energy Formula - The Official Drink of ESports ®", 
           # str_detect(Name, "Liang") ~ "Kuai Liang",
+          # str_detect(Name, "Princess") ~ "Princess Changshan",
           str_detect(Name, "Princess") ~ "Princess Changshan",
           str_detect(Name, "Ross Bob") ~ "Bob Ross",
           str_detect(Name, "Szarekh") ~ "King Szarekh",

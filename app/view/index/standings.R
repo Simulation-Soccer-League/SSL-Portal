@@ -290,14 +290,18 @@ server <- function(id, updated, season) {
                   list(
                     background =
                       dplyr$case_when(
-                        index %in% c(7) ~ constant$standingsGreen, 
-                        index %in% c(6) ~ constant$standingsRed,
-                        index %in% c(5, 8) ~ constant$standingsBlue,
+                        season |> as.numeric() > 26 & index %in% c(8) ~ constant$standingsGreen,
+                        season |> as.numeric() > 26 & index %in% c(7) ~ constant$standingsRed,
+                        season |> as.numeric() > 26 & index %in% c(6,9) ~ constant$standingsBlue,
+                        season |> as.numeric() <= 26 & index %in% c(7) ~ constant$standingsGreen, 
+                        season |> as.numeric() <= 26 & index %in% c(6) ~ constant$standingsRed,
+                        season |> as.numeric() <= 26 & index %in% c(5, 8) ~ constant$standingsBlue,
                         TRUE ~ NA
                       ),
                     borderTop =
                       dplyr$case_when(
-                        index %in% c(5, 9) ~ "solid",
+                        season |> as.numeric() > 26 & index %in% c(6, 10) ~ "solid",
+                        season |> as.numeric() <= 26 & index %in% c(5, 9) ~ "solid",
                         TRUE ~ "none"
                       )
                   )
