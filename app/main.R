@@ -1,4 +1,5 @@
 box::use(
+  bslib[bs_add_rules, bs_theme],
   cachem,
   glue,
   shiny,
@@ -22,7 +23,7 @@ box::use(
     isManager,
     isPT,
   ],
-  app/logic/db/get[getActivePlayer, getPlayer],
+  app/logic/get/getPlayer[getActivePid, getPlayer],
   app/logic/player/playerChecks[
     checkApprovingPlayer,
     eligibleRedist,
@@ -59,6 +60,7 @@ box::use(
   app/view/tracker/player,
   app/view/tracker/playerSearch,
   app/view/tracker/position,
+  app/view/tracker/user,
   app/view/tracker/wsfc,
   app/view/welcome,
 )
@@ -125,6 +127,41 @@ ui <- function(id) {
         )
       )
     ),
+    ## Adding accordion JS
+    shiny$tags$script(
+      shiny$HTML(
+        'document.addEventListener("click", (e) => {
+          const btn = e.target.closest(".accordion-button");
+          if (!btn) return;
+        
+          const accordion = btn.closest(".accordion");
+          const target = document.querySelector(btn.dataset.bsTarget);
+        
+          accordion
+            .querySelectorAll(".accordion-collapse.show")
+            .forEach((panel) => {
+              if (panel !== target) {
+                panel.classList.remove("show");
+        
+                const otherBtn = accordion.querySelector(
+                  `[data-bs-target="#${panel.id}"]`
+              );
+              
+              if (otherBtn) {
+                otherBtn.classList.add("collapsed");
+                otherBtn.setAttribute("aria-expanded", "false");
+              }
+        }
+        });
+        
+        const isOpen = target.classList.contains("show");
+        
+        target.classList.toggle("show", !isOpen);
+        btn.classList.toggle("collapsed", isOpen);
+        btn.setAttribute("aria-expanded", !isOpen);
+        });'
+      )
+    ),
     useShinyFeedback(), # include shinyFeedback
     useShinyjs(), # include shinyjs
     title = "SSL Portal",
@@ -142,6 +179,7 @@ ui <- function(id) {
       route("tracker/game", game$ui(ns("game"))),
       route("tracker/player", player$ui(ns("player"))),
       route("tracker/position", position$ui(ns("position"))),
+      route("tracker/user", user$ui(ns("user"))),
       route("tracker/organizations", organizationLanding$ui(ns("organization"))),
       route("organization", organization$ui(ns("organization"))),
       route("tracker/wsfc", wsfc$ui(ns("wsfc"))),
@@ -190,12 +228,16 @@ server <- function(id) {
     ## made that require re-loading assets
     updated <- shiny$reactiveVal(0)
     
+    activePlayer <- shiny$reactive({
+      getActivePid(authOutput()$uid) |> 
+        getPlayer()
+    }) |> 
+      shiny$bindEvent(updated())
+    
     season <- shiny$reactiveVal(constant$currentSeason$season)
     
     navigationBar$server("nav", auth = authOutput, resAuth = resAuth, updated = updated, season = season)
     
-    playerSearch$server("search")
-
     ## In order to load pages as they are clicked ONCE this is needed
     loadedServer <-
       shiny$reactiveValues(
@@ -215,7 +257,8 @@ server <- function(id) {
         draftclass = FALSE, 
         nationTracker = FALSE,
         position = FALSE, main = FALSE,
-        wsfc = FALSE, game = FALSE
+        wsfc = FALSE, game = FALSE,
+        playerSearch = FALSE, user = FALSE
       )
     
     ## Observer that checks the current page and loads the server for the page ONCE
@@ -226,7 +269,7 @@ server <- function(id) {
       
       if (current == "" & !loadedServer$main) {
         
-        welcome$server("welcome", usergroup = authOutput()$usergroup, season = season)
+        welcome$server("welcome", usergroup = authOutput()$usergroup, season = season, updated = updated)
         loadedServer$main <- TRUE
         
       } else if (current == "index/records" & !loadedServer$records) {
@@ -293,17 +336,26 @@ server <- function(id) {
         
         player$server("player", updated = updated)
         loadedServer$player <- TRUE
+        
+      } else if (current |> str_detect("tracker/user") & !loadedServer$user) {
+          
+          user$server("user", updated = updated)
+          loadedServer$user <- TRUE
       
       } else if (current |> str_detect("tracker/position") & !loadedServer$position) {
         
         position$server("position")
         loadedServer$position <- TRUE
         
+      } else if (current |> str_detect("search") & !loadedServer$playerSearch) {
+        playerSearch$server("search")
+        loadedServer$playerSearch <- TRUE
+        
       } else if (current == "myPlayer/") {
         
         if (navigationCheck(authOutput())) {
           if (!loadedServer$myPlayer) {
-            myPlayer$server("myPlayer", auth = authOutput(), updated = updated)
+            myPlayer$server("myPlayer", auth = authOutput(), updated = updated, playerData = activePlayer)
             
             loadedServer$myPlayer <- TRUE
           }
@@ -318,7 +370,8 @@ server <- function(id) {
             myBank$server(
               "myBank",
               auth    = authOutput(),
-              updated = updated
+              updated = updated,
+              playerData = activePlayer
             )
             loadedServer$myBank <- TRUE
           }
@@ -386,8 +439,7 @@ server <- function(id) {
         
       } else if (current == "myPlayer/reroll") {
         
-        if (getActivePlayer(authOutput()$uid) |> 
-            getPlayer() |> 
+        if (activePlayer() |> 
             eligibleReroll()){
           if (navigationCheck(authOutput())) {
             if (!loadedServer$playerReroll) {
@@ -412,8 +464,7 @@ server <- function(id) {
         
       } else if (current == "myPlayer/redistribute") {
         
-        if (getActivePlayer(authOutput()$uid) |> 
-            getPlayer() |> 
+        if (activePlayer() |> 
             eligibleRedist()) {
           if (navigationCheck(authOutput())) {
             if (!loadedServer$playerRedist) {

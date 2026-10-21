@@ -16,28 +16,35 @@ box::use(
     plotlyOutput, 
     renderPlotly
   ],
+  purrr,
   reactable[
     colDef, 
     reactable, 
     reactableOutput, 
     renderReactable
   ],
-  rlang[is_empty],
+  rlang[is_empty, `!!!`],
   shiny,
   shiny.router[route_link],
   stringr[str_to_upper,],
+  swipeR,
   tippy[tippy],
   waiter,
 )
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[
+  app/logic/get/getIndex[
+    memoisedGetSchedule, 
+    getStandings, 
+  ],
+  app/logic/get/getPlayer[
     getAChistory, 
     getRecentCreates, 
-    getSchedule, 
-    getStandings, 
     getTopEarners,
+  ],
+  app/logic/get/getUser[
+    linkUser,
   ],
   app/logic/ui/cards[resultCard],
   app/logic/ui/reactableHelper[linkOrganization],
@@ -50,13 +57,32 @@ ui <- function(id) {
   ns <- shiny$NS(id)
   shiny$tagList(
     shiny$uiOutput(ns("information")),
+    shiny$div(
+      style = "
+        max-width: 1000px;
+        margin: auto;
+      ",
+      bslib$card(
+        bslib$card_header(
+          shiny$h5("New Players")
+        ),
+        bslib$card_body(
+          style = "
+            scrollbar-width: none;
+            display: flex;
+            flex-wrap: wrap;
+          ",
+          swipeR$swipeROutput(ns("creates"), height = "100px")
+        )
+      )
+    ),
     bslib$card(
       bslib$card_header(
         flexRow(
           shiny$tagList(
             shiny$tags$style("align-items: center; justify-content: space-between;"),
             shiny$div(style = "width: 150px;", class = "hide-in-mobile"),
-            shiny$div(shiny$h5("Latest Results"), style = "width: 100%;"),
+            shiny$div(shiny$h5("Latest Scores"), style = "width: 100%;"),
             shiny$div(
               shiny$div(
                 shiny$selectInput(
@@ -85,7 +111,7 @@ ui <- function(id) {
     ),
     bslib$layout_column_wrap(
       width = 1 / 2,
-      heights_equal = "row",
+      # heights_equal = "row",
       bslib$card(
         bslib$card_header(
           shiny$h5("Major League Standings")
@@ -103,26 +129,27 @@ ui <- function(id) {
           reactableOutput(ns("standings_2")) |>
             withSpinnerCustom(height = 200)
         )
-      ),
-      bslib$card(
-        bslib$card_header(
-          shiny$h4("Weekly top earners")
-        ),
-        bslib$card_body(
-          reactableOutput(ns("weeklyLeaders")) |>
-            withSpinnerCustom(height = 100)
-        )
-      ),
-      bslib$card(
-        bslib$card_header(
-          shiny$h4("Recent creates")
-        ),
-        bslib$card_body(
-          reactableOutput(ns("created")) |>
-            withSpinnerCustom(height = 100)
-        )
       )
     ),
+    # bslib$layout_column_wrap(
+    #   width = 1 / 2,
+    #   bslib$card(
+    #     bslib$card_header(
+    #       shiny$h4("Weekly top earners")
+    #     ),
+    #     bslib$card_body(
+    #       reactableOutput(ns("weeklyLeaders"))
+    #     )
+    #   ),
+    #   bslib$card(
+    #     bslib$card_header(
+    #       shiny$h4("Recent creates")
+    #     ),
+    #     bslib$card_body(
+    #       reactableOutput(ns("created"))
+    #     )
+    #   )
+    # ),
     bslib$card(
       bslib$card_header(
         shiny$h4("Activity Checks")
@@ -137,7 +164,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, usergroup, season) {
+server <- function(id, usergroup, season, updated) {
   shiny$moduleServer(
     id,
     function(input, output, session) {
@@ -147,22 +174,25 @@ server <- function(id, usergroup, season) {
       standings <- shiny$reactive({
         getStandings(league = 'ALL', season = season()) |> 
           filter(matchtype > 0)
-      }) |> 
-        shiny$bindCache(id, season())
+      })
       
       schedule <- shiny$reactive({
         shiny$req(input$selectedLeague)
         
         league <- input$selectedLeague
         
-        getSchedule(league = league, season = season())
-      }) |> 
-        shiny$bindCache(id, input$selectedLeague, season())
+        memoisedGetSchedule(league = league, season = season())
+      })
       
+      # earners <- shiny$reactive({
+      #   getTopEarners()
+      # })
+      # 
+      creates <- getRecentCreates()
+
       ac <- shiny$reactive({
         getAChistory()
-      }) |> 
-        shiny$bindCache(id, "ac")
+      })
       
       #### INFORMATION ####
       output$information <- shiny$renderUI({
@@ -189,7 +219,7 @@ server <- function(id, usergroup, season) {
               
             if (standings |> nrow() == 0) {
               standings |> 
-                select(team, w:l, gd, p) |> 
+                select(team, mp, w:l, gd, p) |> 
                 reactable(
                   defaultColDef = colDef(
                     minWidth = 30,
@@ -225,6 +255,15 @@ server <- function(id, usergroup, season) {
                         cell = function(value) {
                           linkOrganization(value)
                         }
+                      ),
+                      mp = colDef(
+                        header = tippy(
+                          "PL",
+                          "Played",
+                          placement = "top",
+                          theme = "ssl", 
+                          arrow = TRUE
+                        )
                       ),
                       w = colDef(
                         header = tippy(
@@ -278,7 +317,7 @@ server <- function(id, usergroup, season) {
                 ## Filters out stage matches for the standings
                 filter(nchar(matchday) == 1) |> 
                 arrange(matchday, desc(p), desc(gd), desc(gf)) |>
-                select(team, w:l, gd, p, matchday) |> 
+                select(team, mp, w:l, gd, p, matchday) |> 
                 reactable(
                   pagination = FALSE,
                   sortable = FALSE,
@@ -318,6 +357,15 @@ server <- function(id, usergroup, season) {
                         cell = function(value) {
                           linkOrganization(value)
                         }
+                      ),
+                      mp = colDef(
+                        header = tippy(
+                          "PL",
+                          "Played",
+                          placement = "top",
+                          theme = "ssl", 
+                          arrow = TRUE
+                        )
                       ),
                       w = colDef(
                         header = tippy(
@@ -369,7 +417,7 @@ server <- function(id, usergroup, season) {
             } else {
               standings |>
                 arrange(desc(p), desc(gd), desc(gf)) |>
-                select(team, w:l, gd, p) |>
+                select(team, mp, w:l, gd, p) |> 
                 reactable(
                   defaultColDef = colDef(minWidth = 30),
                   pagination = FALSE,
@@ -382,6 +430,15 @@ server <- function(id, usergroup, season) {
                         cell = function(value) {
                           linkOrganization(value)
                         }
+                      ),
+                      mp = colDef(
+                        header = tippy(
+                          "PL",
+                          "Played",
+                          placement = "top",
+                          theme = "ssl", 
+                          arrow = TRUE
+                        )
                       ),
                       w = colDef(
                         header = tippy(
@@ -480,54 +537,112 @@ server <- function(id, usergroup, season) {
         shiny$bindCache(id, input$selectedLeague, season(), "schedule")
 
       #### Weekly TPE Leaders ####
-      output$weeklyLeaders <- renderReactable({
-        data <- getTopEarners() 
-        
-        data |>
-          rename_with(str_to_upper) |> 
-          reactable(
-            defaultColDef = colDef(minWidth = 75),
-            columns = list(
-              PID = colDef(show = FALSE),
-              NAME = colDef(
-                searchable = TRUE,
-                cell = function(value, rowIndex) {
-                  pid <- data[rowIndex, "pid"] # Get the corresponding pid
-                  shiny$a(
-                    href = route_link(paste0("tracker/player?pid=", pid)),
-                    value # Display the name as the link text
-                  )
-                }
-              )
-            )
-          )
-      }) |> 
-        shiny$bindCache(id, "earner")
+      # output$weeklyLeaders <- renderReactable({
+      #   data <- earners() 
+      #   
+      #   data |>
+      #     rename_with(str_to_upper) |>
+      #     reactable(
+      #       defaultColDef = colDef(minWidth = 75),
+      #       columns = list(
+      #         PID = colDef(show = FALSE),
+      #         NAME = colDef(
+      #           searchable = TRUE,
+      #           cell = function(value, rowIndex) {
+      #             pid <- data[rowIndex, "pid"] # Get the corresponding pid
+      #             shiny$a(
+      #               href = route_link(paste0("tracker/player?pid=", pid)),
+      #               value # Display the name as the link text
+      #             )
+      #           }
+      #         )
+      #       )
+      #     )
+      # })
 
       #### Recently created ####
-      output$created <- renderReactable({
-        data <- getRecentCreates() 
-        
-        data |>
-          rename_with(str_to_upper) |> 
-          reactable(
-            defaultColDef = colDef(minWidth = 25),
-            columns = list(
-              PID = colDef(show = FALSE),
-              NAME = colDef(
-                searchable = TRUE,
-                cell = function(value, rowIndex) {
-                  pid <- data[rowIndex, "pid"] # Get the corresponding pid
-                  shiny$a(
-                    href = route_link(paste0("tracker/player?pid=", pid)),
-                    value # Display the name as the link text
-                  )
-                }
-              )
+      output$creates <- swipeR$renderSwipeR({
+        data <- creates
+
+        cards <- purrr$map(
+          .x = seq_len(nrow(data)),
+          .f = function(row) {
+            player <- data[row,]
+            
+            shiny$div(
+              style = "
+                  flex: 0 0 45vw;
+                  max-width: 200px;
+                  padding: 10px 14px;
+                  border-radius: 8px;
+                  background: var(--bottom-background);
+                  box-shadow: 2px 2px 4px var(--middle-background);
+                  box-sizing: border-box;
+                ",
+              shiny$div(
+                style = "
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    min-width: 0;
+                  ",
+                shiny$a(
+                  href = route_link(paste0("tracker/player?pid=", player$pid)),
+                  style = "
+                    min-width: 0;
+                    flex: 1;
+                    white-space: normal;
+                    overflow-wrap: break-word;
+                    line-height: 1.1;
+                  ",
+                  player$name
+                ),
+                shiny$span(
+                  class = "player-extra",
+                  sprintf("(%s)", player$position)
+                ),
+                
+                shiny$img(
+                  class = "player-extra",
+                  src = sprintf(
+                    "https://flagcdn.com/%s.svg",
+                    tolower(constant$nationsTwoLetter[player$nationality])
+                  ),
+                  alt = player$nationality,
+                  title = player$nationality,
+                  style = "height:1em;width:1.3em;"
+                )
+              ),
+              linkUser(
+                player$username, 
+                player$uid, 
+                style = "
+                    display: block;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    font-size: 0.8em;
+                  ")
             )
+          }
+        ) |> 
+          do.call(
+            what = swipeR$swipeRwrapper,
+            args = _
           )
-      }) |> 
-        shiny$bindCache(id, "created")
+        
+        swipeR$swipeR(
+          cards,
+          width = "80%",
+          effect = "slide",
+          slidesPerView = 3,
+          loop = TRUE,
+          rewind = TRUE,
+          autoplay = TRUE,
+          speed = 400,
+          scrollbar = FALSE
+        )
+      })
 
       output$activityChecks <- renderPlotly({
          ac() |>

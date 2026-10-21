@@ -5,6 +5,7 @@ box::use(
     colDef, 
     colFormat, 
     reactable, 
+    reactableLang,
     reactableOutput, 
     renderReactable
   ],
@@ -14,8 +15,12 @@ box::use(
 )
 
 box::use(
-  app / logic / db / get[getPlayers],
-  app / logic / ui / reactableHelper[linkOrganization],
+  app/logic/constant,
+  app/logic/get/getPlayer[getPlayers],
+  app/logic/get/getUser[
+    linkUser,
+  ],
+  app/logic/ui/reactableHelper[linkOrganization],
 )
 
 #' @export
@@ -41,9 +46,10 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
+    
     output$players <- renderReactable({
       data <- getPlayers(active = (input$retired == "No")) |>
-        select(name, username, pid, team, class, position, tpe, 
+        select(name, username, uid, pid, team, class, position, tpe, 
                tpebank, nationality, bankBalance, playerStatus, 
                userStatus) |> 
         arrange(desc(tpe)) |> 
@@ -53,6 +59,9 @@ server <- function(id) {
         rename_with(str_to_upper) |> 
         reactable(
           searchable = TRUE,
+          language = reactableLang(
+            searchPlaceholder = "Search/filter for player, username, team or nationality"
+          ),
           defaultPageSize = 25,
           showPageSizeOptions = TRUE,
           defaultColDef = colDef(searchable = FALSE),
@@ -62,7 +71,12 @@ server <- function(id) {
               show = FALSE
             ),
             USERNAME = colDef(
-              searchable = TRUE
+              searchable = TRUE,
+              cell = function(value, rowIndex) {
+                # Get the corresponding uid
+                uid <- data[rowIndex, "uid"]
+                linkUser(value, uid)
+              }
             ),
             NAME = colDef(
               searchable = TRUE,
@@ -76,9 +90,32 @@ server <- function(id) {
             ),
             TEAM = colDef(
               width = 200, 
-              align = "left", 
+              align = "left",
+              searchable = TRUE,
               cell = function(value) {
                 linkOrganization(value)
+              }
+            ),
+            NATIONALITY = colDef(
+              searchable = TRUE,
+              cell = function(value) {
+                shiny$div(
+                  class = "flex-row flex-center",
+                  shiny$img(
+                    style = "
+                      height: 1em;
+                      width: 2em;
+                      padding: 0px 5px;
+                    ",
+                    src = sprintf("https://flagcdn.com/%s.svg", constant$nationsTwoLetter[value] |> tolower()),
+                    alt = value,
+                    title = value
+                  ),
+                  shiny$p(
+                    style = "margin: auto;",
+                    value
+                  )
+                )
               }
             ),
             BANKBALANCE = colDef(
@@ -89,7 +126,26 @@ server <- function(id) {
                 currency = "USD"
               )
             ),
-            PID = colDef(show = FALSE)
+            PLAYERSTATUS = 
+              colDef(
+                cell = function(value) {
+                  shiny$div(
+                    class = value |> tolower(),
+                    value
+                  )
+                }
+              ),
+            USERSTATUS = 
+              colDef(
+                cell = function(value) {
+                  shiny$div(
+                    class = value |> tolower(),
+                    value
+                  )
+                }
+              ),
+            PID = colDef(show = FALSE),
+            UID = colDef(show = FALSE)
           ),
           rowStyle = function(index) {
             if (data[index, "team"] == "Retired") {
@@ -98,5 +154,6 @@ server <- function(id) {
           }
         )
     })
+    
   })
 }

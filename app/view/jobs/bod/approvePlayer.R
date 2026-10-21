@@ -19,9 +19,9 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
-  app/logic/db/get[getUnapprovedPlayers],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[approvePlayer],
+  app/logic/get/getPlayer[getUnapprovedPlayers],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],

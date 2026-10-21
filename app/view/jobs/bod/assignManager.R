@@ -13,8 +13,8 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[portalQuery],
-  app/logic/db/get[getManagers, getPlayers, ],
   app/logic/db/login[isNonActiveForumUser],
+  app/logic/get/getPlayer[getManagers, getPlayers, ],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],

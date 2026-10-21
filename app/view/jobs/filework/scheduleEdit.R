@@ -20,8 +20,8 @@ box::use(
 box::use(
   app/logic/constant,
   app/logic/db/database[indexQuery],
-  app/logic/db/get[getSchedule],
   app/logic/db/login[isBoD, isFileworker, isNonActiveForumUser],
+  app/logic/get/getIndex[getSchedule],
   app/logic/import[importGameData, parseFMdata],
   app/logic/ui/spinner[withSpinnerCustom],
 )

@@ -7,10 +7,10 @@ box::use(
 )
 
 box::use(
-  app / logic / db / get[getLeagueIndex],
-  app / logic / ui / reactableHelper[recordReactable],
-  app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexCol, flexRow],
+  app/logic/get/getIndex[getLeagueIndex],
+  app/logic/ui/reactableHelper[recordReactable],
+  app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/ui/tags[flexCol, flexRow],
 )
 
 #' @export
@@ -106,7 +106,6 @@ server <- function(id) {
 
         getLeagueIndex(league = league, season = "ALL")
       }) |>
-        shiny$bindCache(id, "outfield", input$selectedLeague) |> 
         shiny$bindEvent(input$selectedLeague)
 
       keeperData <- shiny$reactive({
@@ -115,7 +114,6 @@ server <- function(id) {
 
         getLeagueIndex(league = league, season = "ALL", outfield = FALSE)
       }) |>
-        shiny$bindCache(id, "keeper", input$selectedLeague) |> 
         shiny$bindEvent(input$selectedLeague)
 
       currentStatistic <- shiny$reactiveVal("goals")

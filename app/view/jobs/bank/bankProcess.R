@@ -17,9 +17,9 @@ box::use(
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[getBankTransactions],
   app/logic/db/login[isNonActiveForumUser],
   app/logic/db/updateFunctions[updateTransaction],
+  app/logic/get/getPlayer[getBankTransactions],
   app/logic/player/playerChecks[
     hasActivePlayer,
   ],

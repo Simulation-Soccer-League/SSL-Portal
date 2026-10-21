@@ -21,11 +21,11 @@ box::use(
 )
 
 box::use(
-  app / logic / constant,
-  app / logic / db / get[getPlayers],
-  app / logic / ui / reactableHelper[orgReactable],
-  app / logic / ui / spinner[withSpinnerCustom],
-  app / logic / ui / tags[flexRow],
+  app/logic/constant,
+  app/logic/get/getPlayer[getPlayers],
+  app/logic/ui/reactableHelper[orgReactable],
+  app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/ui/tags[flexRow],
 )
 
 #' @export
@@ -60,6 +60,7 @@ server <- function(id) {
           tpe,
           tpebank,
           username,
+          uid,
           discord,
           bankBalance,
           nationality,

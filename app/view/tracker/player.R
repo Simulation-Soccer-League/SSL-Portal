@@ -3,6 +3,7 @@ box::use(
   dplyr,
   lubridate[as_date, as_datetime, floor_date, today],
   plotly,
+  purrr,
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
   scales[comma],
@@ -15,25 +16,33 @@ box::use(
     str_to_upper
   ],
   tidyr[complete, pivot_longer],
+  tippy[tippy],
 )
 
 box::use(
   app/logic/constant,
-  app/logic/db/get[
+  app/logic/get/getPlayer[
     getBankHistory,
-    getLatestGames,
-    getLeagueIndex,
-    getPlayer, 
+    getPlayer,
+    getPlayerAttributes,
     getTpeHistory, 
     getUpdateHistory
   ],
+  app/logic/get/getUser[
+    linkUser,
+  ],
+  app/logic/get/getIndex[
+    getLatestGames,
+    getLeagueIndex,
+  ],
   app/logic/ui/reactableHelper[
-    attributeReactable, 
     indexReactable,
+    playerCareerReactable,
     linkOrganization,
     recordReactable,
   ],
   app/logic/ui/spinner[withSpinnerCustom],
+  app/logic/ui/uiObjects[infoBox],
 )
 
 #' @export
@@ -42,81 +51,69 @@ ui <- function(id) {
 
   shiny$tagList(
     bslib$layout_column_wrap(
-      width = 1 / 2,
+      style = bslib$css(grid_template_columns = "1fr 2fr"),
+      heights_equal = "row",
       bslib$card(
         bslib$card_header(
-          shiny$h3("Profile Information")
+          shiny$uiOutput(ns("playerHeader")) |> 
+            withSpinnerCustom(height = 100)
         ),
         bslib$card_body(
-          bslib$layout_column_wrap(
-            width = NULL,
-            style = bslib$css(grid_template_columns = "3fr 1fr"),
-            shiny$uiOutput(ns("playerName")) |>
-              withSpinnerCustom(height = 20),
-            shiny$uiOutput(ns("clubLogo"), height = NULL) |>
-              withSpinnerCustom(height = 20)
-          ),
           shiny$uiOutput(ns("playerInfo")) |>
-            withSpinnerCustom(height = 40)
+            withSpinnerCustom(height = 400)
         )
       ),
       bslib$card(
         bslib$card_header(
-          shiny$h3("Match Statistics")
-        ),
-        bslib$card_body(
           shiny$tabsetPanel(
             shiny$tabPanel(
+              "Attributes",
+              style = "text-align: left;",
+              shiny$uiOutput(ns("playerAttributes"))
+            ), 
+            shiny$tabPanel(
+              "Positions",
+              shiny$uiOutput(ns("playerPositions"))
+            ),
+            shiny$tabPanel(
               title = "Last 10 games",
-              reactableOutput(ns("matchStatistics"))
+              reactableOutput(ns("matchStatistics")) |> 
+                withSpinnerCustom(height = "400px")
             ),
             shiny$tabPanel(
               title = "Career Statistics",
-              reactableOutput(ns("careerStatistics"))
+              reactableOutput(ns("careerStatistics")) |> 
+                withSpinnerCustom(height = "400px")
             )
           )
         )
       )
     ),
-    bslib$layout_column_wrap(
-      width = NULL,
-      style = bslib$css(grid_template_columns = "2fr 1fr"),
-      bslib$card(
-        bslib$card_header(
-          shiny$h3("Player Attributes")
-        ),
-        bslib$card_body(
-          shiny$uiOutput(ns("playerAttributes")) |>
-            withSpinnerCustom(height = 60)
-        )
-      ),
-      bslib$card(
-        bslib$card_header(
-          shiny$h3("TPE Progression")
-        ),
-        bslib$card_body(
-          plotly$plotlyOutput(ns("tpeProgression")) |>
-            withSpinnerCustom(height = 60)
-        )
-      )
-    ),
     bslib$card(
       bslib$card_header(
-        shiny$h3("Player History")
-      ),
-      bslib$card_body(
         shiny$tabsetPanel(
           shiny$tabPanel(
             title = "TPE History",
-            reactableOutput(ns("tpe"), height = 450)
+            reactableOutput(ns("tpe"), height = 450) |> 
+              withSpinnerCustom(height = 450)
           ),
           shiny$tabPanel(
             title = "Update History",
-            reactableOutput(ns("update"), height = 450)
+            reactableOutput(ns("update"), height = 450) |> 
+              withSpinnerCustom(height = 450)
           ),
           shiny$tabPanel(
             title = "Bank History",
-            reactableOutput(ns("bank"), height = 450)
+            reactableOutput(ns("bank"), height = 450) |> 
+              withSpinnerCustom(height = 450)
+          ),
+          shiny$tabPanel(
+            title = "TPE Progression Graph",
+            shiny$div(
+              style = "margin-top: 10px;",
+              plotly$plotlyOutput(ns("tpeProgression")) |>
+                withSpinnerCustom(height = 450)              
+            )
           )
         )
       )
@@ -157,32 +154,149 @@ server <- function(id, pid = NULL, updated) {
     }) |> 
       shiny$bindEvent(query(), updated())
 
-    #### Output ####
-    output$playerName <- shiny$renderUI({
-      data <- playerData()
-
-      shiny$tagList(
-        shiny$h2(paste(data$name, paste0("(", data$class, ")"), sep = " ")),
-        if (data$pronouns == "") {
-          NULL
-        } else {
-          sprintf("(%s)", data$pronouns) |> 
-            shiny$h5()
-        },
-        shiny$h3(paste0("@", data$username))
+    fillColor <- function(value) {
+      dplyr$case_when(
+        value == 20 ~ constant$green,
+        value >= 15 ~ constant$yellow,
+        TRUE ~ "#ccc"
       )
-    }) 
+    }
     
-    output$clubLogo <- shiny$renderUI({
+    positionField <- function(data) {
+      shiny$tags$svg(
+        style = "max-width: 360px; width: 65%; transform: rotate(90deg); margin-top: -60px",
+        viewBox = "0 0 400 600",
+        width = "100%",
+        xmlns = "http://www.w3.org/2000/svg",
+        shiny$tags$rect(x = 0, y = 0, width = "100%", height = "100%", fill = "#889e7a"),
+        shiny$tags$g(stroke = "white", fill = "none",
+                     shiny$tags$rect(x = "2.5%", y = "2.5%", width = "95%", height = "95%"),
+                     shiny$tags$line(x1 = "2.5%", y1 = "50%", x2 = "97.5%", y2 = "50%"),
+                     shiny$tags$circle(cx = "50%", cy = "50%", r = "7%"),
+                     shiny$tags$rect(x = "12.5%", y = "2.5%", width = "75%", height = "20%"),
+                     shiny$tags$rect(x = "25%", y = "2.5%", width = "50%", height = "10%"),
+                     shiny$tags$rect(x = "12.5%", y = "77.5%", width = "75%", height = "20%"),
+                     shiny$tags$rect(x = "25%", y = "87.5%", width = "50%", height = "10%")
+        ),
+        shiny$tags$g(
+          stroke = "black",
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Striker: %s", data$pos_st)), 
+            cx = "50%", cy = "10%", r = "4%", 
+            fill = fillColor(data$pos_st)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Left Attacking Midfielder: %s", data$pos_lam)), 
+            cx = "20%", cy = "25%", r = "4%", 
+            fill = fillColor(data$pos_lam)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Central Attacking Midfielder: %s", data$pos_cam)),
+            cx = "50%", cy = "25%", r = "4%", 
+            fill = fillColor(data$pos_cam)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Right Attacking Midfielder: %s", data$pos_ram)), 
+            cx = "80%", cy = "25%", r = "4%", 
+            fill = fillColor(data$pos_ram)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Left Midfielder: %s", data$pos_lm)), 
+            cx = "20%", cy = "42.5%", r = "4%", 
+            fill = fillColor(data$pos_lm)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Central Midfielder: %s", data$pos_cm)), 
+            cx = "50%", cy = "42.5%", r = "4%", 
+            fill = fillColor(data$pos_cm)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Right Midfielder: %s", data$pos_rm)), 
+            cx = "80%", cy = "42.5%", r = "4%", 
+            fill = fillColor(data$pos_rm)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Left Wingback: %s", data$pos_lwb)), 
+            cx = "20%", cy = "60%", r = "4%",
+            fill = fillColor(data$pos_lwb)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Central Defensive Midfielder: %s", data$pos_cdm)), 
+            cx = "50%", cy = "60%", r = "4%", 
+            fill = fillColor(data$pos_cdm)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Right Wingback: %s", data$pos_rwb)), 
+            cx = "80%", cy = "60%", r = "4%",
+            fill = fillColor(data$pos_rwb)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Left Defender: %s", data$pos_ld)), 
+            cx = "20%", cy = "75%", r = "4%",
+            fill = fillColor(data$pos_ld)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Central Defender: %s", data$pos_cd)), 
+            cx = "50%", cy = "75%", r = "4%",
+            fill = fillColor(data$pos_cd)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Right Defender: %s", data$pos_rd)), 
+            cx = "80%", cy = "75%", r = "4%", 
+            fill = fillColor(data$pos_rd)
+          ),
+          shiny$tags$circle(
+            shiny$tags$title(sprintf("Goalkeeper: %s", data$pos_gk)), 
+            cx = "50%", cy = "90%", r = "4%",
+            fill = fillColor(data$pos_gk)
+          )
+        )
+      )
+    }
+    
+    #### Output ####
+    output$playerHeader <- shiny$renderUI({
       data <- playerData()
       
-      linkOrganization(value = data$team, onlyImg = TRUE, height = 100)
+      shiny$div(
+        class = "flex-row flex-center",
+        style = "text-align: left;",
+        shiny$div(
+          shiny$p(
+            style = "
+              font-size: 1.8rem;
+              margin-top: 20px;
+              margin-bottom: -10px;
+            ",
+            data$first
+          ),
+          shiny$p(
+            style = "
+              margin-bottom: 10px; 
+              font-weight: 800; 
+              font-size: 3.5rem;
+            ",
+            data$last
+          ),
+          shiny$h5(
+            sprintf("(%s) - %s", data$class, data$pronouns)
+          ),
+          shiny$div(
+            class = "flex-row flex-baseline",
+            shiny$em(
+              style = "font-size: 1.7rem;",
+              linkUser(data$username, data$uid)
+            )
+          )
+        ),
+        linkOrganization(value = data$team, onlyImg = TRUE, height = 100)
+      )
     })
-
+    
     output$playerInfo <- shiny$renderUI({
       data <- playerData()
-
-      value <-
+      
+      posValue <-
         data |>
         dplyr$select(
           dplyr$contains("pos_")
@@ -194,29 +308,51 @@ server <- function(id, pid = NULL, updated) {
           name = str_remove(name, pattern = "pos_") |>
             str_to_upper()
         )
-
-      shiny$tagList(
-        bslib$layout_columns(
-          col_widths = c(6, 6),
-          shiny$tagList(
-            shiny$h4(paste("TPE: ", data$tpe)),
-            shiny$h4(paste("Banked TPE: ", data$tpebank)),
-            shiny$h4(
-              paste("Player Status: "), 
-              data$playerStatus, 
-              class = data$playerStatus |> 
-                str_to_lower()
+      
+      shiny$div(
+        class = "flex-row",
+        style = "gap: 1rem;",
+        shiny$div(
+          style = "
+            display: flex;
+            flex-direction: column;
+            gap: 1.6rem;
+          ",
+          shiny$div(
+            style = "
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 1.6rem;
+              margin: 0;
+              padding: 0;
+            ",
+            infoBox("TPE", data$tpe),
+            infoBox("Banked TPE", data$tpebank),
+            infoBox(tippy("Render", "The player likeness", theme = "ssl"), data$render),
+            infoBox("User Status", shiny$span(class = data$userStatus |> tolower(), data$userStatus)),
+            infoBox("Player Status", shiny$span(class = data$playerStatus |> tolower(), data$playerStatus)),
+            infoBox(
+              "Nationality", 
+              shiny$div(
+                class = "flex-row flex-center",
+                shiny$img(
+                  style = "
+                      height: 1em;
+                      width: 2.5em;
+                      padding: 0px 5px;
+                    ",
+                  src = sprintf("https://flagcdn.com/%s.svg", constant$nationsTwoLetter[data$nationality] |> tolower()),
+                  alt = data$nationality,
+                  title = data$nationality
+                ),
+                shiny$p(
+                  style = "margin: auto;",
+                  data$nationality
+                )
+              )
             ),
-            shiny$h4(
-              paste("User Status: "), 
-              data$userStatus, 
-              class = data$userStatus |> 
-                str_to_lower()
-            ),
-            shiny$h5(paste("Nationality:"), data$nationality),
-            shiny$h5(paste("Render: "), data$render),
-            shiny$h5(
-              paste("Footedness "),
+            infoBox(
+              "Footedness",
               shiny$div(
                 style = "display: flex; gap: 5px; align-items: center; margin-top: 5px;",
                 shiny$tags$svg(
@@ -249,33 +385,36 @@ server <- function(id, pid = NULL, updated) {
               )
             )
           ),
-          shiny$tagList(
-            shiny$h4("Traits"),
-            data$traits |>
-              str_split(pattern = constant$traitSep) |>
-              unlist() |>
-              paste(collapse = "<br>") |>
-              shiny$HTML(),
-            shiny$br(),
-            shiny$h4("Primary Position(s)"),
-            value |>
-              dplyr$filter(value == 20) |>
-              dplyr$select(name) |>
-              unlist() |>
-              paste(collapse = ", ") |>
-              shiny$HTML(),
-            shiny$h4("Secondary Position(s)"),
-            value |>
-              dplyr$filter(value < 20, value >= 10) |>
-              dplyr$select(name) |>
-              unlist() |>
-              paste(collapse = ", ") |>
-              shiny$HTML(),
-            shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
+          shiny$div(
+            style = "
+              display: grid;
+              grid-template-columns: repeat(1, 1fr);
+              gap: 1.6rem;
+              margin: 0;
+              padding: 0;
+            ",
+            infoBox(
+              "Traits", 
+              data$traits |>
+                str_split(pattern = constant$traitSep) |>
+                unlist() |>
+                paste(collapse = "<br>") |>
+                shiny$HTML()
+            )
           )
         )
       )
+      #       shiny$h5("Bank balance:", paste0("$", comma(data$bankBalance)))
+      #     )
+      #   )
+      # )
     }) 
+    
+    output$playerPositions <- shiny$renderUI({
+      data <- playerData()
+      
+      positionField(data)  
+    })
     
     output$matchStatistics <- renderReactable({
       data <- playerData()
@@ -314,7 +453,7 @@ server <- function(id, pid = NULL, updated) {
           dplyr$relocate(season = max_season) |> 
           dplyr$arrange(dplyr$desc(season)) |> 
           dplyr$select(!name) |> 
-          indexReactable(search = FALSE, club = TRUE)
+          playerCareerReactable()
       } else {
         NULL
       }
@@ -322,8 +461,84 @@ server <- function(id, pid = NULL, updated) {
 
     output$playerAttributes <- shiny$renderUI({
       data <- playerData()
+      
+      attrs <- getPlayerAttributes(data$pid, updated)
 
-      attributeReactable(data, session, output)
+      groups <- attrs$group |> 
+        unique() |> 
+        factor(levels = c("Goalkeeper", "Physical", "Mental", "Technical")) |> 
+        sort()
+      
+      shiny$div(
+        style = "
+          display: flex;
+          flex-direction: row;
+        ",
+        purrr$map(
+          .x = seq_len(groups |> length()),
+          .f = function(groupIndex) {
+            groupData <- attrs |> 
+              dplyr$filter(group == groups[groupIndex])
+            
+            attributes <- groupData$attribute
+            
+            shiny$div(
+              style = "padding: 0px 5px;",
+              shiny$h4(groups[groupIndex]),
+              purrr$map(
+                .x = seq_len(attributes |> length()),
+                .f = function(attIndex) {
+                  attData <- groupData |> 
+                    dplyr$filter(attribute == attributes[attIndex])
+                  
+                  shiny$div(
+                    style = "
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 0 5px;
+                    margin: 5px 0px;
+                    border-radius: 8px;
+                    background: var(--bottom-background);
+                    box-shadow: 2px 2px 4px var(--middle-background);
+                  ",
+                    shiny$div(
+                      style = "width: 40%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;",
+                      tippy(
+                        attData$attribute,
+                        sprintf("%s<br/>%s", attData$attribute, attData$explanation),
+                        theme = "ssl"
+                      )
+                    ),
+                    shiny$div(
+                      style = "width: 50%;",
+                      shiny$tags$svg(
+                        style = "width: 100%; height: 10px; display: block; margin: 7.5px 0px;",
+                        shiny$tags$rect(
+                          x = 0, y = 0, 
+                          width = sprintf("%s%%", attData$value / 20 * 100), 
+                          height = 15,
+                          fill = dplyr$case_when(
+                            attData$valuefill == 1 ~ constant$blue,
+                            attData$valuefill == 2 ~ constant$green,
+                            attData$valuefill == 3 ~ constant$yellow,
+                            TRUE ~ constant$red
+                          )
+                        )
+                      )  
+                    ),
+                    shiny$div(
+                      style = "width: 10%; text-align: right;",
+                      attData$value
+                    )
+                  )
+                }
+              )
+            )
+          }
+        )
+      )
     })
     
     output$tpeProgression <- plotly$renderPlotly({
@@ -402,6 +617,9 @@ server <- function(id, pid = NULL, updated) {
           ) |>
           suppressMessages()
 
+        maxWeek <- max(visData$week, na.rm = TRUE)
+        xDtick <- min(10, ceiling(maxWeek / 10))
+        
         plotly$plot_ly(visData, hoverinfo = "text") |>
           plotly$add_trace(
             x = ~week, y = ~cumulative, type = "scatter", mode = "markers+lines",
@@ -415,10 +633,11 @@ server <- function(id, pid = NULL, updated) {
               font = list(color = "white") # Set title text color to white
             ),
             xaxis = list(
-              title = "Time",
+              title = "Time since creation",
+              range = c(0, maxWeek),
               tickfont = list(color = "white"), # Set x-axis tick labels color to white
               titlefont = list(color = "white"), # Set x-axis title color to white
-              dtick = 1,
+              dtick = xDtick,
               showgrid = FALSE
             ),
             yaxis = list(

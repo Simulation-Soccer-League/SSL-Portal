@@ -6,6 +6,12 @@ box::use(
   stringr[str_remove_all],
 )
 
+box::use(
+  app/logic/get/getUser[
+    getUserInformation,
+  ],
+)
+
 player <- Sys.getenv("dscplayer")
 tpe <- Sys.getenv("dsctpe")
 approve <- Sys.getenv("dscapprove")
@@ -48,11 +54,13 @@ sendGradedTPE <- function(data){
   
   map(data$source |> unique(),
       .f = function(x){
+        
         gradedString <- 
           apply(
             data |> 
               dplyr$filter(source == x) |> 
-              dplyr$select(username, tpe), 
+              dplyr$select(username, tpe) |> 
+              dplyr$arrange(username), 
             1, 
             function(row) paste(row, collapse = " - ")
           ) |> 
@@ -63,7 +71,8 @@ sendGradedTPE <- function(data){
             apply(
               data |> 
                 dplyr$filter(source == x) |> 
-                dplyr$select(username, tpe), 
+                dplyr$select(username, tpe) |> 
+                dplyr$arrange(username), 
               1, 
               function(row) paste(row, collapse = " - ")
             )
@@ -173,7 +182,7 @@ sendAcademyIndexUpdate <- function(season){
 }
 
 #' @export
-sendIndexUpdate <- function(season){
+sendIndexUpdate <- function(matchday, season){
   jscode <- paste0("
     function sendMessage() {
       const request = new XMLHttpRequest();
@@ -183,7 +192,7 @@ sendIndexUpdate <- function(season){
 
       var myEmbed = {
         author: {
-          name: 'The Index has been updated!'
+          name: ", sprintf("'The Index has been updated with %s!'", matchday)," 
         },
         title: 'Season ", season, "'
       }
@@ -227,6 +236,10 @@ sendNewCreate <- function(data, username){
                    { 
                       name: 'Username',
                       value: '", username, "',
+                   },
+                   { 
+                      name: 'Discord',
+                      value: '", getUserInformation(data$uid)$discord, "',
                    },
         ]
       }
@@ -273,7 +286,7 @@ sendApprovedCreate <- function(data){
                    },
                    { 
                       name: 'Discord',
-                      value: '", data$discord, "',
+                      value: '", getUserInformation(data$uid)$discord, "',
                    },
         ]
       }
