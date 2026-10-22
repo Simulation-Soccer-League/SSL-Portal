@@ -101,11 +101,11 @@ ui <- function(id) {
               style = "font-size: 14px; font-weight: 400;"
             )
           )
-        ),
-        bslib$card_body(
-          shiny$uiOutput(ns("schedule")) |>
-            withSpinnerCustom(height = 200)
         )
+      ),
+      bslib$card_body(
+        shiny$uiOutput(ns("schedule")) |>
+          withSpinnerCustom(height = 200)
       ),
       min_height = "200px"
     ),

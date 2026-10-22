@@ -90,6 +90,7 @@ ui <- function(id) {
       )
     ),
     bslib$card(
+      width = "100%",
       bslib$card_header(
         shiny$tabsetPanel(
           shiny$tabPanel(
@@ -162,6 +163,9 @@ server <- function(id, pid = NULL, updated) {
       )
     }
     
+    labelSize <- "14px"
+    labelWeight <- "350"
+    
     positionField <- function(data) {
       shiny$tags$svg(
         style = "max-width: 360px; width: 65%; transform: rotate(90deg); margin-top: -60px",
@@ -180,75 +184,215 @@ server <- function(id, pid = NULL, updated) {
         ),
         shiny$tags$g(
           stroke = "black",
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Striker: %s", data$pos_st)), 
-            cx = "50%", cy = "10%", r = "4%", 
-            fill = fillColor(data$pos_st)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Striker: %s", data$pos_st)),
+            shiny$tags$circle(
+              cx = "50%", cy = "10%", r = "4%",
+              fill = fillColor(data$pos_st)
+            ),
+            shiny$tags$text(
+              "ST",
+              x = "50%", y = "10%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            ),
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Left Attacking Midfielder: %s", data$pos_lam)), 
-            cx = "20%", cy = "25%", r = "4%", 
-            fill = fillColor(data$pos_lam)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Left Attacking Midfielder: %s", data$pos_lam)),  
+            shiny$tags$circle(
+              cx = "20%", cy = "25%", r = "4%",
+              fill = fillColor(data$pos_lam)
+            ),
+            shiny$tags$text(
+              "LAM",
+              x = "20%", y = "25%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
+          shiny$tags$g(
             shiny$tags$title(sprintf("Central Attacking Midfielder: %s", data$pos_cam)),
-            cx = "50%", cy = "25%", r = "4%", 
-            fill = fillColor(data$pos_cam)
+            shiny$tags$circle(
+              cx = "50%", cy = "25%", r = "4%",
+              fill = fillColor(data$pos_cam)
+            ),
+            shiny$tags$text(
+              "CAM",
+              x = "50%", y = "25%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Right Attacking Midfielder: %s", data$pos_ram)), 
-            cx = "80%", cy = "25%", r = "4%", 
-            fill = fillColor(data$pos_ram)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Right Attacking Midfielder: %s", data$pos_ram)),
+            shiny$tags$circle(
+              cx = "80%", cy = "25%", r = "4%",
+              fill = fillColor(data$pos_ram)
+            ),
+            shiny$tags$text(
+              "RAM",
+              x = "80%", y = "25%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Left Midfielder: %s", data$pos_lm)), 
-            cx = "20%", cy = "42.5%", r = "4%", 
-            fill = fillColor(data$pos_lm)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Left Midfielder: %s", data$pos_lm)),
+            shiny$tags$circle(
+              cx = "20%", cy = "42.5%", r = "4%",
+              fill = fillColor(data$pos_lm)
+            ),
+            shiny$tags$text(
+              "LM",
+              x = "20%", y = "42.5%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Central Midfielder: %s", data$pos_cm)), 
-            cx = "50%", cy = "42.5%", r = "4%", 
-            fill = fillColor(data$pos_cm)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Central Midfielder: %s", data$pos_cm)),
+            shiny$tags$circle(
+              cx = "50%", cy = "42.5%", r = "4%",
+              fill = fillColor(data$pos_cm)
+            ),
+            shiny$tags$text(
+              "CM",
+              x = "50%", y = "42.5%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Right Midfielder: %s", data$pos_rm)), 
-            cx = "80%", cy = "42.5%", r = "4%", 
-            fill = fillColor(data$pos_rm)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Right Midfielder: %s", data$pos_rm)),
+            shiny$tags$circle(
+              cx = "80%", cy = "42.5%", r = "4%",
+              fill = fillColor(data$pos_rm)
+            ),
+            shiny$tags$text(
+              "RM",
+              x = "80%", y = "42.5%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Left Wingback: %s", data$pos_lwb)), 
-            cx = "20%", cy = "60%", r = "4%",
-            fill = fillColor(data$pos_lwb)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Left Wingback: %s", data$pos_lwb)),
+            shiny$tags$circle(
+              cx = "20%", cy = "60%", r = "4%",
+              fill = fillColor(data$pos_lwb)
+            ),
+            shiny$tags$text(
+              "LWB",
+              x = "20%", y = "60%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Central Defensive Midfielder: %s", data$pos_cdm)), 
-            cx = "50%", cy = "60%", r = "4%", 
-            fill = fillColor(data$pos_cdm)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Central Defensive Midfielder: %s", data$pos_cdm)),
+            shiny$tags$circle(
+              cx = "50%", cy = "60%", r = "4%",
+              fill = fillColor(data$pos_cdm)
+            ),
+            shiny$tags$text(
+              "CDM",
+              x = "50%", y = "60%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Right Wingback: %s", data$pos_rwb)), 
-            cx = "80%", cy = "60%", r = "4%",
-            fill = fillColor(data$pos_rwb)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Right Wingback: %s", data$pos_rwb)),
+            shiny$tags$circle(
+              cx = "80%", cy = "60%", r = "4%",
+              fill = fillColor(data$pos_rwb)
+            ),
+            shiny$tags$text(
+              "RWB",
+              x = "80%", y = "60%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Left Defender: %s", data$pos_ld)), 
-            cx = "20%", cy = "75%", r = "4%",
-            fill = fillColor(data$pos_ld)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Left Defender: %s", data$pos_ld)),
+            shiny$tags$circle(
+              cx = "20%", cy = "75%", r = "4%",
+              fill = fillColor(data$pos_ld)
+            ),
+            shiny$tags$text(
+              "LD",
+              x = "20%", y = "75%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Central Defender: %s", data$pos_cd)), 
-            cx = "50%", cy = "75%", r = "4%",
-            fill = fillColor(data$pos_cd)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Central Defender: %s", data$pos_cd)),
+            shiny$tags$circle(
+              cx = "50%", cy = "75%", r = "4%",
+              fill = fillColor(data$pos_cd)
+            ),
+            shiny$tags$text(
+              "CD",
+              x = "50%", y = "75%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Right Defender: %s", data$pos_rd)), 
-            cx = "80%", cy = "75%", r = "4%", 
-            fill = fillColor(data$pos_rd)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Right Defender: %s", data$pos_rd)),
+            shiny$tags$circle(
+              cx = "80%", cy = "75%", r = "4%",
+              fill = fillColor(data$pos_rd)
+            ),
+            shiny$tags$text(
+              "RD",
+              x = "80%", y = "75%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           ),
-          shiny$tags$circle(
-            shiny$tags$title(sprintf("Goalkeeper: %s", data$pos_gk)), 
-            cx = "50%", cy = "90%", r = "4%",
-            fill = fillColor(data$pos_gk)
+          shiny$tags$g(
+            shiny$tags$title(sprintf("Goalkeeper: %s", data$pos_gk)),
+            shiny$tags$circle(
+              cx = "50%", cy = "90%", r = "4%",
+              fill = fillColor(data$pos_gk)
+            ),
+            shiny$tags$text(
+              "GK",
+              x = "50%", y = "90%",
+              `text-anchor` = "middle",
+              `dominant-baseline` = "middle",
+              `font-size` = labelSize,
+              `font-weight` = labelWeight
+            )
           )
         )
       )

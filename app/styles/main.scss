@@ -657,10 +657,10 @@ $navbar-items-width: 112px;
 }
 
 .card-header {
-  display: block;
+  display: block!important;
   padding: 10px;
   position: relative;
-
+  justify-content: center;
   /* background-image: url(https://i.imgur.com/k7qNGB5.jpg); */
   text-align: center;
 }
@@ -1105,6 +1105,9 @@ $navbar-items-width: 112px;
   padding-left: 10px;
   text-wrap: pretty;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Edit Schedule selects */
