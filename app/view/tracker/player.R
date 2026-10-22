@@ -6,7 +6,7 @@ box::use(
   purrr,
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   rlang[is_empty],
-  scales[comma],
+  scales[comma, dollar],
   shiny,
   shiny.router[get_query_param],
   stringr[
@@ -527,7 +527,8 @@ server <- function(id, pid = NULL, updated) {
                   )
                 )
               )
-            )
+            ), 
+            infoBox("Player Bank", data$bank |> dollar())
           ),
           shiny$div(
             style = "
