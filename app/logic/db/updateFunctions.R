@@ -548,7 +548,7 @@ approvePlayer <- function(data, uid) {
           team = -1,
           affiliate = 1,
           status_p = 1,
-          name = concat(trim(first), ' ', trim(last)),
+          name = trim(concat(trim(first), ' ', trim(last))),
           class = concat('S', {class}),
           created = {time}
       WHERE pid = {pid};",
