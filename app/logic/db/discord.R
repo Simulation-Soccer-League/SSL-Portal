@@ -19,13 +19,19 @@ index <- Sys.getenv("dscindex")
 
 #' @export
 sendTest <- function(){
-  embed <- sprintf("author: {
-          name: 'THIS IS A TEST!'
-        },
-        title: 'TPE List',
-        fields: [
-                   {name: '', value:'```Test\\\\nTEST```'}
-        ]")
+  embed <- list(
+    author = list(
+      name = "THIS IS A TEST!"
+    ),
+    title = "TPE List",
+    fields = list(
+      list(
+        name = "",
+        value = "```Test\nTEST```"
+      )
+    )
+  )
+  
   
   POST(
     url = player,
@@ -75,18 +81,25 @@ sendGradedTPE <- function(data){
             unlist()
           
           
-          embed <- sprintf(
-            "author: {name: 'A new PT has been graded!'},
-              title: '%s',
-              fields: [%s],
-              footer: {
-                text: 'If you have received 0 or reduced TPE, please check a summary post in the PT thread. \\n\\nThe TPE has already been added to your player page, this is just a report.'
-              }", 
-            x,
-            paste0(
-              "{name: '', 
-                  value: '", sprintf("```%s```", strings), "'}",
-              collapse = ","
+          embed <- list(
+            author = list(
+              name = "A new PT has been graded!"
+            ),
+            title = x,
+            fields = lapply(
+              strings,
+              function(s) list(
+                name = "",
+                value = sprintf("```%s```", s)
+              )
+            ),
+            footer = list(
+              text = paste(
+                "If you have received 0 or reduced TPE, please check a summary post in the PT thread.",
+                "",
+                "The TPE has already been added to your player page, this is just a report.",
+                sep = "\n"
+              )
             )
           )
           
@@ -101,15 +114,25 @@ sendGradedTPE <- function(data){
           
         } else {
           
-          embed <- sprintf(
-            "author: {name: 'A new PT has been graded!'},
-              title: '%s',
-              fields: [%s],
-              footer: {
-                text: 'If you have received 0 or reduced TPE, please check a summary post in the PT thread. \\n\\nThe TPE has already been added to your player page, this is just a report.'
-              }", 
-            x,
-            sprintf("```%s```", gradedString)
+          embed <- list(
+            author = list(
+              name = "A new PT has been graded!"
+            ),
+            title = x,
+            fields = list(
+              list(
+                name = "",
+                value = sprintf("```%s```", gradedString)
+              )
+            ),
+            footer = list(
+              text = paste(
+                "If you have received 0 or reduced TPE, please check a summary post in the PT thread.",
+                "",
+                "The TPE has already been added to your player page, this is just a report.",
+                sep = "\n"
+              )
+            )
           )
           
           POST(
@@ -127,12 +150,11 @@ sendGradedTPE <- function(data){
 
 #' @export
 sendAcademyIndexUpdate <- function(season){
-  embed <- sprintf(
-    "author: {
-      name: 'The Academy Index has been updated!'
-      },
-      title: 'Season %s'", 
-    season
+  embed <- list(
+    author = list(
+      name = "The Academy Index has been updated!"
+    ),
+    title = sprintf("Season %s", season)
   )
   
   POST(
@@ -148,13 +170,11 @@ sendAcademyIndexUpdate <- function(season){
 
 #' @export
 sendIndexUpdate <- function(matchday, season){
-  embed <- sprintf(
-    "author: {
-      name: %s 
-      },
-      title: 'Season %s'",
-    sprintf("'The Index has been updated with %s!'", matchday),
-    season
+  embed <- list(
+    author = list(
+      name = sprintf("'The Index has been updated with %s!'", matchday)
+    ),
+    title = paste("Season", season)
   )
   
   POST(
@@ -170,34 +190,38 @@ sendIndexUpdate <- function(matchday, season){
 
 #' @export
 sendNewCreate <- function(data, username){
-  embed <- sprintf(
-    "author: {
-        name: 'A new player has been created'
-      },
-      title: '%s',
-      fields: [
-         {
-            name: 'TPE Banked',
-            value: %s,
-         },
-         {
-            name: 'Position',
-            value: '%s',
-         },
-         { 
-            name: 'Username',
-            value: '%s',
-         },
-         { 
-            name: 'Discord',
-            value: '%s',
-         },
-      ]",
-    paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'"),
-    data$tpebank,
-    data$position,
-    username,
-    getUserInformation(data$uid)$discord,
+  embed <- list(
+    author = list(
+      name = "A new player has been created"
+    ),
+    title = paste0(data$first, " ", data$last),
+    fields = list(
+      list(
+        name = "TPE Banked",
+        value = as.character(data$tpebank),
+        inline = TRUE
+      ),
+      list(
+        name = "Position",
+        value = data$position,
+        inline = TRUE
+      ),
+      list(
+        name = "Username",
+        value = username,
+        inline = TRUE
+      ),
+      list(
+        name = "Render",
+        value = data$render,
+        inline = TRUE
+      ),
+      list(
+        name = "Discord",
+        value = getUserInformation(data$uid)$discord,
+        inline = TRUE
+      )
+    )
   )
   
   POST(
@@ -212,34 +236,33 @@ sendNewCreate <- function(data, username){
 
 #' @export
 sendApprovedCreate <- function(data){
-  embed <- sprintf(
-    "author: {
-        name: 'A new player has been created'
-      },
-      title: '%s',
-      fields: [
-         {
-            name: 'TPE Banked',
-            value: %s,
-         },
-         {
-            name: 'Position',
-            value: '%s',
-         },
-         { 
-            name: 'Username',
-            value: '%s',
-         },
-         { 
-            name: 'Discord',
-            value: '%s',
-         },
-      ]",
-    paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'"),
-    data$tpebank,
-    data$position,
-    username,
-    getUserInformation(data$uid)$discord,
+  embed <- list(
+    author = list(
+      name = "A new player has been created"
+    ),
+    title = paste0(data$first, " ", data$last),
+    fields = list(
+      list(
+        name = "TPE Banked",
+        value = as.character(data$tpebank),
+        inline = TRUE
+      ),
+      list(
+        name = "Position",
+        value = data$position,
+        inline = TRUE
+      ),
+      list(
+        name = "Username",
+        value = data$username,
+        inline = TRUE
+      ),
+      list(
+        name = "Discord",
+        value = getUserInformation(data$uid)$discord,
+        inline = TRUE
+      )
+    )
   )
   
   POST(
@@ -254,29 +277,29 @@ sendApprovedCreate <- function(data){
 
 #' @export
 sendRetiredPlayer <- function(data){
-  embed <- sprintf(
-    "author: {
-        name: 'A player has retired'
-      },
-      title: '%s',
-      fields: [
-         {
-            name: 'Team',
-            value: %s,
-         },
-         { 
-            name: 'Username',
-            value: '%s',
-         },
-         { 
-            name: 'Discord',
-            value: '%s',
-         },
-      ]",
-    paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'"),
-    data$team,
-    data$username,
-    getUserInformation(data$uid)$discord,
+  embed <- list(
+    author = list(
+      name = "A player has retired"
+    ),
+    title = paste0(data$first, " ", data$last) |>
+      str_remove_all("'"),
+    fields = list(
+      list(
+        name = "Team",
+        value = as.character(data$team),
+        inline = TRUE
+      ),
+      list(
+        name = "Username",
+        value = data$username,
+        inline = TRUE
+      ),
+      list(
+        name = "Discord",
+        value = getUserInformation(data$uid)$discord,
+        inline = TRUE
+      )
+    )
   )
   
   POST(
