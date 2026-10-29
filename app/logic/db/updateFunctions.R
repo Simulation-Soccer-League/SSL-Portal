@@ -571,9 +571,7 @@ approvePlayer <- function(data, uid) {
       type = "set"
     )
   
-    message("Error approving player, transaction rolled back: ", e$message)
-    
-    stop()
+    stop("Error approving player, transaction rolled back: ", e$message)
   })
   
 }
