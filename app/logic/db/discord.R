@@ -1,8 +1,8 @@
 ## Function for queries to mybb
 box::use(
   dplyr,
+  httr[POST],
   purrr[map],
-  shinyjs[runjs],
   stringr[str_remove_all],
 )
 
@@ -19,34 +19,22 @@ index <- Sys.getenv("dscindex")
 
 #' @export
 sendTest <- function(){
-  jscode <- paste0("
-    function sendMessage() {
-      const request = new XMLHttpRequest();
-      request.open('POST', '", player, "');
-
-      request.setRequestHeader('Content-type', 'application/json');
-
-      var myEmbed = {
-        author: {
+  embed <- sprintf("author: {
           name: 'THIS IS A TEST!'
         },
         title: 'TPE List',
         fields: [
                    {name: '', value:'```Test\\\\nTEST```'}
-        ]
-      }
-
-      var params = {
-        username: 'Dev Portal',
-        embeds: [ myEmbed ]
-      }
-
-      request.send(JSON.stringify(params));
-    }
-    sendMessage();
-  ")
+        ]")
   
-  runjs(jscode)
+  POST(
+    url = player,
+    body = list(
+      username = "Dev Portal",
+      embeds = list(embed)
+    ),
+    encode = "json"
+  )
 }
 
 #' @export
@@ -86,67 +74,52 @@ sendGradedTPE <- function(data){
           strings <- lapply(splitResult, function(x) x |> paste(collapse = "\\n")) |> 
             unlist()
           
-          jscode <- paste0("
-            function sendMessage() {
-              const request = new XMLHttpRequest();
-              request.open('POST', '", tpe, "');
-              request.setRequestHeader('Content-type', 'application/json');
-              var myEmbed = {
-                author: {name: 'A new PT has been graded!'},
-                title: '", x, "',
-                fields: [", 
-                                   paste0(
-                                     "{name: '', 
-                      value: '", sprintf("```%s```", strings), "'}",
-                                     collapse = ","
-                                   ),
-                                   "],
-                footer: {
-                  text: 'If you have received 0 or reduced TPE, please check a summary post in the PT thread. \\n\\nThe TPE has already been added to your player page, this is just a report.'
-                } 
-              };
-              
-              var params = {username: 'PT Watcher',embeds: [ myEmbed ]};
-              
-              request.send(JSON.stringify(params));
-            }
-            
-            sendMessage();"
+          
+          embed <- sprintf(
+            "author: {name: 'A new PT has been graded!'},
+              title: '%s',
+              fields: [%s],
+              footer: {
+                text: 'If you have received 0 or reduced TPE, please check a summary post in the PT thread. \\n\\nThe TPE has already been added to your player page, this is just a report.'
+              }", 
+            x,
+            paste0(
+              "{name: '', 
+                  value: '", sprintf("```%s```", strings), "'}",
+              collapse = ","
+            )
           )
           
-          # cat(jscode)
-          
-          runjs(jscode)
+          POST(
+            url = tpe,
+            body = list(
+              username = "PT Watcher",
+              embeds = list(embed)
+            ),
+            encode = "json"
+          )
           
         } else {
-          jscode <- paste0("
-            function sendMessage() {
-              const request = new XMLHttpRequest();
-              request.open('POST', '", tpe, "');
-              request.setRequestHeader('Content-type', 'application/json');
-              var myEmbed = {
-                author: {name: 'A new PT has been graded!'},
-                title: '", x, "',
-                fields: [ 
-                  {name: '', 
-                   value: '", sprintf("```%s```", gradedString), "'}
-                ],
-                footer: {
-                  text: 'If you have received 0 or reduced TPE, please check a summary post in the PT thread. \\n\\nThe TPE has already been added to your player page, this is just a report.'
-                } 
-              };
-              
-              var params = {username: 'PT Watcher',embeds: [ myEmbed ]};
-              
-              request.send(JSON.stringify(params));
-            }
-            
-            sendMessage();"
+          
+          embed <- sprintf(
+            "author: {name: 'A new PT has been graded!'},
+              title: '%s',
+              fields: [%s],
+              footer: {
+                text: 'If you have received 0 or reduced TPE, please check a summary post in the PT thread. \\n\\nThe TPE has already been added to your player page, this is just a report.'
+              }", 
+            x,
+            sprintf("```%s```", gradedString)
           )
           
-          # cat(jscode)
-          
-          runjs(jscode)
+          POST(
+            url = tpe,
+            body = list(
+              username = "PT Watcher",
+              embeds = list(embed)
+            ),
+            encode = "json"
+          )
         }
       })
   
@@ -154,227 +127,173 @@ sendGradedTPE <- function(data){
 
 #' @export
 sendAcademyIndexUpdate <- function(season){
-  jscode <- paste0("
-    function sendMessage() {
-      const request = new XMLHttpRequest();
-      request.open('POST', '", index, "');
-
-      request.setRequestHeader('Content-type', 'application/json');
-
-      var myEmbed = {
-        author: {
-          name: 'The Academy Index has been updated!'
-        },
-        title: 'Season ", season, "'
-      }
-
-      var params = {
-        username: 'Index Update',
-        embeds: [ myEmbed ]
-      }
-
-      request.send(JSON.stringify(params));
-    }
-    sendMessage();
-  ")
+  embed <- sprintf(
+    "author: {
+      name: 'The Academy Index has been updated!'
+      },
+      title: 'Season %s'", 
+    season
+  )
   
-  runjs(jscode)
+  POST(
+    url = index,
+    body = list(
+      username = "Index Update",
+      embeds = list(embed)
+    ),
+    encode = "json"
+  )
+  
 }
 
 #' @export
 sendIndexUpdate <- function(matchday, season){
-  jscode <- paste0("
-    function sendMessage() {
-      const request = new XMLHttpRequest();
-      request.open('POST', '", index, "');
-
-      request.setRequestHeader('Content-type', 'application/json');
-
-      var myEmbed = {
-        author: {
-          name: ", sprintf("'The Index has been updated with %s!'", matchday)," 
-        },
-        title: 'Season ", season, "'
-      }
-
-      var params = {
-        username: 'Index Update',
-        embeds: [ myEmbed ]
-      }
-
-      request.send(JSON.stringify(params));
-    }
-    sendMessage();
-  ")
+  embed <- sprintf(
+    "author: {
+      name: %s 
+      },
+      title: 'Season %s'",
+    sprintf("'The Index has been updated with %s!'", matchday),
+    season
+  )
   
-  runjs(jscode)
+  POST(
+    url = index,
+    body = list(
+      username = "Index Update",
+      embeds = list(embed)
+    ),
+    encode = "json"
+  )
+  
 }
 
 #' @export
 sendNewCreate <- function(data, username){
-  jscode <- paste0("
-    function sendMessage() {
-      const request = new XMLHttpRequest();
-      request.open('POST', '", player, "');
-
-      request.setRequestHeader('Content-type', 'application/json');
-
-      var myEmbed = {
-        author: {
-          name: 'A new player has been created'
-        },
-        title: '", paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'") , "',
-        fields: [
-                   {
-                      name: 'TPE Banked',
-                      value: ", data$tpebank,",
-                   },
-                   {
-                      name: 'Position',
-                      value: '", data$position,"',
-                   },
-                   { 
-                      name: 'Username',
-                      value: '", username, "',
-                   },
-                   { 
-                      name: 'Discord',
-                      value: '", getUserInformation(data$uid)$discord, "',
-                   },
-        ]
-      }
-
-      var params = {
-        username: 'Captain Hook',
-        embeds: [ myEmbed ]
-      }
-
-      request.send(JSON.stringify(params));
-    }
-    sendMessage();
-  ")
+  embed <- sprintf(
+    "author: {
+        name: 'A new player has been created'
+      },
+      title: '%s',
+      fields: [
+         {
+            name: 'TPE Banked',
+            value: %s,
+         },
+         {
+            name: 'Position',
+            value: '%s',
+         },
+         { 
+            name: 'Username',
+            value: '%s',
+         },
+         { 
+            name: 'Discord',
+            value: '%s',
+         },
+      ]",
+    paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'"),
+    data$tpebank,
+    data$position,
+    username,
+    getUserInformation(data$uid)$discord,
+  )
   
-  runjs(jscode)
+  POST(
+    url = player,
+    body = list(
+      username = "Captain Hook",
+      embeds = list(embed)
+    ),
+    encode = "json"
+  )
 }
 
 #' @export
 sendApprovedCreate <- function(data){
-  jscode <- paste0("
-    function sendMessage() {
-      const request = new XMLHttpRequest();
-      request.open('POST', '", approve, "');
-
-      request.setRequestHeader('Content-type', 'application/json');
-
-      var myEmbed = {
-        author: {
-          name: 'A new player has been approved'
-        },
-        title: '", paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'") , "',
-        fields: [
-                   {
-                      name: 'TPE Banked',
-                      value: ", data$tpebank,",
-                   },
-                   {
-                      name: 'Position',
-                      value: '", data$position,"',
-                   },
-                   { 
-                      name: 'Username',
-                      value: '", data$username, "',
-                   },
-                   { 
-                      name: 'Discord',
-                      value: '", getUserInformation(data$uid)$discord, "',
-                   },
-        ]
-      }
-
-      var params = {
-        username: 'Captain Hook',
-        embeds: [ myEmbed ]
-      }
-
-      request.send(JSON.stringify(params));
-    }
-    sendMessage();
-  ")
+  embed <- sprintf(
+    "author: {
+        name: 'A new player has been created'
+      },
+      title: '%s',
+      fields: [
+         {
+            name: 'TPE Banked',
+            value: %s,
+         },
+         {
+            name: 'Position',
+            value: '%s',
+         },
+         { 
+            name: 'Username',
+            value: '%s',
+         },
+         { 
+            name: 'Discord',
+            value: '%s',
+         },
+      ]",
+    paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'"),
+    data$tpebank,
+    data$position,
+    username,
+    getUserInformation(data$uid)$discord,
+  )
   
-  runjs(jscode)
+  POST(
+    url = approve,
+    body = list(
+      username = "Captain Hook",
+      embeds = list(embed)
+    ),
+    encode = "json"
+  )
 }
 
 #' @export
 sendRetiredPlayer <- function(data){
-  jscode <- paste0("
-    function sendMessage() {
-      const request = new XMLHttpRequest();
-      request.open('POST', '", player, "');
-
-      request.setRequestHeader('Content-type', 'application/json');
-
-      var myEmbed = {
-        author: {
-          name: 'A player has retired'
-        },
-        title: '", paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'") , "',
-        fields: [
-                   {
-                      name: 'Team',
-                      value: '", data$team,"',
-                   },
-                   { 
-                      name: 'Username',
-                      value: '", data$username, "',
-                   },
-        ]
-      }
-
-      var params = {
-        username: 'Captain Hook',
-        embeds: [ myEmbed ]
-      }
-
-      request.send(JSON.stringify(params));
-    }
-    sendMessage();
-  ")
+  embed <- sprintf(
+    "author: {
+        name: 'A player has retired'
+      },
+      title: '%s',
+      fields: [
+         {
+            name: 'Team',
+            value: %s,
+         },
+         { 
+            name: 'Username',
+            value: '%s',
+         },
+         { 
+            name: 'Discord',
+            value: '%s',
+         },
+      ]",
+    paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'"),
+    data$team,
+    data$username,
+    getUserInformation(data$uid)$discord,
+  )
   
-  runjs(jscode)
+  POST(
+    url = player,
+    body = list(
+      username = "Captain Hook",
+      embeds = list(embed)
+    ),
+    encode = "json"
+  )
   
-  jscode <- paste0("
-    function sendMessage() {
-      const request = new XMLHttpRequest();
-      request.open('POST', '", approve, "');
-
-      request.setRequestHeader('Content-type', 'application/json');
-
-      var myEmbed = {
-        author: {
-          name: 'A player has retired'
-        },
-        title: '", paste0(data$first, " ", data$last) |> str_remove_all(pattern = "'") , "',
-        fields: [
-                   {
-                      name: 'Team',
-                      value: '", data$team,"',
-                   },
-                   { 
-                      name: 'Username',
-                      value: '", data$username, "',
-                   },
-        ]
-      }
-
-      var params = {
-        username: 'Captain Hook',
-        embeds: [ myEmbed ]
-      }
-
-      request.send(JSON.stringify(params));
-    }
-    sendMessage();
-  ")
-  
-  runjs(jscode)
+  POST(
+    url = approve,
+    body = list(
+      username = "Captain Hook",
+      embeds = list(embed)
+    ),
+    encode = "json"
+  )
 }
