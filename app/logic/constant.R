@@ -761,7 +761,7 @@ nationsTwoLetter <-
     "San Marino" = "SM",
     "Sao Tome and Principe" = "ST",
     "Saudi Arabia" = "SA",
-    "Scotland" = "GB-SCO",
+    "Scotland" = "GB-SCT",
     "Senegal" = "SN",
     "Serbia" = "RS",
     "Seychelles" = "SC",
