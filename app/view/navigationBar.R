@@ -313,7 +313,7 @@ server <- function(id, auth, resAuth, updated, season) {
         )
       } else {
         if(checkApprovingPlayer(auth()$uid)){
-          playerMenu <- "Awating Approval"
+          playerMenu <- "Awaiting Approval"
         } else if(!hasActivePlayer(auth()$uid)){
           playerMenu <- 
             navMenu(
