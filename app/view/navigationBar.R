@@ -87,6 +87,7 @@ getNavItems <- function(ns, suffix) {
               )
             ),
             a("Standings", href = route_link("index/standings")),
+            a("Compare Players", href = route_link("index/compare")),
             a("Schedule", href = route_link("index/schedule")),
             navMenuItem(
               label = "Academy",
@@ -94,7 +95,7 @@ getNavItems <- function(ns, suffix) {
                 a("Academy Index", href = route_link("index/academy")),
                 a("Academy Standings & Schedule", href = route_link("index/academyStandings"))
               )
-            )
+            )          
           )
         ),
         uiOutput(ns(paste0("jobsNavigation", suffix))) |>

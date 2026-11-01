@@ -1419,3 +1419,56 @@ $navbar-items-width: 112px;
 .accordion-button:not(.collapsed)::after {
   transform: rotate(225deg);
 }
+
+/* Player Comparison page */
+.player-compare-select-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.player-compare-select-row .player-compare-select {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.player-compare-vs {
+  flex: 0 0 auto;
+}
+
+.player-compare-row {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.player-compare-row .player-compare-col {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Card-less panel for each player's info inside the shared comparison card */
+.player-info-panel {
+  padding: 4px 16px;
+}
+
+.player-compare-row .player-compare-col:not(:last-child) .player-info-panel {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 767px) {
+  .player-compare-row {
+    flex-direction: column;
+  }
+
+  .player-compare-row .player-compare-col {
+    width: 100%;
+  }
+
+  .player-compare-row .player-compare-col:not(:last-child) .player-info-panel {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 16px;
+    margin-bottom: 8px;
+  }
+}

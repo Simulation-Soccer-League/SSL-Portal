@@ -36,6 +36,7 @@ box::use(
   app/view/index/careerRecords,
   app/view/index/careerIndex,
   app/view/index/leagueIndex,
+  app/view/index/playerComparison,
   app/view/index/schedule,
   app/view/index/standings,
   app/view/index/academyStandings,
@@ -174,6 +175,7 @@ ui <- function(id) {
       route("index/career", careerIndex$ui(ns("career"))),
       route("index/schedule", schedule$ui(ns("schedule"))),
       route("index/standings", standings$ui(ns("standings"))),
+      route("index/compare", playerComparison$ui(ns("compare"))),
       route("index/academyStandings", academyStandings$ui(ns("academyStandings"))),
       route("tracker/draftclass", draftclass$ui(ns("draftclass"))),
       route("tracker/game", game$ui(ns("game"))),
@@ -244,8 +246,9 @@ server <- function(id) {
         create = FALSE, player = FALSE, index = FALSE, careerIndex = FALSE,
         playerUpdate = FALSE,
         playerReroll = FALSE, playerRedist = FALSE, playerRegress = FALSE,
-        myPlayer = FALSE, import = FALSE, standings = FALSE, 
-        schedule = FALSE, academy = FALSE, academyStandings = FALSE, 
+        myPlayer = FALSE, import = FALSE, standings = FALSE,
+        compare = FALSE,
+        schedule = FALSE, academy = FALSE, academyStandings = FALSE,
         myBank = FALSE, welcome = FALSE, records = FALSE,
         playerPages = FALSE, contractProcess = FALSE,
         tradeProcess = FALSE, ptDeposit = FALSE,
@@ -292,6 +295,11 @@ server <- function(id) {
         standings$server("standings", updated, season = season)
         loadedServer$standings <- TRUE
         
+      } else if (current == "index/compare" & !loadedServer$compare) {
+
+        playerComparison$server("compare")
+        loadedServer$compare <- TRUE
+
       } else if (current == "index/schedule" & !loadedServer$schedule) {
         
         schedule$server("schedule", updated, season = season)

@@ -33,8 +33,9 @@ ui <- function(id) {
   shiny$tagList(
     bslib$card(
       bslib$card_header(
-        shiny$h2("Organization")
-      ),
+      shiny$uiOutput(ns("orgHeading")) |>
+      withSpinnerCustom(height = 30)
+    ),
       bslib$card_body(
         bslib$layout_column_wrap(
           width = NULL,
@@ -117,6 +118,26 @@ server <- function(id, oid = NULL, updated) {
         dplyr$filter(affiliate == 2)
     })
 
+    # Organization heading
+    output$orgHeading <- shiny$renderUI({
+      shiny$req(teamInfo())
+
+      names <- teamInfo() |>
+        dplyr$pull(name) |>
+        unique()
+
+      names <- names[!is.na(names) & names != ""]
+
+      if (length(names) == 0) {
+        names <- "Organization"
+      }
+
+      shiny$h2(
+        paste(names, collapse = " / "),
+        style = "margin:0;"
+      )
+    })
+    
     #### Output ####
     output$tabs <- shiny$renderUI({
       majorName <- teamInfo() |> 

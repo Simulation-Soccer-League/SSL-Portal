@@ -497,17 +497,17 @@ orgReactable <- function(data) {
 
 #' @export
 reactableBar <- function(value, total, side = "left", color = constant$sslBlueL){
-  pct <- if (total == 0) 0 else (value / total) * 100 
+  pct <- if (total == 0) 0 else (value / total) * 100
   div(
     style = "
     background:var(--bottom-background);
     width: 100%;
-    height:16px; 
-    position:relative;", 
+    height:16px;
+    position:relative;",
     div(
       style = glue$glue(
-        "background:{color}; 
-        width:{pct}%; 
+        "background:{color};
+        width:{pct}%;
         height:100%;
         float:{side};"
       )
@@ -523,6 +523,52 @@ reactableBar <- function(value, total, side = "left", color = constant$sslBlueL)
         color: white;
         font-size: 12px;
         font-weight: 600;
+        padding: 0 4px;
+        {if (side == 'right') 'right: 4px; justify-content: flex-end;' else 'left: 4px; justify-content: flex-start;'}
+        "
+      ),
+      value |> round(3)
+    )
+  )
+}
+
+#' Bar for head-to-head comparisons. Unlike `reactableBar`, the fill isn't
+#' tied to a team/side color - the same color is used on both sides, and
+#' `highlight` (the better value for that stat) is shown solid/dark while
+#' the other side is shown as a light tint. This keeps the "who's better"
+#' signal on lightness rather than hue, so it still reads for colorblind users.
+#' @export
+comparisonBar <- function(value, total, side = "left", highlight = FALSE, color = constant$sslGold) {
+  pct <- if (total == 0) 0 else (value / total) * 100
+  fillColor <- if (highlight) color else paste0(color, "2E")
+  fontWeight <- if (highlight) "700" else "400"
+  textColor <- if (highlight) "white" else "inherit"
+
+  div(
+    style = "
+    background:var(--bottom-background);
+    width: 100%;
+    height:16px;
+    position:relative;",
+    div(
+      style = glue$glue(
+        "background:{fillColor};
+        width:{pct}%;
+        height:100%;
+        float:{side};"
+      )
+    ),
+    div(
+      style = glue$glue(
+        "
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        color: {textColor};
+        font-size: 12px;
+        font-weight: {fontWeight};
         padding: 0 4px;
         {if (side == 'right') 'right: 4px; justify-content: flex-end;' else 'left: 4px; justify-content: flex-start;'}
         "
