@@ -2,6 +2,7 @@ box::use(
   bslib,
   bsicons[bs_icon],
   dplyr,
+  htmltools,
   purrr[map, is_empty],
   reactable[reactable],
   rlang[`!!!`],
@@ -689,6 +690,7 @@ server <- function(id, auth, updated, type, player = NULL) {
     ## Verify the update
     shiny$observe({
       currentTraits <- playerData()$traits |> 
+        htmltools$htmlEscape() |> 
         str_split(constant$traitSep) |> 
         unlist()
       

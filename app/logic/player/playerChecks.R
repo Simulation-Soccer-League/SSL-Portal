@@ -1,5 +1,7 @@
 box::use(
+  assertthat[assert_that,],
   dplyr,
+  htmltools,
   lubridate[as_date, floor_date, force_tz, now, with_tz],
   purrr[is_empty],
   reactable[reactable],
@@ -50,130 +52,157 @@ eligibleRedist <- function(data){
 updateSummary <- function(current, input, type = "update"){
   summary <- tibble(tpe = current$tpe)
   
-  ## Adds player information, traits and positions
-  if(type %in% c("redistribution", "reroll")){
-    summary <- 
-      tibble(
-        first = str_trim(input$firstName), 
-        last = str_trim(input$lastName),
-        name = paste(first, last),
-        birthplace = input$birthplace,
-        nationality = input$nationality,
-        height = input$height,
-        weight = input$weight,
-        hair_color = input$hairColor,
-        hair_length = input$hairLength,
-        skintone = input$skintone,
-        render = input$render,
-        `left foot` = 
-          dplyr$case_when(
-            input$footedness == "Right" & current$`right foot` == 20 ~ 
-              max(current$`left foot`, 10),
-            input$footedness == "Right" & current$`right foot` != 20 ~
-              max(current$`right foot`, 10),
-            TRUE ~ 20
-          ),
-        `right foot` = 
-          dplyr$case_when(
-            input$footedness == "Left" & current$`left foot` == 20 ~ 
-              max(current$`right foot`, 10),
-            input$footedness == "Left" & current$`left foot` != 20 ~
-              max(current$`left foot`, 10),
-            TRUE ~ 20
-          ),
-        pronouns = input$pronouns |> sort() |> paste0(collapse = constant$traitSep)
-      )
-    
-    if(input$playerType == "Outfield"){
-      summary$position <- input$primary[1]
+  tryCatch({
+    ## Adds player information, traits and positions
+    if(type %in% c("redistribution", "reroll")){
+      summary <- 
+        tibble(
+          first = str_trim(input$firstName) |> htmltools$htmlEscape(), 
+          last = str_trim(input$lastName) |> htmltools$htmlEscape(),
+          name = paste(first, last) |> htmltools$htmlEscape(),
+          birthplace = input$birthplace |> htmltools$htmlEscape(),
+          nationality = input$nationality,
+          height = input$height,
+          weight = input$weight,
+          hair_color = input$hairColor,
+          hair_length = input$hairLength,
+          skintone = input$skintone,
+          render = input$render |> htmltools$htmlEscape(),
+          `left foot` = 
+            dplyr$case_when(
+              input$footedness == "Right" & current$`right foot` == 20 ~ 
+                max(current$`left foot`, 10),
+              input$footedness == "Right" & current$`right foot` != 20 ~
+                max(current$`right foot`, 10),
+              TRUE ~ 20
+            ),
+          `right foot` = 
+            dplyr$case_when(
+              input$footedness == "Left" & current$`left foot` == 20 ~ 
+                max(current$`right foot`, 10),
+              input$footedness == "Left" & current$`left foot` != 20 ~
+                max(current$`left foot`, 10),
+              TRUE ~ 20
+            ),
+          pronouns = 
+            input$pronouns |>
+            htmltools$htmlEscape() |> 
+            sort() |> 
+            paste0(collapse = constant$traitSep)
+        )
       
-      # Add pos_ variables for each position
-      positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
-      for (pos in positions) {
+      if(input$playerType == "Outfield"){
+        
+        assert_that(
+          all(input$primary %in% names(constant$positions)),
+          all(input$secondary %in% names(constant$positions)),
+          !any(input$primary %in% input$secondary),
+          !any(input$secondary %in% input$primary),
+          msg = "You have input wrong positions."
+        )
+        
+        summary$position <- input$primary[1]
+        
+        # Add pos_ variables for each position
+        positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
+        for (pos in positions) {
+          summary <- summary |> 
+            dplyr$mutate(
+              !!paste0("pos_", str_to_lower(pos)) := 
+                dplyr$case_when(
+                  pos %in% input$primary ~ 20,
+                  pos %in% input$secondary ~ 15,
+                  TRUE ~ 0
+                )
+            )
+        }
+        
+        assert_that(
+          all(input$traits %in% (constant$traits |> unlist(use.names = FALSE))), 
+          msg = "The traits you have submitted does not match the available traits."
+        )
+        
+        summary$traits <- 
+          paste0(
+            input$traits |> 
+              htmltools$htmlEscape(), 
+            collapse = constant$traitSep
+          )
+      } else {
+        summary$position <- "GK"
+        
+        # Add pos_ variables for each position
+        positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
+        for (pos in positions) {
+          summary <- summary |> 
+            dplyr$mutate(
+              !!paste0("pos_", str_to_lower(pos)) := 
+                dplyr$case_when(
+                  pos == "GK" ~ 20,
+                  TRUE ~ 0
+                )
+            )
+        }
+      }
+    }
+    
+    # Add attributes variables and their value
+    for (att in (constant$attributes$attribute)) {
+      value <- input[[att |> str_remove_all(" ")]]
+      
+      if (value |> is.null()) {
         summary <- summary |> 
           dplyr$mutate(
-            !!paste0("pos_", str_to_lower(pos)) := 
-              dplyr$case_when(
-                pos %in% input$primary ~ 20,
-                pos %in% input$secondary ~ 15,
-                TRUE ~ 0
-              )
+            !!str_to_lower(att) := 
+              5
+          )
+      } else {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!str_to_lower(att) := 
+              value
           )
       }
       
-      summary$traits <- paste0(input$traits, collapse = constant$traitSep)
-    } else {
-      summary$position <- "GK"
-      
-      # Add pos_ variables for each position
-      positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
-      for (pos in positions) {
-        summary <- summary |> 
-          dplyr$mutate(
-            !!paste0("pos_", str_to_lower(pos)) := 
-              dplyr$case_when(
-                pos == "GK" ~ 20,
-                TRUE ~ 0
-              )
-          )
-      }
-    }
-  }
-  
-  # Add attributes variables and their value
-  for (att in (constant$attributes$attribute)) {
-    value <- input[[att |> str_remove_all(" ")]]
-    
-    if (value |> is.null()) {
-      summary <- summary |> 
-        dplyr$mutate(
-          !!str_to_lower(att) := 
-            5
-        )
-    } else {
-      summary <- summary |> 
-        dplyr$mutate(
-          !!str_to_lower(att) := 
-            value
-        )
     }
     
-  }
-  
-  ## This takes all inputs and checks for differences against the current build
-  # summary <- 
-  summary |> 
-    dplyr$add_row(
-      current |> 
-        dplyr$select(colnames(summary))
-    ) |> 
-    dplyr$mutate(
-      dplyr$across(
-        dplyr$where(is.numeric),
-        ~ replace_na(.x, 5)
-      ),
-      dplyr$across(
-        dplyr$where(is.character),
-        ~ replace_na(.x, "")
-      )
-    ) |> 
-    dplyr$mutate(source = c("new", "old")) |> 
-    pivot_longer(
-      cols = !source,
-      values_transform = as.character
-    ) |> 
-    pivot_wider(
-      names_from = source,
-      values_from = value
-    ) |>  
-    # dplyr$mutate(
-    #   dplyr$across(
-    #     dplyr$everything(),
-    #     ~ replace_na(.x, "5")
-    #   )
-    # ) |> 
-    dplyr$filter(old != new) |> 
-    dplyr$select(attribute = name, old, new)
+    ## This takes all inputs and checks for differences against the current build
+    # summary <- 
+    summary |> 
+      dplyr$add_row(
+        current |> 
+          dplyr$select(colnames(summary))
+      ) |> 
+      dplyr$mutate(
+        dplyr$across(
+          dplyr$where(is.numeric),
+          ~ replace_na(.x, 5)
+        ),
+        dplyr$across(
+          dplyr$where(is.character),
+          ~ replace_na(.x, "")
+        )
+      ) |> 
+      dplyr$mutate(source = c("new", "old")) |> 
+      pivot_longer(
+        cols = !source,
+        values_transform = as.character
+      ) |> 
+      pivot_wider(
+        names_from = source,
+        values_from = value
+      ) |>  
+      # dplyr$mutate(
+      #   dplyr$across(
+      #     dplyr$everything(),
+      #     ~ replace_na(.x, "5")
+      #   )
+      # ) |> 
+      dplyr$filter(old != new) |> 
+      dplyr$select(attribute = name, old, new)
+  }, error = function(e) {
+    stop(e$message)
+  })
 }
 
 #' @export
@@ -219,93 +248,115 @@ verifyBuild <- function(input, bankedTPE, session){
       hair_color = input$hairColor,
       hair_length = input$hairLength,
       skintone = input$skinColor,
-      render = input$render,
+      render = input$render |> htmltools$htmlEscape(),
       `left foot` = dplyr$if_else(input$footedness == "Right", 10, 20),
       `right foot` = dplyr$if_else(input$footedness == "Right", 20, 10),
     )
   
-  if(input$playerType == "Outfield"){
-    summary$position <- input$primary
-    
-    # Add pos_ variables for each position
-    positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
-    for (pos in positions) {
-      summary <- summary |> 
-        dplyr$mutate(
-          !!paste0("pos_", str_to_lower(pos)) := 
-            dplyr$case_when(
-              input$primary == pos ~ 20,
-              pos %in% input$secondary ~ 15,
-              TRUE ~ 0
-            )
-        )
-    }
-    
-    summary$traits <- paste0(input$traits, collapse = constant$traitSep)
-  } else {
-    summary$position <- "GK"
-    
-    # Add pos_ variables for each position
-    positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
-    for (pos in positions) {
-      summary <- summary |> 
-        dplyr$mutate(
-          !!paste0("pos_", str_to_lower(pos)) := 
-            dplyr$case_when(
-              pos == "GK" ~ 20,
-              TRUE ~ 0
-            )
-        )
-    }
-  }
-  
-  # Add attributes variables and their value
-  for (att in (constant$attributes$attribute)) {
-    value <- input[[att |> str_remove_all(" ")]]
-    
-    if (value |> is.null()) {
-      summary <- summary |> 
-        dplyr$mutate(
-          !!str_to_lower(att) := 
-            5
+  tryCatch({
+    if(input$playerType == "Outfield"){
+      assert_that(
+        all(input$primary %in% names(constant$positions)),
+        all(input$secondary %in% names(constant$positions)),
+        !any(input$primary %in% input$secondary),
+        !any(input$secondary %in% input$primary),
+        msg = "You have input wrong positions."
+      )
+      
+      summary$position <- input$primary
+      
+      # Add pos_ variables for each position
+      positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
+      for (pos in positions) {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!paste0("pos_", str_to_lower(pos)) := 
+              dplyr$case_when(
+                input$primary == pos ~ 20,
+                pos %in% input$secondary ~ 15,
+                TRUE ~ 0
+              )
+          )
+      }
+      
+      assert_that(
+        all(input$traits %in% (constant$traits |> unlist(use.names = FALSE))), 
+        msg = "The traits you have submitted does not match the available traits."
+      )
+      
+      summary$traits <- 
+        paste0(
+          input$traits |> 
+            htmltools$htmlEscape(), 
+          collapse = constant$traitSep
         )
     } else {
-      summary <- summary |> 
-        dplyr$mutate(
-          !!str_to_lower(att) := 
-            value
-        )
+      summary$position <- "GK"
+      
+      # Add pos_ variables for each position
+      positions <- c("GK", "LD", "CD", "RD", "LWB", "CDM", "RWB", "LM", "CM", "RM", "LAM", "CAM", "RAM", "ST")
+      for (pos in positions) {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!paste0("pos_", str_to_lower(pos)) := 
+              dplyr$case_when(
+                pos == "GK" ~ 20,
+                TRUE ~ 0
+              )
+          )
+      }
     }
     
-  }
-  
-  shiny$showModal(
-    shiny$modalDialog(
-      shiny$span("Check the information you have submitted.", style = "color: red;"),
-      shiny$br(),
-      summary |> 
-        pivot_longer(
-          dplyr$everything(),
-          names_to = "Property",
-          values_to = "Value",
-          values_transform = as.character
-        ) |> 
-        reactable(
-          pagination = FALSE
-        ),
-      shiny$br(),
-      title = "Verify your build!",
-      footer = 
-        shiny$tagList(
-          shiny$modalButton("Go back"),
-          shiny$actionButton(
-            inputId = session$ns("confirmBuild"),
-            label = "Submit build"
+    # Add attributes variables and their value
+    for (att in (constant$attributes$attribute)) {
+      value <- input[[att |> str_remove_all(" ")]]
+      
+      if (value |> is.null()) {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!str_to_lower(att) := 
+              5
           )
-        ),
-      easyClose = FALSE
+      } else {
+        summary <- summary |> 
+          dplyr$mutate(
+            !!str_to_lower(att) := 
+              value
+          )
+      }
+      
+    }
+    
+    shiny$showModal(
+      shiny$modalDialog(
+        shiny$span("Check the information you have submitted.", style = "color: red;"),
+        shiny$br(),
+        summary |> 
+          pivot_longer(
+            dplyr$everything(),
+            names_to = "Property",
+            values_to = "Value",
+            values_transform = as.character
+          ) |> 
+          reactable(
+            pagination = FALSE
+          ),
+        shiny$br(),
+        title = "Verify your build!",
+        footer = 
+          shiny$tagList(
+            shiny$modalButton("Go back"),
+            shiny$actionButton(
+              inputId = session$ns("confirmBuild"),
+              label = "Submit build"
+            )
+          ),
+        easyClose = FALSE
+      )
     )
-  )
+  }, error = function(e){
+    stop(e$message)
+  })
   
 }
 
@@ -323,24 +374,38 @@ submitBuild <- function(input, bankedTPE, userinfo){
       tibble(
         uid = userinfo$uid,
         status_p = -1,
-        first = str_trim(input$firstName),
-        last = str_trim(input$lastName),
+        first = str_trim(input$firstName) |> htmltools$htmlEscape(),
+        last = str_trim(input$lastName) |> htmltools$htmlEscape(),
         tpe = constant$startingTPE,
         tpebank = bankedTPE(),
-        birthplace = input$birthplace,
+        birthplace = input$birthplace |> htmltools$htmlEscape(),
         nationality = input$nationality,
         height = input$height,
         weight = input$weight,
         hair_color = input$hairColor,
         hair_length = input$hairLength,
         skintone = input$skinColor,
-        render = input$render,
+        render = input$render |> htmltools$htmlEscape(),
         `left foot` = dplyr$if_else(input$footedness == "Right", 10, 20),
         `right foot` = dplyr$if_else(input$footedness == "Right", 20, 10),
-        pronouns = input$pronouns |> sort() |> paste0(collapse = constant$traitSep)
+        pronouns = 
+          input$pronouns |>
+          htmltools$htmlEscape() |> 
+          sort() |> 
+          paste0(collapse = constant$traitSep)
       )
     
     if(input$playerType == "Outfield"){
+      
+      assert_that(
+        all(input$primary %in% names(constant$positions)),
+        all(input$secondary %in% names(constant$positions)),
+        !any(input$primary %in% input$secondary),
+        !any(input$secondary %in% input$primary),
+        msg = "You have input wrong positions."
+      )
+      
+      
       summary$position <- input$primary
       
       # Add pos_ variables for each position
@@ -357,7 +422,14 @@ submitBuild <- function(input, bankedTPE, userinfo){
           )
       }
       
-      summary$traits <- paste0(input$traits, collapse = constant$traitSep)
+      assert_that(all(input$traits %in% (constant$traits |> unlist(use.names = FALSE))), msg = "The traits you have submitted does not match the available traits.")
+      
+      summary$traits <- 
+        paste0(
+          input$traits |> 
+            htmltools$htmlEscape(), 
+          collapse = constant$traitSep
+        )
     } else {
       summary$position <- "GK"
       

@@ -473,6 +473,7 @@ server <- function(id, auth, updated) {
           render = input$render
         )
       
+      
       for (pos in names(constant$positionsGK)) {
         column <- paste0("pos_", str_to_lower(pos))
         
@@ -525,6 +526,11 @@ server <- function(id, auth, updated) {
       
       if (nrow(update) != 0) {
         tryCatch({
+          assert_that(
+            all(input$traits %in% (constant$traits |> unlist(use.names = FALSE))), 
+            msg = "The traits you have submitted does not match the available traits."
+          )
+          
           updatePlayerData(uid = auth$uid, pid = playerData()$pid, updates = update)
           
           updated(updated() + 1)

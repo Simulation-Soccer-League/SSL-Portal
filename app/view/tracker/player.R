@@ -1,6 +1,7 @@
 box::use(
   bslib,
   dplyr,
+  htmltools,
   lubridate[as_date, as_datetime, floor_date, today],
   plotly,
   purrr,
@@ -541,9 +542,9 @@ server <- function(id, pid = NULL, updated) {
             infoBox(
               "Traits", 
               data$traits |>
-                str_split(pattern = constant$traitSep) |>
-                unlist() |>
-                paste(collapse = "<br>") |>
+                str_split(pattern = constant$traitSep) |> 
+                unlist() |> 
+                paste0(collapse = "<br>") |>
                 shiny$HTML()
             )
           )

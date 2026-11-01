@@ -1,6 +1,7 @@
 box::use(
   dplyr,
   glue,
+  htmltools,
   purrr[is_empty, map, pmap],
   reactable[colDef, colFormat, reactable, reactableOutput, renderReactable],
   shiny.router[route_link],
@@ -479,11 +480,11 @@ orgReactable <- function(data) {
       ),
       discord = colDef(
         width = 120, 
-        cell = function(value) tippy(value, tooltip = value, theme = "ssl")
+        cell = function(value) tippy(value |> htmltools$htmlEscape(), tooltip = value, theme = "ssl")
       ),
       render = colDef(
         width = 150, 
-        cell = function(value) tippy(value, tooltip = value, theme = "ssl")
+        cell = function(value) tippy(value |> htmltools$htmlEscape(), tooltip = value, theme = "ssl")
       ),
       class = colDef(width = 75),
       tpe = colDef(width = 50),

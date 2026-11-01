@@ -290,10 +290,13 @@ server <- function(id, auth, updated, playerData) {
               msg = "You are trying to purchase footedness that does not exist."
             )
             
+            
+            
             if (playerData()$position != "GK") {
 
               assertthat$assert_that(
-                all(inputTrait$traits %in% (constant$traits |> unlist(use.names = FALSE))),
+                all(inputTrait$traits %in% (constant$traits |> unlist(use.names = FALSE))) |
+                  inputTraits$traits |> is_empty(),
                 msg = "You are trying to purchase traits that does not exist."
               )
 
