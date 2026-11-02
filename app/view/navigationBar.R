@@ -22,6 +22,7 @@ box::use(
     removeModal,
     selectInput,
     showModal,
+    tagAppendAttributes,
     tagList,
     tags,
     textInput,
@@ -110,7 +111,7 @@ getNavItems <- function(ns, suffix) {
           inputId = ns("selectedSeason"),
           label = NULL,
           choices = values,
-          width = "120%"  
+          width = "100%"
         )
       )
     ),
@@ -159,35 +160,33 @@ ui <- function(id) {
       ),
       tags$title("SSL Portal")
     ),
+    actionButton(
+      inputId = "navToggle",
+      label = tagList(
+        div(
+          icon("bars"),
+          class = "nav-toggle-icon_closed"
+        ),
+        div(
+          icon("xmark"),
+          class = "nav-toggle-icon-open"
+        )
+      ),
+      class = "nav-toggle",
+      `aria-label` = "Toggle menu",
+      `aria-expanded` = "false",
+      onclick = "
+        var isOpen = document.querySelector('.nav-container-narrow').classList.toggle('is-open');
+
+        this.classList.toggle('is-open', isOpen);
+        this.setAttribute('aria-expanded', isOpen);
+        document.body.classList.toggle('nav-open', isOpen);
+      "
+    ),
     tags$nav(
       class = "nav-container-narrow",
       tagList(
-        actionButton(
-          inputId = "navToggle",
-          label = tagList(
-            div(
-              icon("bars"),
-              class = "nav-toggle-icon_closed"
-            ),
-            div(
-              icon("xmark"),
-              class = "nav-toggle-icon-open"
-            )
-          ),
-          class = "nav-toggle",
-          onclick = "
-            var mobileNav = document.querySelector('.nav-container-narrow');
-            var openMaxWidth = '80%';
-
-            if (mobileNav) {
-              var isOpen = getComputedStyle(mobileNav).maxWidth === openMaxWidth;
-              mobileNav.style.maxWidth = isOpen ? '0px' : openMaxWidth;
-              this.style.left = isOpen ? '0px' : `calc(${openMaxWidth} - 40px)`;
-              this.querySelector('.nav-toggle-icon_closed').style.display = isOpen ? 'block' : 'none';
-              this.querySelector('.nav-toggle-icon-open').style.display = isOpen ? 'none' : 'block';
-            }
-        "
-        ),
+        tags$img(src = "static/portalwhite.png", class = "logo-narrow", alt = "SSL Portal"),
         getNavItems(ns, "Mobile")
       )
     ),
@@ -197,7 +196,7 @@ ui <- function(id) {
         tags$a(
           href = "https://forum.simulationsoccer.com",
           target = "_blank",
-          tags$img(src = "static/portalwhite.png", height = "70"),
+          tags$img(src = "static/portalwhite.png", alt = "SSL Portal"),
           class = "logo"
         ),
         div(
@@ -309,34 +308,28 @@ server <- function(id, auth, resAuth, updated, season) {
     getPlayerUi <- function(userGroup) {
       if (userGroup |> is.null()) {
         navMenu(
-          actionLink("Login", icon = icon("user"), inputId = session$ns("login"))
+          actionLink("Login", icon = icon("user"), inputId = session$ns("login"), class = "nav-login")
         )
       } else {
-        if(checkApprovingPlayer(auth()$uid)){
-          playerMenu <- "Awating Approval"
-        } else if(!hasActivePlayer(auth()$uid)){
-          playerMenu <- 
-            navMenu(
-              actionLink("Create a Player", icon = icon("square-plus"), inputId = session$ns("create"))
-            )
+        playerItem <- if (checkApprovingPlayer(auth()$uid)) {
+          div(class = "nav-menu-note", "Awaiting Approval")
+        } else if (!hasActivePlayer(auth()$uid)) {
+          actionLink("Create a Player", icon = icon("square-plus"), inputId = session$ns("create"))
         } else {
-          playerMenu <- 
-            navMenu(
-              label = "Player",
-              items = list(
-                a("My Player", href = route_link("myPlayer/")),
-                a("Bank/Store", href = route_link("myBank"))
-              ),
-              showItems = TRUE
+          navMenuItem(
+            label = "Player",
+            subItems = list(
+              a("My Player", href = route_link("myPlayer/")),
+              a("Bank/Store", href = route_link("myBank"))
             )
+          )
         }
-        
-        flexRow(
-          tagList(
-            playerMenu,
-            navMenu(
-              actionLink("Logout", icon = icon("door-open"), inputId = session$ns("logout"))
-            )
+
+        navMenu(
+          label = auth()$username,
+          items = list(
+            playerItem,
+            actionLink("Logout", icon = icon("door-open"), inputId = session$ns("logout"))
           )
         )
       }
@@ -383,22 +376,78 @@ server <- function(id, auth, resAuth, updated, season) {
     observe({
       showModal(
         modalDialog(
-          textInput(session$ns("user"), label = "Username:"),
-          passwordInput(session$ns("password"), label = "Password:"),
-          footer = tagList(
-            modalButton("Cancel"), actionButton(session$ns("loggingIn"), "Login"),
-            tags$div(
+          footer = NULL,
+          easyClose = TRUE,
+          div(
+            class = "login-modal",
+            onkeydown = sprintf(
+              "if (event.key === 'Enter' && event.target.tagName === 'INPUT') {
+                event.preventDefault();
+                // Leaving the field sends its value to Shiny before the login click does
+                event.target.blur();
+                document.getElementById('%s').click();
+              }",
+              session$ns("loggingIn")
+            ),
+            tags$script(
+              sprintf(
+                "$('#shiny-modal').one('shown.bs.modal', function() { $('#%s').focus(); });",
+                session$ns("user")
+              )
+            ),
+            tags$button(
+              class = "login-close",
+              type = "button",
+              `data-dismiss` = "modal",
+              `data-bs-dismiss` = "modal",
+              `aria-label` = "Close",
+              icon("xmark")
+            ),
+            div(
+              class = "login-head",
+              tags$img(src = "static/portalwhite.png", alt = "SSL Portal"),
+              tags$h4("Welcome back"),
+              p("Log in with your forum account.")
+            ),
+            div(
+              class = "login-field",
+              icon("user"),
+              textInput(session$ns("user"), label = "Username") |>
+                tagAppendAttributes(autocomplete = "username", .cssSelector = "input")
+            ),
+            div(
+              class = "login-field",
+              icon("lock"),
+              passwordInput(session$ns("password"), label = "Password") |>
+                tagAppendAttributes(autocomplete = "current-password", .cssSelector = "input"),
+              tags$button(
+                class = "login-password-toggle",
+                type = "button",
+                `aria-label` = "Show or hide password",
+                onclick = "
+                  var input = this.parentElement.querySelector('input');
+                  var isHidden = input.type === 'password';
+                  var eye = this.querySelector('i');
+
+                  input.type = isHidden ? 'text' : 'password';
+                  eye.classList.toggle('fa-eye', !isHidden);
+                  eye.classList.toggle('fa-eye-slash', isHidden);
+                ",
+                icon("eye")
+              )
+            ),
+            actionButton(session$ns("loggingIn"), "Login", class = "login-submit"),
+            div(
+              class = "login-links",
               tags$a(
                 "Register a new user!",
                 href = "https://forum.simulationsoccer.com/member.php?action=register",
-                target = "_blank", 
-                style = "float: left;"
+                target = "_blank"
               ),
               tags$a(
                 "Forgot password?",
                 href = "https://forum.simulationsoccer.com/member.php?action=lostpw",
-                target = "_blank", 
-                style = "float:right;"
+                target = "_blank"
               )
             )
           )

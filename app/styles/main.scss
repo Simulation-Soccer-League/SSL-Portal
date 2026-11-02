@@ -18,6 +18,7 @@
   --menu-color: #222831;
   --sub-menu-color: #eeeeee;
   --background-color: #393E46;
+  --card-radius: 10px;
   /* League colours (same thing as Discord bot but darker) */
   --major-gold-d: #9f8a24;   
   --minor-red-d:  #7a1c26;  
@@ -27,9 +28,6 @@
   --shield-d:    #676666;
   /* Shared gradient base */
   --gradient-d: #2e2e2e;
-  
-  /* Adjusting swipeR sizing */
-  --swiper-navigation-size: 32px;
   
 }
 /* stylelint-enable color-function-notation */
@@ -82,51 +80,84 @@ a:hover {
 */
 
 /* Navbar with logo */
+$navbar-height: 64px;
+$navbar-mobile-height: 60px;
+$navbar-label-height: 38px;
+$navbar-items-width: 190px;
+
 .ssl-navbar {
-  background-color: var(--menu-color);
-  height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: $navbar-height;
   margin-bottom: 20px;
-  position: relative;
+  padding: 0 20px;
+  background-color: var(--menu-color);
+  border-bottom: 1px solid color-mix(in srgb, var(--ssl-gold) 45%, transparent);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 35%);
 
   .nav-container {
     display: flex;
-    flex-direction: row;
-    margin-left: 128px;
-    margin-right: 12px;
-    height: inherit;
-    max-width: 100%;
-    align-items: end;
+    flex: 1;
+    align-items: center;
     justify-content: space-between;
+    gap: 16px;
+    min-width: 0;
+    height: 100%;
+
+    & > .flex-row-wrapper {
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* The right-most menus open towards the page so they stay on screen */
+    & > :last-child .nav-menu-items {
+      left: auto;
+      right: 0;
+    }
+
+    & > :last-child .nav-menu-sub-items {
+      left: auto;
+      right: 100%;
+    }
+
+    /* Long usernames should not push the rest of the header around */
+    & > :last-child .nav-menu > .flex-row-wrapper > span {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   .logo {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 12px;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    img {
+      width: auto;
+      height: 48px;
+    }
   }
 }
 
 .nav-toggle {
   display: none;
-  position: fixed;
-  left: 0;
-  top: 0;
-  margin-top: 8px;
-  margin-left: 8px;
-  height: 24px;
-  width: 24px;
-  background-color: yellow;
-  z-index: 100;
 }
 
 /* Separate nav-container when the page is too narrow, default is display: none */
 .nav-container-narrow {
   display: none;
 }
-
-$navbar-label-height: 32px;
-$navbar-items-width: 112px;
 
 /* Navigation menu items */
 .nav-menu {
@@ -138,9 +169,9 @@ $navbar-items-width: 112px;
   font-weight: 600;
   padding: 0 8px;
   height: $navbar-label-height;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
+  border-radius: 8px;
   z-index: 102;
+  transition: background-color 0.15s ease, color 0.15s ease;
 
   a {
     display: inline-block;
@@ -150,10 +181,13 @@ $navbar-items-width: 112px;
     text-decoration: none;
   }
 
+  .fa-caret-down {
+    transition: transform 0.2s ease;
+  }
+
   /* Hover information on the menus */
   &:hover {
-    background: var(--sub-menu-color);
-    color: black;
+    background: rgb(255 255 255 / 10%);
     cursor: pointer;
   }
 
@@ -169,23 +203,57 @@ $navbar-items-width: 112px;
     filter: none;
   }
 
+  &:hover > .flex-row-wrapper .fa-caret-down {
+    transform: rotate(180deg);
+  }
+
   &:hover .nav-menu-items {
-    display: block;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Login is the main call to action of the header */
+  &:has(.nav-login) {
+    padding: 0 6px;
+    margin-left: 4px;
+    border: 1px solid var(--ssl-gold);
+    color: var(--ssl-gold);
+
+    &:hover {
+      background: var(--ssl-gold);
+      color: var(--menu-color);
+    }
   }
 }
 
 /* Menu sub items for the navigation bar */
 .nav-menu-items { /* stylelint-disable-line no-descending-specificity */
-  display: none;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
   background: var(--sub-menu-color);
+  color: var(--darker-text);
   position: absolute;
-  top: $navbar-label-height;
+  top: calc(100% + 8px);
   left: 0;
   width: $navbar-items-width;
+  padding: 6px;
   font-weight: normal;
-  box-shadow: 0 0 2px black;
-  border-bottom-left-radius: 2px;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 45%);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
   z-index: 101;
+
+  /* Keeps the menu open while the pointer crosses the gap below the label */
+  &::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+  }
 
   .nav-menu-item-caret-down {
     display: none;
@@ -193,12 +261,8 @@ $navbar-items-width: 112px;
 
   .nav-menu-item,
   .nav-menu-sub-item {
-    border-bottom: 1px solid #aaa;
-    border-bottom-left-radius: 2px;
-
-    &:last-child {
-      border-bottom: none;
-    }
+    border-radius: 6px;
+    transition: background-color 0.15s ease, color 0.15s ease;
 
     &:hover {
       background: var(--menu-color);
@@ -221,17 +285,24 @@ $navbar-items-width: 112px;
   }
 }
 
+.nav-menu-note {
+  padding: 8px;
+  opacity: 0.7;
+  cursor: default;
+}
+
 /* If a menu has even more sub items */
 .nav-menu-sub-items {
   display: none;
   background: var(--sub-menu-color);
   position: absolute;
-  top: 0;
-  color: black;
-  left: $navbar-items-width;
+  top: -6px;
+  color: var(--darker-text);
+  left: 100%;
   width: max-content;
-  box-shadow: 0 0 2px black;
-  border-bottom-right-radius: 2px;
+  padding: 6px;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 45%);
   z-index: 100;
 
   div {
@@ -240,12 +311,15 @@ $navbar-items-width: 112px;
   }
 }
 
-
-
 @media (max-width: 767px) {
   // Make sure page content isn't hidden behind fixed nav
   #router-page-wrapper {
-    padding-top: 92px;
+    padding-top: $navbar-mobile-height + 20px;
+  }
+
+  // Stops the page behind the full page menu from scrolling
+  body.nav-open {
+    overflow: hidden;
   }
 
   // For some reason this Shiny-generated element doesn't span the full width of the menu.
@@ -260,85 +334,146 @@ $navbar-items-width: 112px;
     left: 0;
     right: 0;
     width: 100%;
-    z-index: 90;
+    height: $navbar-mobile-height;
+    margin-bottom: 0;
+    padding: 0 12px;
 
     .nav-container {
       display: none;
     }
-
-    .logo {
-      right: 0;
-      left: auto;
-    }
   }
 
-  .nav-toggle {
+  .nav-toggle,
+  .nav-toggle:hover,
+  .nav-toggle:focus {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: fixed;
+    top: ($navbar-mobile-height - 40px) * 0.5;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
     background-color: var(--ssl-gold);
-    transition: left 0.5s ease-in-out;
-    z-index: 9999;
     color: white;
+    z-index: 9999;
 
     .nav-toggle-icon-open {
       display: none;
     }
+
+    &.is-open .nav-toggle-icon_closed {
+      display: none;
+    }
+
+    &.is-open .nav-toggle-icon-open {
+      display: block;
+    }
   }
 
+  // The menu takes over the entire page while it is open
   .nav-container-narrow {
-    background: var(--background-color);
     display: flex;
-    flex-direction: column-reverse;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 20px;
     position: fixed;
-    gap: 24px;
-    left: 0;
-    top: 0;
-    right: 0;
-    max-width: 0;
-    overflow: hidden;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh; /* stylelint-disable-line declaration-block-no-duplicate-properties */
     margin: 0;
+    padding: ($navbar-mobile-height + 12px) 16px 24px;
+    overflow-y: auto;
+    background: var(--menu-color);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
     z-index: 99;
-    transition: max-width 0.5s ease-in-out;
-    box-shadow: 0 0 30px black;
-    border-bottom-right-radius: 12px;
 
-    & > div {
+    &.is-open {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+    }
+
+    // Account actions sit at the bottom of the page
+    & > :last-child {
+      margin-top: auto;
+    }
+
+    .flex-row-wrapper:not(.nav-menu *) {
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
+      width: 100%;
+    }
+
+    .logo-narrow {
+      position: absolute;
+      top: 6px;
+      left: 12px;
+      width: auto;
+      height: 48px;
     }
   }
 
   .nav-menu {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     width: 100%;
     height: auto;
     padding: 0;
+    font-size: 17px;
+    border-radius: 0;
+
+    &:hover {
+      background: none;
+    }
+
+    &:hover > .flex-row-wrapper .fa-caret-down {
+      transform: none;
+    }
+
+    &:has(> .nav-menu-items[style*="max-content"]) > .flex-row-wrapper .fa-caret-down,
+    &:has(> .nav-menu-items.show-items:not([style*="0px"])) > .flex-row-wrapper .fa-caret-down {
+      transform: rotate(180deg);
+    }
 
     & > div:has(> span),
     & > div:has(> a),
     & > a {
-      border-bottom: 1px solid black;
+      border-bottom: 1px solid rgb(255 255 255 / 12%);
       width: 100%;
+      justify-content: space-between;
     }
 
     a,
     span {
-      padding: 12px 8px;
-      /*color: var(--sub-menu-color);*/
+      padding: 14px 8px;
     }
 
-    .fa-door-open,
-    .fa-user {
-      display: none;
+    &:has(.nav-login) {
+      margin: 12px 0 0;
+      border-radius: 10px;
+      text-align: center;
+
+      & > a {
+        border-bottom: none;
+      }
     }
   }
 
   .nav-menu-items {
     background: none;
+    color: inherit;
     display: block;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition: none;
     overflow: hidden;
     white-space: nowrap;
     position: relative;
@@ -346,29 +481,33 @@ $navbar-items-width: 112px;
     left: 0;
     height: 0;
     width: 100%;
+    padding: 0;
+    font-size: 16px;
+    border-radius: 0;
     box-shadow: none;
+
+    &::before {
+      display: none;
+    }
 
     &.show-items {
       height: max-content;
     }
 
     .nav-menu-item {
-      background: var(--background-color);
-      border-bottom: 1px solid black !important;
+      background: rgb(255 255 255 / 4%);
+      border-bottom: 1px solid rgb(255 255 255 / 8%) !important;
+      border-radius: 0;
       padding: 0 !important;
     }
 
     .nav-menu-item:has(.nav-menu-sub-items) > div {
-      justify-content: flex-start !important;
-    }
-
-    // When sub-items are showing
-    .nav-menu-item:has(.nav-menu-sub-items[style*="max-content"]) > div {
-      border-bottom: 1px solid black;
+      justify-content: space-between !important;
     }
 
     .nav-menu-item-caret-down {
       display: block;
+      padding-right: 8px;
     }
 
     .nav-menu-item-caret-right {
@@ -377,7 +516,7 @@ $navbar-items-width: 112px;
 
     a,
     span {
-      padding-left: 16px;
+      padding-left: 20px;
       padding-top: 12px;
       padding-bottom: 12px;
     }
@@ -385,6 +524,7 @@ $navbar-items-width: 112px;
 
   .nav-menu-sub-items {
     background: none;
+    color: inherit;
     display: block;
     overflow: hidden;
     position: relative;
@@ -392,24 +532,23 @@ $navbar-items-width: 112px;
     left: 0;
     height: 0;
     width: 100%;
+    padding: 0;
+    border-radius: 0;
     box-shadow: none;
 
     .nav-menu-sub-item {
-      background: var(--menu-color);
-      border-bottom: 1px solid black;
+      background: rgb(0 0 0 / 22%);
+      border-bottom: 1px solid rgb(255 255 255 / 8%);
+      border-radius: 0;
       color: var(--sub-menu-color);
     }
 
     a,
     span {
-      padding-left: 24px;
+      padding-left: 32px;
       padding-top: 12px;
       padding-bottom: 12px;
     }
-  }
-  
-  .player-extra, img.player-extra {
-    display: none;
   }
 }
 
@@ -672,8 +811,8 @@ $navbar-items-width: 112px;
 .card-footer {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  border-bottom-right-radius: 3px;
-  border-bottom-left-radius: 3px; /* stylelint-disable-line declaration-block-no-redundant-longhand-properties */
+  border-bottom-right-radius: var(--card-radius);
+  border-bottom-left-radius: var(--card-radius); /* stylelint-disable-line declaration-block-no-redundant-longhand-properties */
   border-top: 1px solid var(--ssl-gold);
   padding: 10px;
   background-color: var(--ssl-gold);
@@ -682,7 +821,7 @@ $navbar-items-width: 112px;
 
 .card {
   position: relative;
-  border-radius: 3px;
+  border-radius: var(--card-radius);
   background: #444;
   margin-bottom: 20px;
   width: 100%;
@@ -1279,40 +1418,41 @@ $navbar-items-width: 112px;
   font-weight: 600;
 }
 
-/* Main menu season dropdown */
+/* Dropdowns that blend into their background: main menu season, latest scores league */
 .seasonDropdown {
-  margin-bottom: -8px; 
-  width: 120%;
+  width: 150px;
+
+  @media (max-width: 767px) {
+    width: 100%;
+  }
 }
 
-.seasonDropdown .shiny-input-container:not(.shiny-input-container-inline) {
-  max-width: 120%;
+.seasonDropdown .shiny-input-container:not(.shiny-input-container-inline),
+.leagueDropdown .shiny-input-container:not(.shiny-input-container-inline) {
+  margin-bottom: 0;
 }
 
-.seasonDropdown .selectize-input {
-  background-color: var(--menu-color);
+.seasonDropdown .selectize-input,
+.leagueDropdown .selectize-input {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 8px;
+  box-shadow: none;
   color: var(--lighter-text);
 }
 
 .seasonDropdown .selectize-input.input-active,
-.seasonDropdown .selectize-dropdown {
-  background: var(--lighter-text);  
+.seasonDropdown .selectize-dropdown,
+.leagueDropdown .selectize-input.input-active,
+.leagueDropdown .selectize-dropdown {
+  background: var(--lighter-text);
   color: var(--menu-color);
 }
 
-
-/* swipeR adjustments */
-
-.swiper-button-prev, .swiper-button-next {
-  top: var(--swiper-navigation-top-offset, 80%);
+.seasonDropdown .selectize-control.single .selectize-input:not(.input-active)::after,
+.leagueDropdown .selectize-control.single .selectize-input:not(.input-active)::after {
+  border-top-color: var(--sub-menu-color);
 }
-
-.swiper-pagination {
-  /* Moves the pagination object below the next/prev buttons*/
-  z-index: 9;
-}
-
-
 
 /* Flags */
 .flag {
@@ -1374,7 +1514,7 @@ $navbar-items-width: 112px;
 }
 
 .accordion-item {
-  border-radius: 3px;
+  border-radius: var(--card-radius);
   overflow: hidden;
   box-shadow: 3px 3px 4px rgba(0, 0, 0, .1);
 }
@@ -1418,4 +1558,373 @@ $navbar-items-width: 112px;
 
 .accordion-button:not(.collapsed)::after {
   transform: rotate(225deg);
+}
+
+/* Player Comparison page */
+.player-compare-select-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.player-compare-select-row .player-compare-select {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.player-compare-vs {
+  flex: 0 0 auto;
+}
+
+.player-compare-row {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.player-compare-row .player-compare-col {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Card-less panel for each player's info inside the shared comparison card */
+.player-info-panel {
+  padding: 4px 16px;
+}
+
+.player-compare-row .player-compare-col:not(:last-child) .player-info-panel {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 767px) {
+  .player-compare-row {
+    flex-direction: column;
+  }
+
+  .player-compare-row .player-compare-col {
+    width: 100%;
+  }
+
+  .player-compare-row .player-compare-col:not(:last-child) .player-info-panel {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 16px;
+    margin-bottom: 8px;
+  }
+}
+
+/* Login pop-up */
+body:has(.login-modal) .modal-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+.modal-dialog:has(.login-modal) {
+  width: min(400px, calc(100% - 32px));
+  margin: 10vh auto 0;
+}
+
+.modal-content:has(.login-modal) {
+  background-color: var(--menu-color);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-top: 3px solid var(--ssl-gold);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 55%);
+}
+
+.modal-body:has(.login-modal) {
+  padding: 0;
+}
+
+.login-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px;
+  color: var(--sub-menu-color);
+}
+
+.login-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--sub-menu-color);
+  opacity: 0.7;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+
+  &:hover {
+    background: rgb(255 255 255 / 10%);
+    opacity: 1;
+  }
+}
+
+.login-head {
+  text-align: center;
+
+  img {
+    height: 56px;
+    margin-bottom: 12px;
+  }
+
+  h4 {
+    margin: 0 0 4px;
+    font-size: 22px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.7;
+  }
+}
+
+.login-field {
+  position: relative;
+
+  .shiny-input-container:not(.shiny-input-container-inline) {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+  }
+
+  .form-control {
+    height: 42px;
+    padding: 0 40px 0 38px;
+    border: 1px solid rgb(255 255 255 / 16%);
+    border-radius: 8px;
+    background: rgb(255 255 255 / 6%);
+    color: var(--lighter-text);
+    box-shadow: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus {
+      border-color: var(--ssl-gold);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--ssl-gold) 30%, transparent);
+    }
+
+    &:-webkit-autofill {
+      -webkit-text-fill-color: var(--lighter-text);
+      box-shadow: inset 0 0 0 40px var(--menu-color);
+    }
+  }
+
+  /* Sits inside the input, below the 24px label */
+  & > i {
+    position: absolute;
+    top: 38px;
+    left: 13px;
+    z-index: 1;
+    font-size: 14px;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+/* The message below the input is enough, and the icon would cover the password toggle */
+.login-field .form-control-feedback {
+  display: none;
+}
+
+.login-password-toggle {
+  position: absolute;
+  top: 28px;
+  right: 4px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.login-modal .login-submit,
+.login-modal .login-submit:hover,
+.login-modal .login-submit:focus {
+  width: 100%;
+  height: 44px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 8px;
+  background: var(--ssl-gold);
+  color: var(--menu-color);
+  font-weight: 700;
+}
+
+.login-modal .login-submit:hover {
+  filter: brightness(110%);
+}
+
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+/* New Players ticker */
+@keyframes player-ticker-scroll {
+  to {
+    transform: translateX(-25%);
+  }
+}
+
+.player-ticker {
+  display: flex;
+  margin-bottom: 20px;
+  overflow: hidden;
+  border-radius: var(--card-radius);
+  background: #444;
+  box-shadow: 3px 3px 4px rgb(0 0 0 / 10%);
+}
+
+.player-ticker-label {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 28px 0 16px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  background: var(--ssl-gold);
+  color: var(--menu-color);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.player-ticker-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--menu-color);
+  animation: player-ticker-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes player-ticker-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Cards fade in and out at the edges instead of being cut off */
+.player-ticker-viewport {
+  flex: 1;
+  min-width: 0;
+  min-height: 80px;
+  padding: 12px 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 32px, black calc(100% - 32px), transparent);
+}
+
+/* The duration is set from the number of cards in app/view/welcome.R */
+.player-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: player-ticker-scroll var(--ticker-duration) linear infinite;
+
+  &:has(.player-ticker-card:hover),
+  &:has(a:focus-visible) {
+    animation-play-state: paused;
+  }
+}
+
+.player-ticker-card {
+  display: flex;
+  flex: 0 0 250px;
+  align-items: center;
+  gap: 10px;
+  margin-right: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+  background: var(--bottom-background);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: var(--ssl-gold);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 40%);
+    transform: translateY(-2px);
+  }
+}
+
+.player-ticker-flag {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.player-ticker-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.player-ticker-name,
+.player-ticker-user {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-ticker-name {
+  font-weight: 700;
+}
+
+.player-ticker-user {
+  font-size: 0.8em;
+  opacity: 0.75;
+}
+
+.player-ticker-position {
+  flex: 0 0 auto;
+  color: var(--ssl-gold);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 767px) {
+  .player-ticker {
+    flex-direction: column;
+  }
+
+  .player-ticker-label {
+    justify-content: center;
+    padding: 6px 16px;
+    clip-path: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-ticker-track,
+  .player-ticker-dot {
+    animation: none;
+  }
+
+  .player-ticker-viewport {
+    overflow-x: auto;
+    mask-image: none;
+  }
 }

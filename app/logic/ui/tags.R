@@ -24,14 +24,15 @@ flexRow <- function(cont, style = "", onclick = "") {
 }
 
 closeNarrowMenuJS <- "
-  var mobileNav = document.querySelector('.nav-container-narrow');
   var mobileNavToggle = document.querySelector('.nav-toggle');
 
-  mobileNav.style.maxWidth = '0px';
-  mobileNavToggle.style.left = '0px';
-  mobileNavToggle.querySelector('.nav-toggle-icon_closed').style.display = 'block';
-  mobileNavToggle.querySelector('.nav-toggle-icon-open').style.display = 'none';
+  document.querySelector('.nav-container-narrow').classList.remove('is-open');
+  mobileNavToggle.classList.remove('is-open');
+  mobileNavToggle.setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('nav-open');
 "
+
+isNarrowJS <- "window.matchMedia('(max-width: 767px)').matches"
 
 #' @export
 navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
@@ -50,6 +51,9 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
         const childSubMenuItems = this.querySelector('.nav-menu-sub-items');
 
         if (childMenuItems) {
+          // Clicks on the items are handled by the items, and desktop menus open on hover
+          if (event.target.closest('.nav-menu-items') || !", isNarrowJS, ") return;
+
           const isClosed = getComputedStyle(childMenuItems).height === '0px';
 
           // Close all other open menus
@@ -61,7 +65,7 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
             });
           }
 
-          childMenuItems.style.height = 'max-content';
+          childMenuItems.style.height = isClosed ? 'max-content' : '0px';
         } else {
           ", closeNarrowMenuJS, "
         }
@@ -88,6 +92,8 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
                       const childSubMenuItems = this.querySelector('.nav-menu-sub-items');
 
                       if (childSubMenuItems) {
+                        if (event.target.closest('.nav-menu-sub-items') || !", isNarrowJS, ") return;
+
                         const isClosed = getComputedStyle(childSubMenuItems).height === '0px';
 
                         // Close all other open menus
@@ -99,7 +105,7 @@ navMenu <- function(cont, label = "", items = list(), showItems = FALSE) {
                           });
                         }
 
-                        childSubMenuItems.style.height = 'max-content';
+                        childSubMenuItems.style.height = isClosed ? 'max-content' : '0px';
                       } else {
                       ", closeNarrowMenuJS, "
                       }

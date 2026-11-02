@@ -27,7 +27,6 @@ box::use(
   shiny,
   shiny.router[route_link],
   stringr[str_to_upper,],
-  swipeR,
   tippy[tippy],
   waiter,
 )
@@ -58,22 +57,15 @@ ui <- function(id) {
   shiny$tagList(
     shiny$uiOutput(ns("information")),
     shiny$div(
-      style = "
-        max-width: 1000px;
-        margin: auto;
-      ",
-      bslib$card(
-        bslib$card_header(
-          shiny$h5("New Players")
-        ),
-        bslib$card_body(
-          style = "
-            scrollbar-width: none;
-            display: flex;
-            flex-wrap: wrap;
-          ",
-          swipeR$swipeROutput(ns("creates"), height = "100px")
-        )
+      class = "player-ticker",
+      shiny$div(
+        class = "player-ticker-label",
+        shiny$span(class = "player-ticker-dot"),
+        "New Players"
+      ),
+      shiny$div(
+        class = "player-ticker-viewport",
+        shiny$uiOutput(ns("creates"))
       )
     ),
     bslib$card(
@@ -98,6 +90,7 @@ ui <- function(id) {
                   width = "150px"
                 )
               ),
+              class = "leagueDropdown",
               style = "font-size: 14px; font-weight: 400;"
             )
           )
@@ -212,8 +205,9 @@ server <- function(id, usergroup, season, updated) {
       #### Latest league standings ####
       lapply(1:2,
         FUN = function(index) {
-          division <- (standings()$matchtype |> unique() |> sort())[index]
           output[[paste0("standings_", index)]] <- renderReactable({
+            division <- (standings()$matchtype |> unique() |> sort())[index]
+
             standings <- standings() |> 
               filter(matchtype == division)
               
@@ -489,7 +483,7 @@ server <- function(id, usergroup, season, updated) {
                 )
             }
           }) |> 
-            shiny$bindCache(id, division, season(), "standings")
+            shiny$bindCache(id, index, season(), "standings")
         }
       )
 
@@ -561,86 +555,60 @@ server <- function(id, usergroup, season, updated) {
       # })
 
       #### Recently created ####
-      output$creates <- swipeR$renderSwipeR({
+      output$creates <- shiny$renderUI({
         data <- creates
 
-        cards <- purrr$map(
-          .x = seq_len(nrow(data)),
-          .f = function(row) {
-            player <- data[row,]
-            
-            shiny$div(
-              style = "
-                  flex: 0 0 45vw;
-                  max-width: 200px;
-                  padding: 10px 14px;
-                  border-radius: 8px;
-                  background: var(--bottom-background);
-                  box-shadow: 2px 2px 4px var(--middle-background);
-                  box-sizing: border-box;
-                ",
+        # The copies only exist to fill the track, so only the first is tabbable and announced
+        cards <- function(isCopy) {
+          purrr$map(
+            .x = seq_len(nrow(data)),
+            .f = function(row) {
+              player <- data[row,]
+              tabindex <- if (isCopy) "-1"
+
               shiny$div(
-                style = "
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    min-width: 0;
-                  ",
-                shiny$a(
-                  href = route_link(paste0("tracker/player?pid=", player$pid)),
-                  style = "
-                    min-width: 0;
-                    flex: 1;
-                    white-space: normal;
-                    overflow-wrap: break-word;
-                    line-height: 1.1;
-                  ",
-                  player$name
-                ),
-                shiny$span(
-                  class = "player-extra",
-                  sprintf("(%s)", player$position)
-                ),
-                
+                class = "player-ticker-card",
+                `aria-hidden` = if (isCopy) "true",
                 shiny$img(
-                  class = "player-extra",
+                  class = "player-ticker-flag",
                   src = sprintf(
                     "https://flagcdn.com/%s.svg",
                     tolower(constant$nationsTwoLetter[player$nationality])
                   ),
                   alt = player$nationality,
                   title = player$nationality,
-                  style = "height:1em;width:1.3em;"
-                )
-              ),
-              linkUser(
-                player$username, 
-                player$uid, 
-                style = "
-                    display: block;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    font-size: 0.8em;
-                  ")
-            )
-          }
-        ) |> 
-          do.call(
-            what = swipeR$swipeRwrapper,
-            args = _
+                  onerror = "this.style.visibility = 'hidden';"
+                ),
+                shiny$div(
+                  class = "player-ticker-info",
+                  shiny$a(
+                    class = "player-ticker-name",
+                    href = route_link(paste0("tracker/player?pid=", player$pid)),
+                    title = player$name,
+                    tabindex = tabindex,
+                    player$name
+                  ),
+                  linkUser(
+                    player$username,
+                    player$uid,
+                    class = "player-ticker-user",
+                    tabindex = tabindex
+                  )
+                ),
+                shiny$span(class = "player-ticker-position", player$position)
+              )
+            }
           )
-        
-        swipeR$swipeR(
-          cards,
-          width = "80%",
-          effect = "slide",
-          slidesPerView = 3,
-          loop = TRUE,
-          rewind = TRUE,
-          autoplay = TRUE,
-          speed = 400,
-          scrollbar = FALSE
+        }
+
+        # The track moves by exactly one of its four copies, so the loop is seamless
+        shiny$div(
+          class = "player-ticker-track",
+          style = sprintf("--ticker-duration: %ss;", nrow(data) * 6),
+          cards(FALSE),
+          cards(TRUE),
+          cards(TRUE),
+          cards(TRUE)
         )
       })
 

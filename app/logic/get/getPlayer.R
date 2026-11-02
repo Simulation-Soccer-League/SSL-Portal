@@ -86,10 +86,18 @@ getBankTransactions <- function(status) {
 
 #' @export
 getRecentCreates <- function() {
+  # Reads the tables directly, as allplayersview also works out every player's bank balance
   memoisedPortalQuery(
-    "SELECT name, username, uid, position, nationality, pid
-    FROM allplayersview
-    ORDER BY created DESC
+    "SELECT pd.name, mb.username, pd.uid, pd.position,
+      CASE
+        WHEN LENGTH(pd.nationality) = 3 THEN n.name
+        ELSE CONVERT(pd.nationality USING utf8mb4)
+      END AS nationality,
+      pd.pid
+    FROM playerdata AS pd
+    LEFT JOIN mybbdb.mybb_users AS mb ON pd.uid = mb.uid
+    LEFT JOIN nationality AS n ON pd.nationality = n.abbreviation OR pd.nationality = n.name
+    ORDER BY pd.created DESC
     LIMIT 10;"
   )
 }
