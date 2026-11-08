@@ -853,7 +853,23 @@ server <- function(id, auth, updated) {
           )
         } else {
           # Finally if all checks pass, produce a verification modal
-          verifyBuild(input, bankedTPE, session)
+          
+          tryCatch({
+            verifyBuild(input, bankedTPE, session)  
+          }, error = function(e) {
+            showToast(
+              .options = constant$sslToastOptions,
+              "error",
+              paste(
+                "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+                e$message
+              )
+            )
+            
+            message("Create a player error: ", e)
+          })
+          
         }
       }) |> 
         shiny$bindEvent(input$submit)

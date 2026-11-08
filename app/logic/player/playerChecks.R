@@ -14,6 +14,7 @@ box::use(
     str_replace_all, 
     str_to_lower,
     str_to_title, 
+    str_to_upper,
     str_trim
     ],
   tibble[tibble],
@@ -25,7 +26,11 @@ box::use(
   app/logic/db/database[portalQuery],
   app/logic/db/discord[sendNewCreate],
   app/logic/db/login[isNonActiveForumUser],
-  app/logic/get/getPlayer[getActivePid,],
+  app/logic/get/getPlayer[
+    getActivePid, 
+    getPlayer,
+    hasPlayer,
+  ],
 )
 
 #' @export
@@ -49,25 +54,198 @@ eligibleRedist <- function(data){
 }
 
 #' @export
+eligibleRegress <- function(data){
+  data$tpebank < 0
+}
+
+#' @export
+#' type = "create" is for new created players and should not need a current build
+validateBuild <- function(pid, input, type = "create", ...) {
+  
+  if (!(pid |> is.null())) {
+    current <- getPlayer(pid)  
+  } else {
+    current <- tibble(
+      tpe = constant$startingTPE,
+      timesregressed = 0
+    )
+  }
+  
+  if (type == "redistribution") {
+    assert_that(
+      eligibleRedist(current), 
+      msg = "You are not eligible for a redistribution."
+    )
+  }
+  
+  if (type == "reroll") {
+    assert_that(
+      eligibleReroll(current), 
+      msg = "You are not eligible for a reroll."
+    )
+  }
+  
+  if (type == "create") {
+    assert_that(
+      hasPlayer(uid), 
+      msg = "You already have a non-retiring/non-retired player in the league."
+    )
+  }
+  
+  # Calculates the total cost of the new build
+  tpeUsed <- 0
+  print("Attributes")
+  for (att in (constant$attributes$attribute)) {
+    newValue <- input[[att |> str_remove_all(" ")]]
+    curValue <- current[[att |> str_to_lower()]]
+    
+    if (newValue |> length() == 1){
+      assert_that((newValue %% 1) == 0, msg = "All attribute values must be a whole number")
+      # assert_that(newValue >= 5, "All attribute values must be at minimum 5.")
+      # assert_that(newValue <= 20, "All attribute values must be at maximum 20.")
+      assert_that(
+        newValue %in% constant$tpeCost$value, 
+        msg = sprintf("The attribute value for %s is not correct.", att)
+      )
+      
+      if (type == "update") {
+        assert_that(newValue >= curValue, msg = "An update cannot regress attributes.")
+      }
+      
+      tpeUsed <- tpeUsed + constant$tpeCost$cumCost[constant$tpeCost$value == newValue]
+    }
+  }
+  print("Locked attributes")
+  assert_that(
+    input[["Stamina"]] == 20, 
+    input[["NaturalFitness"]] == 20, 
+    msg = "Stamina and Natural Fitness is locked to 20 and cannot be changed."
+  )
+  
+  # Removes two 20 costs from the total spent from the two fixed attributes
+  tpeUsed <- tpeUsed - 2*constant$tpeCost$cumCost[constant$tpeCost$value == 20]
+  
+  physicalMax <- 20 + max(current$timesregressed - 2, 0)
+  print("Physicals")
+  assert_that(
+    input[["Acceleration"]] <= physicalMax,
+    input[["Agility"]] <= physicalMax,
+    input[["Balance"]] <= physicalMax,
+    input[["JumpingReach"]] <= physicalMax,
+    input[["Pace"]] <= physicalMax,
+    input[["Strength"]] <= physicalMax,
+    msg = sprintf("All physical attributes must be at most at your current max, %s.", physicalMax)
+  )
+  
+  if (type == "regression") {
+    assert_that((current$tpe - tpeUsed) <= 24, msg = "You cannot regress to more than 24 TPE in the bank.")  
+  } 
+  
+  print(tpeUsed)
+  assert_that((current$tpe - tpeUsed) >= 0, msg = "Your build exceeds the number of TPE you have earned.")
+  
+  if (type %in% c("redistribution", "reroll")) {
+    assert_that(
+      (input$footedness |> str_to_lower()) %in% c("left", "right"), 
+      msg = "You cannot have footedness other than 'left' or 'right'."
+    )  
+  } 
+  
+  print("Only outfield specific things remaining")
+  
+  if (input$playerType |> is.null()){
+    isOutfield <- (current$pos_gk != 20 & type == "update")
+  } else {
+    isOutfield <- (input$playerType |> str_to_lower()) == "outfield"
+  }
+  
+  print(isOutfield)
+  
+  if (isOutfield) {
+    positions <- constant$positions
+    print("Position check")
+    if (type != "update") {
+      assert_that(
+        all(input$primary %in% names(positions)),
+        all(input$secondary %in% names(positions)),
+        !any(input$primary %in% input$secondary),
+        !any(input$secondary %in% input$primary),
+        msg = "Positions must be uniquely defined and be one of the standard positions."
+      )
+      
+      assert_that(
+        all(
+          input$traits |> str_to_lower() %in% 
+            (constant$jsonTraits |> str_to_lower())
+        ),
+        msg = "Traits must be from the allowed list."
+      )
+    }
+    
+    if (type %in% c("redistribution", "reroll")) {
+      curPos <- current |> 
+        dplyr$select(dplyr$contains("pos_")) |> 
+        pivot_longer(cols = dplyr$everything()) |> 
+        dplyr$mutate(
+          name = str_remove_all(name, "pos_") |> 
+            str_to_upper()
+        )
+      
+      print(curPos)
+      
+      posPrim <- 
+        positions[
+          names(positions) %in% 
+            (curPos |> 
+               dplyr$filter(value == 20) |> 
+               dplyr$select(name) |> unlist()
+            )
+        ]
+      
+      posSec <- 
+        positions[
+          names(positions) %in% 
+            (curPos |> 
+               dplyr$filter(value < 20 & value > 5) |> 
+               dplyr$select(name) |> unlist()
+            )
+        ]
+      
+      
+      assert_that(
+        (input$primary |> length()) == (posPrim |> length()), 
+        msg = sprintf("You can only have the %s primary positions.", posPrim |> length())
+      )
+      assert_that(
+        (input$secondary |> length()) == (posSec |> length()), 
+        msg = sprintf("You can only have the %s secondary positions.", posSec |> length())
+      )
+      
+    }
+  
+  }
+  
+}
+
+#' @export
 updateSummary <- function(current, input, type = "update"){
   summary <- tibble(tpe = current$tpe)
   
   tryCatch({
+    
+    validateBuild(current$pid, input, type)
+    
+    
     ## Adds player information, traits and positions
     if(type %in% c("redistribution", "reroll")){
-      summary <- 
+      summary <-
         tibble(
-          first = str_trim(input$firstName) |> htmltools$htmlEscape(), 
-          last = str_trim(input$lastName) |> htmltools$htmlEscape(),
-          name = paste(first, last) |> htmltools$htmlEscape(),
           birthplace = input$birthplace |> htmltools$htmlEscape(),
-          nationality = input$nationality,
           height = input$height,
           weight = input$weight,
           hair_color = input$hairColor,
           hair_length = input$hairLength,
           skintone = input$skintone,
-          render = input$render |> htmltools$htmlEscape(),
           `left foot` = 
             dplyr$case_when(
               input$footedness == "Right" & current$`right foot` == 20 ~ 
@@ -93,14 +271,6 @@ updateSummary <- function(current, input, type = "update"){
       
       if(input$playerType == "Outfield"){
         
-        assert_that(
-          all(input$primary %in% names(constant$positions)),
-          all(input$secondary %in% names(constant$positions)),
-          !any(input$primary %in% input$secondary),
-          !any(input$secondary %in% input$primary),
-          msg = "You have input wrong positions."
-        )
-        
         summary$position <- input$primary[1]
         
         # Add pos_ variables for each position
@@ -116,11 +286,6 @@ updateSummary <- function(current, input, type = "update"){
                 )
             )
         }
-        
-        assert_that(
-          all(input$traits %in% (constant$traits |> unlist(use.names = FALSE))), 
-          msg = "The traits you have submitted does not match the available traits."
-        )
         
         summary$traits <- 
           paste0(
@@ -254,15 +419,9 @@ verifyBuild <- function(input, bankedTPE, session){
     )
   
   tryCatch({
+    validateBuild(pid = NULL, input)
+    
     if(input$playerType == "Outfield"){
-      assert_that(
-        all(input$primary %in% names(constant$positions)),
-        all(input$secondary %in% names(constant$positions)),
-        !any(input$primary %in% input$secondary),
-        !any(input$secondary %in% input$primary),
-        msg = "You have input wrong positions."
-      )
-      
       summary$position <- input$primary
       
       # Add pos_ variables for each position
@@ -278,11 +437,6 @@ verifyBuild <- function(input, bankedTPE, session){
               )
           )
       }
-      
-      assert_that(
-        all(input$traits %in% (constant$traits |> unlist(use.names = FALSE))), 
-        msg = "The traits you have submitted does not match the available traits."
-      )
       
       summary$traits <- 
         paste0(
@@ -370,6 +524,8 @@ submitBuild <- function(input, bankedTPE, userinfo){
       type = "set"
     )
     
+    validateBuild(pid = NULL, input, uid = userinfo$uid)
+    
     summary <- 
       tibble(
         uid = userinfo$uid,
@@ -396,15 +552,6 @@ submitBuild <- function(input, bankedTPE, userinfo){
       )
     
     if(input$playerType == "Outfield"){
-      
-      assert_that(
-        all(input$primary %in% names(constant$positions)),
-        all(input$secondary %in% names(constant$positions)),
-        !any(input$primary %in% input$secondary),
-        !any(input$secondary %in% input$primary),
-        msg = "You have input wrong positions."
-      )
-      
       
       summary$position <- input$primary
       

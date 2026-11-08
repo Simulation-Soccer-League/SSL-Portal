@@ -24,8 +24,6 @@ box::use(
   app/logic/get/getPlayer[getActivePid, getPlayer],
   app/logic/player/playerChecks[
     checkDuplicatedNames, 
-    eligibleRedist, 
-    eligibleReroll, 
     updateSummary
   ],
   app/logic/ui/tags[flexCol, flexRow, numericStepper],
@@ -296,24 +294,31 @@ server <- function(id, auth, updated, type, player = NULL) {
     output$playerInfo <- shiny$renderUI({
       bslib$layout_column_wrap(
         width = 1/3,
-        shiny$textInput(
-          ns("firstName"), 
-          "Enter a first name:", 
-          value = playerData()$first,
-          placeholder = "First Name"
-          # ) |> 
-          #   (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
-        ) |> 
-          shinyjs$disabled(),
-        shiny$textInput(
-          ns("lastName"), 
-          "*Enter a last name:", 
-          value = playerData()$last,
-          placeholder = "Last Name"
+        shiny$div(
+          shiny$p(
+            "If you want to request a name change as part of your re-roll 
+            (not redistribution), please reach out to your nearest 
+            BoD member for approval."
+          )
+        ),
+        # shiny$textInput(
+        #   ns("firstName"), 
+        #   "Enter a first name:", 
+        #   value = playerData()$first,
+        #   placeholder = "First Name"
+        #   # ) |> 
+        #   #   (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
         # ) |> 
-        #   (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
-        ) |> 
-          shinyjs$disabled(),
+        #   shinyjs$disabled(),
+        # shiny$textInput(
+        #   ns("lastName"), 
+        #   "*Enter a last name:", 
+        #   value = playerData()$last,
+        #   placeholder = "Last Name"
+        # # ) |> 
+        # #   (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
+        # ) |> 
+        #   shinyjs$disabled(),
         shiny$selectInput(
           ns("pronouns"), 
           tippy(
@@ -326,20 +331,20 @@ server <- function(id, auth, updated, type, player = NULL) {
           multiple = TRUE
         ),
         shiny$textInput(
-          ns("birthplace"), 
-          tippy("Enter a place of birth:", "Only thematic", theme = "ssl"), 
+          ns("birthplace"),
+          tippy("Enter a place of birth:", "Only thematic", theme = "ssl"),
           value = playerData()$birthplace,
           placeholder = "City"
-        ) |> 
-          (\(x) if (type == "redistribution") shinyjs$disabled(x) else x)(),
-        shiny$selectInput(
-          ns("nationality"), 
-          tippy("Select a nationality:", "Cannot be changed with a reroll or redistribution.", theme = "ssl"),
-          choices = constant$sslNations,
-          ## Cannot change nationality with a redistribution or reroll
-          selected = playerData()$nationality
-        ) |> 
-          shinyjs$disabled(),
+        ) |>
+          (\(x) if (type == "redistribution") shinyjs$hidden(x) else x)(),
+        # shiny$selectInput(
+        #   ns("nationality"), 
+        #   tippy("Select a nationality:", "Cannot be changed with a reroll or redistribution.", theme = "ssl"),
+        #   choices = constant$sslNations,
+        #   ## Cannot change nationality with a redistribution or reroll
+        #   selected = playerData()$nationality
+        # ) |> 
+        #   shinyjs$disabled(),
         shiny$numericInput(
           ns("height"), 
           tippy("Enter height (inches):", "Only cosmetic", theme = "ssl"), 
@@ -361,15 +366,15 @@ server <- function(id, auth, updated, type, player = NULL) {
           choices = c("", "Left", "Right"),
           selected = dplyr$if_else(playerData()$`left foot` == 20, "Left", "Right")
           ),
-        shiny$textInput(
-          ns("render"), 
-          tippy("Select a player likeness:", 
-                "A player render is a person or thing you want your player to look like for graphics used within the league.",
-                theme = "ssl"), 
-          value = playerData()$render,
-          placeholder = "ex. Lionel Messi"
-        ) |> 
-          shinyjs$disabled(),
+        # shiny$textInput(
+        #   ns("render"), 
+        #   tippy("Select a player likeness:", 
+        #         "A player render is a person or thing you want your player to look like for graphics used within the league.",
+        #         theme = "ssl"), 
+        #   value = playerData()$render,
+        #   placeholder = "ex. Lionel Messi"
+        # ) |> 
+        #   shinyjs$disabled(),
         "",
         if(type == "reroll"){
           shiny$radioButtons(
@@ -383,15 +388,15 @@ server <- function(id, auth, updated, type, player = NULL) {
           )
         } else {
           shiny$radioButtons(
-            ns("playerType"), 
-            "Outfield or Goalkeeper", 
-            choices = c("Outfield", "Goalkeeper"), 
+            ns("playerType"),
+            "Outfield or Goalkeeper",
+            choices = c("Outfield", "Goalkeeper"),
             selected = dplyr$if_else(playerData()$pos_gk == 20,
                                      "Goalkeeper",
-                                     "Outfield"), 
+                                     "Outfield"),
             inline = TRUE
-          ) |> 
-            shinyjs$disabled()
+          ) |>
+            shinyjs$hidden()
         },
         if (type == "redistribution" & 
             playerData()$pos_gk == 20) {
@@ -781,67 +786,79 @@ server <- function(id, auth, updated, type, player = NULL) {
           Please change it to something else."
           )
         } else {
-          updates <- updateSummary(playerData(), input, type) 
           
-          attributes <- updates |> 
-            dplyr$filter(
-              attribute %in% (constant$attributes$attribute |> str_to_lower())
-            ) |> 
-            dplyr$mutate(
-              dplyr$across(
-                c(old, new),
-                as.numeric
+          tryCatch({
+            updates <- updateSummary(playerData(), input, type) 
+            
+            attributes <- updates |> 
+              dplyr$filter(
+                attribute %in% (constant$attributes$attribute |> str_to_lower())
+              ) |> 
+              dplyr$mutate(
+                dplyr$across(
+                  c(old, new),
+                  as.numeric
+                )
+              ) |> 
+              dplyr$left_join(
+                constant$tpeCost |> 
+                  dplyr$select(value, cumCost),
+                by = c("old" = "value")
+              ) |> 
+              dplyr$left_join(
+                constant$tpeCost |> 
+                  dplyr$select(value, cumCost),
+                by = c("new" = "value"),
+                suffix = c("old", "new")
+              ) |> 
+              dplyr$mutate(
+                diff = cumCostold - cumCostnew
+              ) |> 
+              dplyr$filter(diff > 0) |> 
+              dplyr$summarize(sum = sum(diff))
+            
+            
+            ## Limits the removed tpe changes to 100 if you are only redistributing
+            ## Reroll from GK to outfield removes this limit
+            if (attributes$sum > 100 & 
+                type == "redistribution" & 
+                !(input$playerType == "Goalkeeper" & gkReroll())) {
+              showToast(
+                .options = constant$sslToastOptions,
+                "error",
+                "You have removed more than the allowed 100 TPE in the redistribution."
               )
-            ) |> 
-            dplyr$left_join(
-              constant$tpeCost |> 
-                dplyr$select(value, cumCost),
-              by = c("old" = "value")
-            ) |> 
-            dplyr$left_join(
-              constant$tpeCost |> 
-                dplyr$select(value, cumCost),
-              by = c("new" = "value"),
-              suffix = c("old", "new")
-            ) |> 
-            dplyr$mutate(
-              diff = cumCostold - cumCostnew
-            ) |> 
-            dplyr$filter(diff > 0) |> 
-            dplyr$summarize(sum = sum(diff))
-          
-          
-          ## Limits the removed tpe changes to 100 if you are only redistributing
-          ## Reroll from GK to outfield removes this limit
-          if (attributes$sum > 100 & 
-             type == "redistribution" & 
-             (input$playerType == "Goalkeeper" & gkReroll())) {
+            } else if (updates |> nrow() == 0) {
+              showToast(
+                .options = constant$sslToastOptions,
+                "warning",
+                "You have not changed your build yet, there is nothing to update."
+              )
+              # } else if() {
+              
+            } else {
+              shiny$showModal(
+                shiny$modalDialog(
+                  title = "Verify your update",
+                  reactable(updates),
+                  easyClose = FALSE,
+                  footer = shiny$tagList(
+                    shiny$modalButton("Cancel"),
+                    shiny$actionButton(ns("confirmUpdate"), "OK")
+                  )
+                )
+              )
+            }
+          }, error = function(e) {
             showToast(
               .options = constant$sslToastOptions,
               "error",
-              "You have removed more than the allowed 100 TPE in the redistribution."
+              e$message
             )
-          } else if (updates |> nrow() == 0) {
-            showToast(
-              .options = constant$sslToastOptions,
-              "warning",
-              "You have not changed your build yet, there is nothing to update."
-            )
-          # } else if() {
             
-          } else {
-            shiny$showModal(
-              shiny$modalDialog(
-                title = "Verify your update",
-                reactable(updates),
-                easyClose = FALSE,
-                footer = shiny$tagList(
-                  shiny$modalButton("Cancel"),
-                  shiny$actionButton(ns("confirmUpdate"), "OK")
-                )
-              )
-            )
-          }
+            message(e$message)
+          })
+          
         }
       } else {
         if(bankedTPE() < 0){
@@ -891,45 +908,193 @@ server <- function(id, auth, updated, type, player = NULL) {
     shiny$observe({
       shiny$removeModal()
       
-      tryCatch({
-        updates <- updateSummary(playerData(), input, type)
-        
-        updatePlayerData(
-          uid = auth$uid, 
-          pid = playerData()$pid, 
-          updates = updates,
-          bankedTPE = bankedTPE()
-        )
-        
-        updated(updated() + 1)
-        
-        if(type == "redistribution"){
-          logRedist(pid = playerData()$pid)
-        } else if(type == "reroll"){
-          logReroll(pid = playerData()$pid)
-        }
-        
-        showToast(
-          .options = constant$sslToastOptions,
-          "success",
-          "You have successfully updated your player!"
-        )
-        if (is.null(player)) {
-          change_page("myPlayer/")  
-        }
-      }, error = function(e){
-        message("Error executing query: ", e)
-        
-        showToast(
-          .options = constant$sslToastOptions,
-          "error",
-          paste(
-            "Something is wrong, please notify the BoD with the 
-                following error message: \n",
-            e$message
+      if(type %in% c("redistribution", "reroll")){
+        if((sapply(
+          c(input$footedness, 
+            input$hairColor, input$hairLength, input$skinColor), 
+          FUN = function(x) x == "", simplify = TRUE
+        ) |> any()) | 
+        is.null(input$pronouns)
+        ){
+          showToast(
+            .options = constant$sslToastOptions,
+            "error", 
+            "You have missed a required field. Please check the marked fields."
           )
-        )
-      })
+          
+          feedbackDanger("lastName", input$lastName == "", "Please enter a last name for your player. If you only want to use one name, please enter it here instead of as a first name.")
+          feedbackDanger("nationality", input$nationality == "", "Please enter the nationality of your player.")
+          feedbackDanger("footedness", input$footedness == "", "Please enter the footedness of your player.")
+          feedbackDanger("hairColor", input$hairColor == "", "Please enter the hair color for your player.")
+          feedbackDanger("hairLength", input$hairLength == "", "Please enter the hair length for your player.")
+          feedbackDanger("skinColor", input$skinColor == "", "Please enter the skin tone for your player.")
+          feedbackDanger("pronouns", is.null(input$pronouns), "Please enter at least one pronoun for your player.")
+          
+        } else if (checkDuplicatedNames(input$first, input$last)){
+          showToast(
+            .options = constant$sslToastOptions,
+            "error", 
+            "Another player in the league's history have used this name. 
+          Please change it to something else."
+          )
+        } else {
+          updates <- updateSummary(playerData(), input, type) 
+          
+          attributes <- updates |> 
+            dplyr$filter(
+              attribute %in% (constant$attributes$attribute |> str_to_lower())
+            ) |> 
+            dplyr$mutate(
+              dplyr$across(
+                c(old, new),
+                as.numeric
+              )
+            ) |> 
+            dplyr$left_join(
+              constant$tpeCost |> 
+                dplyr$select(value, cumCost),
+              by = c("old" = "value")
+            ) |> 
+            dplyr$left_join(
+              constant$tpeCost |> 
+                dplyr$select(value, cumCost),
+              by = c("new" = "value"),
+              suffix = c("old", "new")
+            ) |> 
+            dplyr$mutate(
+              diff = cumCostold - cumCostnew
+            ) |> 
+            dplyr$filter(diff > 0) |> 
+            dplyr$summarize(sum = sum(diff))
+          
+          
+          ## Limits the removed tpe changes to 100 if you are only redistributing
+          ## Reroll from GK to outfield removes this limit
+          if (attributes$sum > 100 & 
+              type == "redistribution" & 
+              (input$playerType == "Goalkeeper" & gkReroll())) {
+            showToast(
+              .options = constant$sslToastOptions,
+              "error",
+              "You have removed more than the allowed 100 TPE in the redistribution."
+            )
+          } else if (updates |> nrow() == 0) {
+            showToast(
+              .options = constant$sslToastOptions,
+              "warning",
+              "You have not changed your build yet, there is nothing to update."
+            )
+            # } else if() {
+            
+          } else {
+            tryCatch({
+              updates <- updateSummary(playerData(), input, type)
+              
+              updatePlayerData(
+                uid = auth$uid, 
+                pid = playerData()$pid, 
+                updates = updates,
+                bankedTPE = bankedTPE()
+              )
+              
+              updated(updated() + 1)
+              
+              if(type == "redistribution"){
+                logRedist(pid = playerData()$pid)
+              } else if(type == "reroll"){
+                logReroll(pid = playerData()$pid)
+              }
+              
+              showToast(
+                .options = constant$sslToastOptions,
+                "success",
+                "You have successfully updated your player!"
+              )
+              if (is.null(player)) {
+                change_page("myPlayer/")  
+              }
+            }, error = function(e){
+              message("Error executing query: ", e)
+              
+              showToast(
+                .options = constant$sslToastOptions,
+                "error",
+                paste(
+                  "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+                  e$message
+                )
+              )
+            })
+          }
+        }
+      } else {
+        if(bankedTPE() < 0){
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            "You have spent too much TPE on your attributes! Reduce some of your attributes and try again."
+          )
+        } else if (type == "regression" & bankedTPE() > 24) {
+          
+          showToast(
+            .options = constant$sslToastOptions,
+            "error",
+            "You cannot regress more than 24 TPE over your required TPE."
+          )
+          
+        } else {
+          updates <- updateSummary(playerData(), input, type)
+          
+          if(updates |> nrow() == 0){
+            showToast(
+              .options = constant$sslToastOptions,
+              "warning",
+              "You have not changed your build yet, there is nothing to update."
+            )
+          } else {
+            tryCatch({
+              updates <- updateSummary(playerData(), input, type)
+              
+              updatePlayerData(
+                uid = auth$uid, 
+                pid = playerData()$pid, 
+                updates = updates,
+                bankedTPE = bankedTPE()
+              )
+              
+              updated(updated() + 1)
+              
+              if(type == "redistribution"){
+                logRedist(pid = playerData()$pid)
+              } else if(type == "reroll"){
+                logReroll(pid = playerData()$pid)
+              }
+              
+              showToast(
+                .options = constant$sslToastOptions,
+                "success",
+                "You have successfully updated your player!"
+              )
+              if (is.null(player)) {
+                change_page("myPlayer/")  
+              }
+            }, error = function(e){
+              message("Error executing query: ", e)
+              
+              showToast(
+                .options = constant$sslToastOptions,
+                "error",
+                paste(
+                  "Something is wrong, please notify the BoD with the 
+                following error message: \n",
+                  e$message
+                )
+              )
+            })
+          }
+        }
+      }
     }) |> 
       shiny$bindEvent(
         input$confirmUpdate,

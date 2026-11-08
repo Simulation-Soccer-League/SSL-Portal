@@ -160,6 +160,19 @@ getActivePid <- function(uid) {
 }
 
 #' @export
+hasPlayer <- function(uid) {
+  res <- 
+    portalQuery(
+      "SELECT pid
+        FROM allplayersview
+        WHERE (status_p = -1 OR status_p = 1) AND uid = {uid};",
+      uid = uid
+    )
+    
+  (res |> nrow()) > 0
+}
+
+#' @export
 getPlayers <- function(active) {
   active <- if_else(active == "TRUE", 1, 0)
 
