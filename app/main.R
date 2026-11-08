@@ -27,6 +27,7 @@ box::use(
   app/logic/player/playerChecks[
     checkApprovingPlayer,
     eligibleRedist,
+    eligibleRegress,
     eligibleReroll,
     hasActivePlayer,
     navigationCheck,
@@ -489,19 +490,29 @@ server <- function(id) {
         
       } else if (current == "myPlayer/regress") {
         
-        if (navigationCheck(authOutput())) {
-          if (!loadedServer$playerRegress) {
-            playerUpdate$server(
-              "regress",
-              auth    = authOutput(),
-              updated = updated,
-              type    = "regression"
-            )
-            loadedServer$playerRegress <- TRUE
+        if (activePlayer() |> 
+            eligibleRegress()) {
+          if (navigationCheck(authOutput())) {
+            if (!loadedServer$playerRegress) {
+              playerUpdate$server(
+                "regress",
+                auth    = authOutput(),
+                updated = updated,
+                type    = "regression"
+              )
+              loadedServer$playerRegress <- TRUE
+            }
           }
         } else {
+          showToast(
+            .options = constant$sslToastOptions,
+            "warning",
+            "You do not have access to this page."
+          )
+          
           change_page("")
         }
+        
         
       } else if (current == "createPlayer" & !loadedServer$create) { 
         
